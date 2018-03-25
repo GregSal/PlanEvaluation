@@ -1,0 +1,34 @@
+Name,PlanElement,Unit,Address,format
+Patient,Patient Name,,D4,General
+CR#,Patient ID,,D5,@
+Prescription Dose,Dose,cGy,H4,General
+Fractions,Fractions,,H5,0
+Plan Name,Plan Name,,L5,@
+Site,Body Region,,L5,@
+GTV Volume,GTV Volume,cc,G7,0.00
+ITV Volume,ITV Volume,cc,G8,0.00
+PTV Volume,PTV Volume,cc,G9,0.00
+Lung Volume,Lung Volume,cc,G10,0.00
+Plan Normalization,Normalization,%,G14,0.0%
+,COM-PTV,%,G15,0.0%
+,PTV Minimum,%,G17,0.0%
+,PTV V100%,%,G18,0.0%
+,PTV V90%,%,G19,0.0%
+,Dose 105%-PTV Volume,cc,G21,0.00
+105 Spillage,Dose105-PTV Volume/PTV Volume,%,H21,0.0%
+,Dose 100% Volume,cc,G22,0.00
+100 Coverage,Dose100 Volume/PTV Volume,%,H22,0.0%
+,Body-PTV+2CM Maximum,%,G24,0.0%
+,Dose 50% Volume,cc,G25,0.00
+Irradiated volume,Dose 50 Volume/PTV Volume,%,H22,0.0%
+,Contralateral Lung Mean,%,G29,0.0%
+,Whole Lung Mean,%,G30,0.0%
+,Lung V20Gy,%,G31,0.0%
+Lung basic function,Lung  V11.6Gy,cc,G32,0.00
+Lung Pneumonitis ,Lung  V12.4Gy,cc,G33,0.00
+,Aorta Maximum,cGy,G35,0.0
+,Aorta V40,cc,G36,0.00
+,Stomach Maximum,cGy,G56,0.0
+,Stomach V3600cGy,cc,G57,0.00
+,Ipsilateral Brachial Plexus Maximum,cGy,G43,0.0
+,Ipsilateral Brachial Plexus V2360,cc,G44,0.00

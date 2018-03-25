@@ -1,0 +1,8 @@
+PlanElement,element_value
+Patient Name,Test
+Patient ID,test ID
+Dose,200
+Fractions,1
+Plan Name,test1
+Body Region,BOOS
+GTV Volume,12

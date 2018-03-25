@@ -1,0 +1,14 @@
+PTV Volume (cc) vs. Ratio of 50% Isodose Volume to the PTV Volume
+Vptv	(Vptv/V100)
+Volume	Pass	Minor Deviation
+1.8	5.90	7.50	
+3.8	5.50	6.50	
+7.4	5.10	6.00	
+13.2	4.70	5.80	
+22.0	4.50	5.50	
+34.0	4.30	5.30	
+50.0	4.00	5.00	
+70.0	3.50	4.80	
+95.0	3.30	4.40	
+126.0	3.10	4.00	
+163.0	2.90	3.70	
