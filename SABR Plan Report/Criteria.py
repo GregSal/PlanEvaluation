@@ -1,6 +1,36 @@
 '''Defines classes and methods used to construct a plan evaluation criteria.
 '''
 
+class Aliases(dict):
+    '''A dictionary containing lists of alternate names for plan elements.
+    Methods
+        __init__
+            Defines or loads dict
+        __getattr__
+            Override to return [key] if key is not found in the dictionary.
+    '''
+    pass
+
+
+class Planlink(object):
+    '''Defines the connection between a PlanElement and a given plan.
+    Attributes:
+            status: type str
+                Defines the status of the link between the PlanElement and a
+                plan.  Can be one of:
+                    ('Possible Match', 'Confirmed Match', 'Unmatched',
+                     'Missing', 'Manual')
+            element_type type str
+                Defines the type of plan element the PlanElement is
+                linked with.
+                Can be one of:
+                    ('Structure', 'ReferencePoint', 'PlanParameter')
+            element_name: type str
+                The name of the plan element matched with the PlanElement.
+    '''
+    pass
+
+
 class Element(object):
     '''base class for all plan PlanElement and ReportElement objects.
     Defines the name, value_type, unit and value attributes.

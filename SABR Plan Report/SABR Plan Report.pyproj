@@ -3,16 +3,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{1bcf2c79-e044-4777-bbd2-8d81726cfb3d}</ProjectGuid>
+    <ProjectGuid>{7e573dc3-f536-4d8e-aa14-38dfebdbdebe}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>DVH_File.py</StartupFile>
+    <StartupFile>build_SABR_plan_report.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId />
-    <IsWindowsApplication>False</IsWindowsApplication>
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda36-64</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -20,14 +19,17 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DVH_File.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LoadData.py" />
-    <Compile Include="PlanData.py" />
-    <Compile Include="Report.py" />
-    <Compile Include="SABR Plan Report.py" />
+    <Compile Include="build_SABR_plan_report.py" />
+    <Compile Include="file_type_definitions.py" />
+    <Compile Include="load_data.py" />
+    <Compile Include="load_DVH_file.py" />
+    <Compile Include="plan_data.py" />
+    <Compile Include="plan_report.py" />
+    <Compile Include="report_gui.py" />
     <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

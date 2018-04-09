@@ -1,0 +1,6 @@
+name,reference_name,reference_type,reference_laterality,reference_constructor,unit,cell_address,cell_format
+Patient,Patient Name,Plan Property,,,,D4,General
+Prescription Dose,Prescribed dose,Plan Property,,,cGy,H4,General
+GTV Volume,GTV,Structure,,Volume,cc,G7,0.00
+PTV Minimum,PTV,Structure,,Minimum,%,G17,0.0%
+Aorta Maximum,Aorta,Structure,,Maximum,cGy,G35,0.0
