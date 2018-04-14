@@ -15,7 +15,7 @@ from scipy.interpolate import interp1d
 import numpy as np
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
@@ -159,7 +159,7 @@ class PlanElement(Element):
         initial_value = super().get_value(**parameters)
         if initial_value and desired_unit:
             final_value = conversion_method(initial_value, self.unit,
-                                               desired_unit)
+                                            desired_unit)
         else:
             final_value = initial_value
         return final_value
@@ -225,7 +225,6 @@ class PlanReference(dict):
                 self[key] = str(value)
         return parameters
 
-    # FIXME Overwriting dictionary update method
     def update_match(self, match):
         '''Update reference information resulting from matching with
         plan_data.
@@ -286,7 +285,7 @@ class DVH():
         '''Select the appropriate x and y DVH columns.
         '''
         x_column = y_column = x_possible = y_possible = None
-        x_unit_matched = False
+        desired_x_unit = None
         for(index, column) in enumerate(self.dvh_columns):
             if y_type in column['Data Type']:
                 y_possible = index
@@ -296,29 +295,34 @@ class DVH():
                 x_possible = index
                 if x_unit in column['Unit']:
                     x_column = index
-                    x_unit_matched = True
+                    desired_x_unit = None
+                else:
+                    desired_x_unit = column['Unit']
         if not x_column:
             x_column = x_possible
         if not y_column:
             y_column = y_possible
-        return x_column, y_column, x_unit_matched
+        return x_column, y_column, desired_x_unit
 
     def get_dvh_point(self, x_column, y_column, x_value):
         '''Interpolate DVH curve to select a value.
         '''
         data = self.dvh_curve
-        linear_interp = interp1d(data[x_column], data[y_column])
-        target_value = float(linear_interp(x_value))
+        if min(data[x_column]) < float(x_value) < max(data[x_column]):
+            linear_interp = interp1d(data[x_column], data[y_column])
+            target_value = float(linear_interp(x_value))
+        else:
+            target_value = None
         return target_value
 
     def get_value(self, dvh_constructor=None):
         '''Return the value in the requested units.
         '''
         (y_type, x_value, x_unit) = dvh_constructor
-        (x_column, y_column, x_unit_matched) = \
+        (x_column, y_column, desired_x_unit) = \
             self.select_columns(x_unit, y_type)
-        if not x_unit_matched:
-            x_value = self.unit_conversion(x_value, x_unit, desired_unit)
+        if desired_x_unit:
+            x_value = self.unit_conversion(x_value, x_unit, desired_x_unit)
         dvh_value = self.get_dvh_point(x_column, y_column, x_value)
         dvh_unit = self.dvh_columns[y_column]['Unit']
         dvh_name = ''.join(dvh_constructor)
@@ -505,7 +509,7 @@ class Plan():
         '''Define the path to the file containing the plan data.
         '''
         self.name = str(name)
-        self.data_source = Path(data_source)
+        self.data_source = Path(data_source.file_name)
         self.data_elements = {'Plan Property': dict(),
                               'Structure': dict(),
                               'Reference Point': dict()}
@@ -513,6 +517,9 @@ class Plan():
         self.prescription_dose = PlanElement(name='prescription_dose')
         self.laterality = None
         self.unit_conversion = convert_units
+        (plan_parameters, plan_structures) = data_source.load_data()
+        self.add_plan_data(plan_parameters, plan_structures)
+
 
     def set_units(self, **default_units):
         '''Sets the default units for the plan data.
@@ -582,7 +589,7 @@ class Plan():
         return element
 
     def match_element(self, reference_type=None, reference_name=None,
-                      reference_laterality=None, **reference_parameters):
+                      reference_laterality=None):
         '''Returns tuple of (reference_type, reference_name).
         '''
         full_reference_name = self.laterality_modifier(reference_name,
@@ -609,7 +616,7 @@ class Plan():
         self.laterality = laterality_options.get(laterality_code)
 
     def laterality_modifier(self, name, laterality):
-        '''
+        '''Add suffix indicating laterality where appropriate.
         '''
         if laterality:
             full_name = \
@@ -631,7 +638,7 @@ class Plan():
         desired_units = self.default_units['DoseUnit']
         if dose.unit != desired_units:
             dose_value = convert_units(dose_value, dose.unit,
-                                         desired_units)
+                                       desired_units)
         self.unit_conversion = partial(convert_units, dose=dose_value)
         self.prescription_dose = PlanElement(element_value=dose_value,
                                              unit=desired_units)

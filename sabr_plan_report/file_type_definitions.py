@@ -21,6 +21,7 @@ class FileTypes(list):
                                       '*.gif', '*.png',
                                       '*.tif', '*.tiff', '*.psd'),
                        'Comma Separated Variable File':('*.csv',),
+                       'DVH File':('*.dvh',),
                        'Text File':('*.txt',),
                        'Excel 2003 File':('*.xls',),
                        'Excel 2010 File':('*.xlsx', '*.xlsm'),

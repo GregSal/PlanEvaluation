@@ -13,7 +13,7 @@ import logging
 from plan_data import Plan
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
@@ -32,7 +32,7 @@ def find_unit(text):
     return name, unit
 
 
-class DVH_File():
+class DvhFile():
     '''Controls reading of a .dvh plan file.
     A subclass of io.TextIOBase with the following additional Attributes and
     Methods:
@@ -159,7 +159,6 @@ class DVH_File():
             parameters = {'name': item_name,
                           'unit': item_unit,
                           'element_value': line_element[1].strip()}
-            # TODO convert [cm³] to [cc]
             return parameters
 
         for text_line in self.read_lines(break_cond):
@@ -194,8 +193,8 @@ class DVH_File():
 
         text_line = self.readline()
         dvh_header_pattern = (
-            "([^\[]+)[\[]"  # everything until '['
-            "([^\]]+)[\]]"  # everything inside the  []
+            "([^\[]+)[\[]"  # everything until '[' # pylint: disable=anomalous-backslash-in-string
+            "([^\]]+)[\]]"  # everything inside the  [] # pylint: disable=anomalous-backslash-in-string
             )
         re_dvh_header = re.compile(dvh_header_pattern)
         dvh_header = re_dvh_header.findall(text_line)
@@ -237,7 +236,7 @@ def main():
     '''Test
     '''
     plan_file_name = Path(r"..\Test Data\DVH Test Data.dvh")
-    plan_file = DVH_File(plan_file_name)
+    plan_file = DvhFile(plan_file_name)
     test_plan = Plan('test1', plan_file_name)
     (plan_parameters, plan_structures) = plan_file.load_data()
     for parameters in plan_parameters:

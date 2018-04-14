@@ -9,7 +9,7 @@ from plan_data import Plan
 from plan_data import PlanReference
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
@@ -263,7 +263,7 @@ class Report():
                 report_element.update_reference(match=None)
 
     def insert_reference_aliases(self, element_name, alias_list):
-        '''
+        ''' Add alias list to element.
         '''
         self.report_elements[element_name].add_aliases(alias_list)
 
@@ -279,35 +279,48 @@ class Report():
     def match_elements(self, plan: Plan):
         '''Find match in plan for report elements.
         '''
+        def try_alias(match_method, reference, alias_list=None):
+            '''Loop through aliases to find a match
+            '''
+            item_match = None
+            if alias_list:
+                for alias in alias_list:
+                    reference['reference_name'] = alias
+                    item_match = match_method(**reference)
+                    if item_match:
+                        break
+            return item_match
+
+        def get_match_references(reference: PlanReference):
+            '''Return a dictionary with the parameters needed for element
+            matching.
+            '''
+            required_parameters = [
+                'reference_type',
+                'reference_name',
+                'reference_laterality']
+            alias_list = reference.pop('reference_aliases', None)
+            match_reference = {key: value
+                               for key, value in reference.items()
+                               if key in required_parameters}
+            return match_reference, alias_list
+
+        # method to extract match references
         match = dict()
         not_matched = dict()
+        do_match = plan.match_element
         for reference_type in plan.data_elements:
             report_references = self.get_references(reference_type)
             for (name, reference) in report_references.items():
-                item_match = plan.match_element(**reference)
+                (match_ref, alias_list) = get_match_references(reference)
+                item_match = do_match(**match_ref)
                 if not item_match:
-                    item_match = self.check_aliases(name, plan)
+                    item_match = try_alias(do_match, match_ref, alias_list)
                 if item_match:
                     match[name] = item_match
-                    reference.pop('reference_aliases',None)
                 else:
                     not_matched[name] = (None, None)
         return (match, not_matched)
-
-    def check_aliases(self, name, plan):
-        '''Loop through aliases to find a match
-        '''
-        element = self.report_elements[name]
-        reference = element.element_reference.copy()
-        aliases = reference.pop('reference_aliases',None)
-        item_match = None
-        if aliases:
-            for alias in aliases:
-                reference['reference_name'] = alias
-                item_match = plan.match_element(**reference)
-                if item_match:
-                    break
-        return item_match
 
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
@@ -323,22 +336,33 @@ class Report():
     def build(self):
         '''Open the spreadsheet and save the Report elements.
         '''
-        if self.template_file:
+        # Use save_file workbook if open
+        # else use template file if defined
+        # else use new blank workbook
+        try:
+            open_worksheets = [bk.fullname for bk in xw.books]
+        except AttributeError:
+            open_worksheets = None
+        if open_worksheets and (str(self.save_file) in open_worksheets):
+            workbook = xw.Book(str(self.save_file))
+        elif self.template_file:
             workbook = xw.Book(str(self.template_file))
         else:
-            app1 = xw.App()
-            workbook = app1.books[0]
-        workbook.activate(steal_focus=False)
+            workbook = xw.Book('Plan Report')
+        workbook.activate(steal_focus=True)
+
+        # Find the appropriate worksheet or create a new one
         sheetnames = [sheet.name for sheet in workbook.sheets]
         if self.worksheet in sheetnames:
             spreadsheet = workbook.sheets[self.worksheet]
         else:
             spreadsheet = workbook.sheets.add(self.worksheet)
         spreadsheet.activate()
+
+        # Add elements to the worksheet
         for element in self.report_elements.values():
             element.add_to_report(spreadsheet)
         workbook.save(str(self.save_file))
-        # TODO check for file open before saving
 
     def __repr__(self):
         '''Report description

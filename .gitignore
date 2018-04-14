@@ -260,3 +260,9 @@ paket-files/
 __pycache__/
 *.pyc
 tmp
+/sabr_plan_report/build/build_SABR_plan_report
+/sabr_plan_report/Data
+/sabr_plan_report/dist/build_SABR_plan_report
+/misc
+/sabr_plan_report/compile.bat
+/sabr_plan_report/compile.ps1
