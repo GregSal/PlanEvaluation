@@ -1,0 +1,48 @@
+reference_type,name,reference_name,reference_laterality,unit,reference_constructor,cell_address,cell_format
+Plan Property,Patient:,Patient Name,,,,D4,General
+Plan Property,CR#:,Patient ID,,,,D5,@
+Plan Property,Site:,Body Region,,,,L5,@
+Plan Property,Plan Name:,Plan,,,,L5,@
+Structure,GTV Volume (cc),IGTV,,cc,Volume,G7,0.00
+Structure,ITV Volume (cc):,ITV,,cc,Volume,G8,0.00
+Structure,PTV Volume (cc),PTV,,cc,Volume,G9,0.00
+Structure,Total Lung Volume (cc),Lung,Both,cc,Volume,G10,0.00
+Plan Property,Prescription Dose (cGy):,Prescribed dose,,cGy,,H4,General
+Plan Property,Fractions:,,,,,H5,0
+Plan Property,Plan Normalization Value (%),,,%,,G14,0.0%
+Reference Point,Dose @COM-PTV (%),,,%,,G15,0.0%
+Structure,PTV- Minimum Dose (%),PTV,,%,Min Dose,G17,0.0%
+Structure,PTV - V100(%),PTV,,%,V 4800 cGy,G18,0.0%
+Structure,PTV - V90 (%),PTV,,%,V 4320 cGy,G19,0.0%
+Structure,HIGH Dose Spillage Location,Dose105[%]-PTV,,cc,Volume,G21,0.00
+Structure,HIGH Dose Spillage Volume,Dose 100[%],,cc,Volume,G22,0.00
+Structure,LOW Dose Spillage Location,Body-PTV+20,,%,Max Dose,G24,0.0%
+Structure,LOW Dose Spillage Volume,Dose 50[%],,cc,Volume,G25,0.00
+Structure,Contralateral Lung Mean Dose,Lung,Contralateral,cGy,Mean Dose,G29,0.0
+Structure,Total Lung Mean Dose,Lung,Both,cGy,Mean Dose,G30,0.0
+Structure,Total Lung V20,Lung,Both,%,V 2000 cGy,G31,0.0%
+Structure,Aorta  Maximum Dose,Aorta,,cGy,Max Dose,G33,0.0
+Structure,Aorta  V60Gy,Aorta,,cc,V 6000 cGy,G34,0.00
+Structure,Artery-Pulmonary Maximum Dose,PulmonaryArtery,,cGy,Max Dose,G35,0.0
+Structure,Artery-Pulmonary V60Gy,PulmonaryArtery,,cc,V 6000 cGy,G36,0.00
+Structure,Spinal Canal Maximum Dose,Spinal Canal,,cGy,Max Dose,G37,0.0
+Structure,Ipsilat. Brach. Plex. Maximum Dose,Ipsilat. Brach. Plex.,,cGy,Max Dose,G38,0.0
+Structure,Ipsilat. Brach. Plex. V30Gy,Ipsilat. Brach. Plex.,,cc,V 3000 cGy,G39,0.00
+Structure,Heart Maximum Dose,Heart,,cGy,Max Dose,G40,0.0
+Structure,Heart V60Gy,Heart,,cc,V 6000 cGy,G41,0.00
+Structure,Esophagus Maximum Dose,Esophagus,,cGy,Max Dose,G42,0.0
+Structure,Chestwall (rib) Maximum Dose,Chest Wall,,cGy,Max Dose,G43,0.0
+Structure,Chestwall (rib) V50Gy,Chest Wall,,cc,V 5000 cGy,G44,0.00
+Structure,Proximal Trachea and Bronchial Tree Maximum Dose,PRV20 Brl Tree,,cGy,Max Dose,G45,0.0
+Structure,Proximal Trachea and Bronchial Tree V60Gy,PRV20 Brl Tree,,cc,V 6000 cGy,G46,0.00
+Structure,Stomach and Intestines Maximum Dose,Stomach,,cGy,Max Dose,G47,0.0
+Structure,Stomach and Intestines V36Gy,Stomach,,cc,V 3600 cGy,G48,0.00
+Ratio,V105% - PTV (cc) / PTV Volume (cc),,,,Ratio,H21,0.0%
+Ratio,V100% (cc) / PTV Volume (cc),,,,Ratio,H22,0.0%
+Ratio,V50% (cc)  / PTV Volume (cc),,,,Ratio,H22,0.0%
+Plan Property,Dosimetrist:,,,,,,
+Plan Property,Physicist:,,,,,,
+Plan Property,Radiation Oncologist:,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
