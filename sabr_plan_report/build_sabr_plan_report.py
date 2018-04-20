@@ -80,7 +80,7 @@ def main():
     if len(argv) > 1:
         base_path = Path(argv[1])
     else:
-        base_path = Path.cwd() / 'Data'
+        base_path = r'M:\Dosimetry Planning Documents\SABR Plan Evaluation'
     data_path = Path.cwd() / 'Data'
     report_selection = define_reports(base_path, data_path)
 

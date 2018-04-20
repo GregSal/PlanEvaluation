@@ -32,7 +32,7 @@ def convert_units(starting_value, starting_units, target_units,
                                 'cc': volume/100}
                        }
     conversion_factor = conversion_table[starting_units][target_units]
-    new_value = starting_value*conversion_factor
+    new_value = float(starting_value)*conversion_factor
     return new_value
 
 
@@ -322,7 +322,8 @@ class DVH():
         (x_column, y_column, desired_x_unit) = \
             self.select_columns(x_unit, y_type)
         if desired_x_unit:
-            x_value = self.unit_conversion(x_value, x_unit, desired_x_unit)
+            x_value = self.unit_conversion(float(x_value),
+                                           x_unit, desired_x_unit)
         dvh_value = self.get_dvh_point(x_column, y_column, x_value)
         dvh_unit = self.dvh_columns[y_column]['Unit']
         dvh_name = ''.join(dvh_constructor)
@@ -402,7 +403,7 @@ class Structure():
             re_construct = re.compile(
                 r'^(?P<target>[DV])\s?'  # Target type: D for dose of V for volume
                 r'(?P<value>\d+\.?\d)\s?'  # Search value a decimal or integer
-                r'(?P<unit>\w+)$'           # Units of search value
+                r'(?P<unit>[\w%]+)$'           # Units of search value
                 )
             dvh_constructor = re_construct.findall(reference_constructor)
             return dvh_constructor
@@ -415,6 +416,8 @@ class Structure():
             element = self.structure_properties.get(reference_constructor)
         if element:
             value = element.get_value(**parameters)
+        else:
+            value = None
         return value
 
     def set_units(self):

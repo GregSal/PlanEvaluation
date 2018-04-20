@@ -4,9 +4,9 @@ block_cipher = None
 
 
 a = Analysis(['build_SABR_plan_report.py'],
-             pathex=["C:\\Users\\Greg\\OneDrive - Queen's University\\Python\\Projects\\PlanEvaluation\\sabr_plan_report"],
+             pathex=['C:\\Users\\gsalomon\\OneDrive for Business 1\\Python\\Projects\\PlanEvaluation\\sabr_plan_report'],
              binaries=[],
-             datas=[],
+             datas=[('DVH.png', '.'), ('DVH.ico', '.'), ('.\\Data', 'Data')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True )
+          console=True , icon='DVH.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

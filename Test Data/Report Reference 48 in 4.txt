@@ -16,7 +16,7 @@ Structure,PTV - V100(%),PTV,,%,V 4800 cGy,G18,0.0%
 Structure,PTV - V90 (%),PTV,,%,V 4320 cGy,G19,0.0%
 Structure,HIGH Dose Spillage Location,Dose105[%]-PTV,,cc,Volume,G21,0.00
 Structure,HIGH Dose Spillage Volume,Dose 100[%],,cc,Volume,G22,0.00
-Structure,LOW Dose Spillage Location,Body-PTV+20,,%,Max Dose,G24,0.0%
+Structure,LOW Dose Spillage Location,Body-PTV+20,,%,Max Dose,G24,0.0
 Structure,LOW Dose Spillage Volume,Dose 50[%],,cc,Volume,G25,0.00
 Structure,Contralateral Lung Mean Dose,Lung,Contralateral,cGy,Mean Dose,G29,0.0
 Structure,Total Lung Mean Dose,Lung,Both,cGy,Mean Dose,G30,0.0

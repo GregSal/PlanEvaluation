@@ -1,0 +1,11 @@
+altgraph==0.15
+comtypes==1.1.4
+future==0.16.0
+macholib==1.9
+numpy==1.14.2
+pefile==2017.11.5
+pip==10.0.0
+PyInstaller==3.3.1
+scipy==1.0.1
+setuptools==39.0.1
+xlwings==0.11.7

@@ -53,14 +53,14 @@ class Target(dict):
     def add_value(self, element_value, element_unit, sheet):
         '''Enter the value into the spreadsheet.
         '''
-        if element_unit and ('%' in element_unit):
-            element_value = element_value/100
-            # spreadsheet expects percent values as a decimal
         cell_address = self.get('cell_address')
         if cell_address:
             cell_format = self.get('cell_format')
             if cell_format:
                 sheet.range(cell_address).number_format = cell_format
+                if '%' in cell_format:
+                    element_value = element_value/100
+                    # spreadsheet expects percent values as a decimal
             sheet.range(cell_address).value = element_value
 
     def __repr__(self):
