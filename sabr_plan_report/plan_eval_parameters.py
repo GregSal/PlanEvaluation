@@ -230,17 +230,21 @@ class PlanEvalParameters(object):
                 full_path = file_name.resolve()
             except PermissionError:
                 full_path = file_name
-            return full_path
+            except FileNotFoundError:
+                full_path = file_name
         elif isinstance(file_name, str):
             if any(a in file_name for a in[':', './']):
                 try:
                     full_path = Path(file_name).resolve()
                 except PermissionError:
                     full_path = Path(file_name)
+                except FileNotFoundError:
+                    full_path = Path(file_name)
                 return full_path
             full_path = self.base_path / file_name
-            return full_path
-        raise TypeError('file_name must be Type Path or str')
+        else:
+            raise TypeError('file_name must be Type Path or str')
+        return full_path
 
     #The following methods are used to check and update parameters
     def update_base_path(self, directory_path: Path):

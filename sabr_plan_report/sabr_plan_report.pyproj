@@ -58,6 +58,7 @@
     <Content Include="Data\Test Prostate DVH Percent.dvh.txt" />
     <Content Include="DVH.ico" />
     <Content Include="DVH.png" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />

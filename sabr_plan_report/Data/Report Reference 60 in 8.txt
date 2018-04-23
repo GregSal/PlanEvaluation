@@ -33,8 +33,10 @@ Structure,Heart V60Gy,Heart,,cc,V 6000 cGy,G41,0.00
 Structure,Esophagus Maximum Dose,Esophagus,,cGy,Max Dose,G42,0.0
 Structure,Chestwall (rib) Maximum Dose,Chest Wall,,cGy,Max Dose,G43,0.0
 Structure,Chestwall (rib) V50Gy,Chest Wall,,cc,V 5000 cGy,G44,0.00
-Structure,Proximal Trachea and Bronchial Tree Maximum Dose,PRV20 Brl Tree,,cGy,Max Dose,G45,0.0
-Structure,Proximal Trachea and Bronchial Tree V60Gy,PRV20 Brl Tree,,cc,V 6000 cGy,G46,0.00
+Structure,Proximal Trachea Maximum Dose,Trachea,,cGy,Max Dose,A45,0.0
+Structure,Proximal Bronchial Tree Maximum Dose,BronchialTree,,cGy,Max Dose,B45,0.0
+Structure,Proximal Trachea V60Gy,Trachea,,cc,V 6000 cGy,A46,0.00
+Structure,Proximal Bronchial Tree V60Gy,BronchialTree,,cc,V 6000 cGy,B46,0.00
 Structure,Stomach and Intestines Maximum Dose,Stomach,,cGy,Max Dose,G47,0.0
 Structure,Stomach and Intestines V36Gy,Stomach,,cc,V 3600 cGy,G48,0.00
 Ratio,V105% - PTV (cc) / PTV Volume (cc),,,,Ratio,H21,0.0%

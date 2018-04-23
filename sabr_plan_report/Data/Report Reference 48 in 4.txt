@@ -41,8 +41,10 @@ Structure,Esophagus V18.8Gy,Esophagus,,cc,V 1880 cGy,G49,0.00
 Structure,Chestwall (rib) Maximum Dose,Chest Wall,,cGy,Max Dose,G50,0.0
 Structure,Chestwall (rib) V40Gy,Chest Wall,,cc,V 4000 cGy,G51,0.00
 Structure,Chestwall (rib) V30Gy,Chest Wall,,cc,V 3000 cGy,G52,0.00
-Structure,Proximal Trachea and Bronchial Tree Maximum Dose,PRV20 Brl Tree,,cGy,Max Dose,G53,0.0
-Structure,Proximal Trachea and Bronchial Tree V15.6Gy,ProxBronchialZon,,cc,V 1560 cGy,G55,0.00
+Structure,Proximal Trachea Maximum Dose,Trachea,,cGy,Max Dose,A54,0.0
+Structure,Proximal Bronchial Tree Maximum Dose,BronchialTree,,cGy,Max Dose,B54,0.0
+Structure,Proximal Trachea V15.6Gy,Trachea,,cc,V 1560 cGy,G55,0.00
+Structure,Proximal Bronchial Tree V15.6Gy,BronchialTree,,cc,V 1560 cGy,G55,0.00
 Structure,Stomach and Intestines Maximum Dose,Stomach,,cGy,Max Dose,G56,0.0
 Structure,Stomach and Intestines V21Gy,Stomach,,cc,V 2100 cGy,G57,0.00
 Ratio,V105% - PTV (cc) / PTV Volume (cc),,,,Ratio,H21,0.0%

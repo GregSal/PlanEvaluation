@@ -2,6 +2,7 @@
 '''
 from pathlib import Path
 import pprint
+from copy import deepcopy
 
 import xlwings as xw
 from build_sabr_plan_report import define_reports
@@ -48,22 +49,21 @@ def save_to_excel(file_name, sheet='output', starting_cell='A1',
         yield output_range
         output_range = output_range.offset(column_offset=column_increment)
 
-def save_comparison(original_sheet, report_file, test_files, save_range):
+def save_comparison(original_sheet, test_sheet, test_files, save_range):
     '''Save the original and test data into the comparison spreadsheet.
     '''
     original_data = original_sheet.range('B6:G57')
     save_range.value = original_data.value
 
-    test_book = xw.Book(str(report_file))
-    test_sheet = test_book.sheets[original_sheet.name]
     test_data = test_sheet.range('G6:G57')
     test_shift = original_data.shape[1]
     save_test = save_range.offset(column_offset=test_shift)
     save_test.options(transpose=True).value = test_data.value
 
+    sheet_name = original_sheet.name
     original_dvh_file = test_files['DVH File']
-    header_range = save_range.offset(row_offset=-1, column_offset=test_shift-1)
-    header_range.value = [original_dvh_file, 'Test_results']
+    header_range = save_range.offset(row_offset=-1, column_offset=test_shift-2)
+    header_range.value = [sheet_name, original_dvh_file, 'Test_results']
 
     dif_range = save_test.offset(column_offset=1)
     dif_range = dif_range.resize(original_data.shape[0],1)
@@ -75,7 +75,7 @@ def main():
     pp = pprint.PrettyPrinter(indent=4)
     base_path = Path(
         r'\\dkphysicspv1\e$\Gregs_Work\Plan Checking\SBRT DVH Checks')
-    data_path = Path(r'..\Test Data').resolve()
+    data_path = Path(r'.\Data').resolve()
     results_path = Path(
         r'M:\Dosimetry Planning Documents\SABR Plan Evaluation')
     report_file = results_path / 'Test Report.xls'
@@ -83,11 +83,12 @@ def main():
     output_itter = save_to_excel(comparison_file_name, starting_cell='A2',
                                  column_increment=9)
 
-    report_selection = define_reports(base_path, data_path)
+    report_definition = define_reports(base_path, data_path)
     test_list_file = data_path / 'test data pairs.csv'
     test_list = load_items(test_list_file)
 
     for test_files in test_list:
+        report_selection = deepcopy(report_definition)
         dvh_file, report_name, original_sheet = \
             select_test_data(base_path, test_files)
 
@@ -98,10 +99,13 @@ def main():
             report_name=report_name)
         run_report(report_selection, report_param)
 
+        test_book = xw.Book(str(report_file))
+        test_sheet = test_book.sheets[original_sheet.name]
         save_range = next(output_itter)
-        save_comparison(original_sheet, report_file, test_files, save_range)
+        save_comparison(original_sheet, test_sheet, test_files, save_range)
         save_range.sheet.book.save()
         original_sheet.book.close()
+        test_sheet.book.close()
 
 if __name__ == '__main__':
     main()

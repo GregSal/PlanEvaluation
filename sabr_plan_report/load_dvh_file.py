@@ -44,10 +44,10 @@ class DvhFile():
         last_line:  type str
             The line that has most recently been returned by a readline() call.
             This allows for a simple method to backup one line in the file.
-        previous_postions: type list
-            A list of the file stream positions, as defined by tell(), pointing to
-            the beginning of the previous lines.
-            This allows for a method to backup multiple lines in the file.
+        previous_postions: type int
+            The previous file stream position, as defined by tell()
+            It points to the beginning of the previous line.
+            This allows for a method to backup one line in the file.
     Methods:
         __init__(file_name: Path **kwds):
             Open the file to begin reading.
@@ -71,7 +71,7 @@ class DvhFile():
         self.file = file_name.open(**kwds)
         self.file_name = file_name
         self.last_line = None
-        self.previous_postions = [0, ]
+        self.do_previous = False
 
     def catch_special_char(self, raw_line: str):
         '''Convert line to ASCII.
@@ -88,26 +88,22 @@ class DvhFile():
         new_line = bytes_line.decode()
         return new_line
 
-    def readline(self, do_previous=False, **kwds):
+    def readline(self, **kwds):
         '''Read in the next line of text file, remembering previous line.
         '''
-        if do_previous:
+        if self.do_previous:
             new_line = self.last_line
+            self.do_previous = False
         else:
             raw_line = self.file.readline(**kwds)
             new_line = self.catch_special_char(raw_line)
-            self.previous_postions.append(self.file.tell())
             self.last_line = new_line
         return new_line
 
-    def backstep(self, lines=1):
-        '''Move the current stream position of file backwards by 'lines' number
-        of lines.
+    def backstep(self):
+        '''Set the next call to self.readline to return last_line.
         '''
-        offset = -lines - 1
-        set_position = self.previous_postions[offset]
-        self.file.seek(set_position)
-        self.previous_postions = self.previous_postions[:offset+1]
+        self.do_previous = True
 
     def read_lines(self, break_cond=None):
         '''Iterate through lines of text data until the stop iteration
