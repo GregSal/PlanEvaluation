@@ -1,7 +1,6 @@
 '''Fill an Excel SABR Spreadsheet with values from a DVH file.
 '''
 from pathlib import Path
-import pprint
 from copy import deepcopy
 
 import xlwings as xw
@@ -14,16 +13,20 @@ def select_test_data(base_path, test_files):
     '''Identify the dvh data file and the appropriate report name.
     '''
     sheet_lookup = {'EvalutionSheet 48Gy4F or 60Gy5F': 'SABR 48 in 4',
-                'Evalution Sheet 60Gy 8F': 'SABR 60 in 8'}
+                    'Evalution Sheet 60Gy 8F': 'SABR 60 in 8'}
     original_results = base_path / test_files['Plan Report File']
     workbook = xw.Book(str(original_results))
-    for sheet_name in sheet_lookup.keys():
+    sheet_name = None
+    for sheet_name in sheet_lookup:
         sheet = workbook.sheets[sheet_name]
         sheet.activate()
         test_value = sheet.range('G7').value
         if test_value:
             break
-    report_name = sheet_lookup[sheet_name]
+    if sheet_name:
+        report_name = sheet_lookup[sheet_name]
+    else:
+        report_name = None
     dvh_file = test_files['DVH File']
     return dvh_file, report_name, sheet
 
@@ -66,27 +69,14 @@ def save_comparison(original_sheet, test_sheet, test_files, save_range):
     header_range.value = [sheet_name, original_dvh_file, 'Test_results']
 
     dif_range = save_test.offset(column_offset=1)
-    dif_range = dif_range.resize(original_data.shape[0],1)
-    dif_range.formula='=R[0]C[-1]-R[0]C[-2]'
+    dif_range = dif_range.resize(original_data.shape[0], 1)
+    dif_range.formula = '=R[0]C[-1]-R[0]C[-2]'
 
-def main():
-    '''Test
+def run_tests(base_path, output_itter,
+              report_definition, report_file, test_list):
+    '''iterate through the list of tests, load the data and
+    generate a comparison.
     '''
-    pp = pprint.PrettyPrinter(indent=4)
-    base_path = Path(
-        r'\\dkphysicspv1\e$\Gregs_Work\Plan Checking\SBRT DVH Checks')
-    data_path = Path(r'.\Data').resolve()
-    results_path = Path(
-        r'M:\Dosimetry Planning Documents\SABR Plan Evaluation')
-    report_file = results_path / 'Test Report.xls'
-    comparison_file_name = results_path / 'Test results.xls'
-    output_itter = save_to_excel(comparison_file_name, starting_cell='A2',
-                                 column_increment=9)
-
-    report_definition = define_reports(base_path, data_path)
-    test_list_file = data_path / 'test data pairs.csv'
-    test_list = load_items(test_list_file)
-
     for test_files in test_list:
         report_selection = deepcopy(report_definition)
         dvh_file, report_name, original_sheet = \
@@ -99,14 +89,28 @@ def main():
             report_name=report_name)
         run_report(report_selection, report_param)
 
-        test_book = xw.Book(str(report_file))
-        test_sheet = test_book.sheets[original_sheet.name]
+        test_sheet = xw.Book(str(report_file)).sheets[original_sheet.name]
         save_range = next(output_itter)
         save_comparison(original_sheet, test_sheet, test_files, save_range)
         save_range.sheet.book.save()
         original_sheet.book.close()
         test_sheet.book.close()
 
+def main():
+    '''Test
+    '''
+    base_path = Path(
+        r'\\dkphysicspv1\e$\Gregs_Work\Plan Checking\SBRT DVH Checks')
+    data_path = Path(r'.\Data').resolve()
+    results_path = Path(
+        r'M:\Dosimetry Planning Documents\SABR Plan Evaluation')
+    report_file = results_path / 'Test Report.xls'
+    comparison_file_name = results_path / 'Test results.xls'
+    output_itter = save_to_excel(comparison_file_name, starting_cell='A2',
+                                 column_increment=9)
+    report_definition = define_reports(base_path, data_path)
+    test_list = load_items(data_path / 'test data pairs.csv')
+    run_tests(base_path, output_itter, report_definition, report_file, test_list)
+
 if __name__ == '__main__':
     main()
-

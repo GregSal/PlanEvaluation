@@ -50,7 +50,7 @@ class Target(dict):
                 self[key] = str(value)
         return parameters
 
-    def add_value(self, element_value, element_unit, sheet):
+    def add_value(self, element_value, sheet):
         '''Enter the value into the spreadsheet.
         '''
         cell_address = self.get('cell_address')
@@ -164,7 +164,7 @@ class ReportElement(Element):
         '''
         element_value = self.element_value
         if element_value is not None:
-            self.element_target.add_value(element_value, self.unit, sheet)
+            self.element_target.add_value(element_value, sheet)
 
 
 class Report():

@@ -130,7 +130,7 @@ class ReportGuiFrame(tk.Frame): # pylint: disable=too-many-ancestors
     '''Master class for primary sub-frames and for main GUI.
     '''
 
-    def __init__(self, report_param: PlanEvalParameters, master=None):
+    def __init__(self, report_param=None, master=None):
         '''Create the DIR Scan GUI and set the initial parameters
         '''
         super().__init__(master)
@@ -172,6 +172,12 @@ class InputPathsFrame(ReportGuiFrame): # pylint: disable=too-many-ancestors
     '''GUI frame for selecting the DVH file to read.
     used inside the main GUI.
     '''
+    def __init__(self, **parameters):
+        '''Define the frame
+        '''
+        super().__init__(**parameters)
+        self.select_file = None
+
     def build(self):
         '''Build the frame to select the plan DVH file to read.
         '''
@@ -230,6 +236,12 @@ class OutputPathsFrame(ReportGuiFrame): # pylint: disable=too-many-ancestors
     Scan and Parse.
     used inside the main GUI.
     '''
+    def __init__(self, **parameters):
+        '''Define the frame
+        '''
+        super().__init__(**parameters)
+        self.file_data_output = None
+
     def build(self):
         '''Build the frame to select a file or directory.
         Add the form to select a directory to scan.
@@ -283,6 +295,12 @@ class ReportSelectionFrame(ReportGuiFrame): # pylint: disable=too-many-ancestors
     '''Build the frame used to select the report to use.
     '''
     # Add frame to select a file to save file data from the parse output
+    def __init__(self, **parameters):
+        '''Define the frame
+        '''
+        super().__init__(**parameters)
+        self.report_select = None
+
     def build(self):
         report_name_header = 'Select the appropriate Evaluation.'
         report_select = SelectReportFrame(self, report_name_header, var_type='int')
@@ -302,6 +320,13 @@ class ReportSelectionFrame(ReportGuiFrame): # pylint: disable=too-many-ancestors
 class ActionButtonsFrame(ReportGuiFrame): # pylint: disable=too-many-ancestors
     '''Add the buttons to generate the report and finish.
     '''
+    def __init__(self, **parameters):
+        '''Define the frame
+        '''
+        super().__init__(**parameters)
+        self.run_button = None
+        self.done_button = None
+
     def build(self):
         '''Configure the GUI frame and add sub-frames.
         This method is to be overwritten for each sub-class.
@@ -366,29 +391,34 @@ class DirGui(tk.Frame): # pylint: disable=too-many-ancestors
         '''Configure the main GUI window and add sub-frames.
         '''
         self.window_format()
-        input_select_frame = InputPathsFrame(self.data, self)
+        input_select_frame = InputPathsFrame(report_param=self.data,
+                                             master=self)
         input_select_frame.build()
         input_select_frame.grid(column=1, row=2, columnspan=3,
                                 padx=10, sticky=tk.W)
         self.input_select = input_select_frame
 
-        report_select_frame = ReportSelectionFrame(self.data, self)
+        report_select_frame = ReportSelectionFrame(report_param=self.data,
+                                                   master=self)
         report_select_frame.build()
         report_select_frame.grid(column=1, row=3, columnspan=2,
                                  padx=10, sticky=tk.W)
         self.report_select = report_select_frame
 
-        output_select_frame = OutputPathsFrame(self.data, self)
+        output_select_frame = OutputPathsFrame(report_param=self.data,
+                                               master=self)
         output_select_frame.build()
         output_select_frame.grid(column=1, row=4, columnspan=3,
                                  padx=10, sticky=tk.W)
         self.output_select = output_select_frame
 
-        action_buttons_frame = ActionButtonsFrame(self.data, self)
+        action_buttons_frame = ActionButtonsFrame(report_param=self.data,
+                                                  master=self)
         action_buttons_frame.build()
         action_buttons_frame.grid(column=1, row=5, columnspan=3, pady=2)
 
-        status_message_frame = StatusTextFrame(self.data, self)
+        status_message_frame = StatusTextFrame(report_param=self.data,
+                                               master=self)
         status_message_frame.build()
         status_message_frame.grid(column=1, row=6, columnspan=3,
                                   padx=10, sticky=tk.W)

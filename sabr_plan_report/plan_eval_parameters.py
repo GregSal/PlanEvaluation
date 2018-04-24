@@ -201,6 +201,7 @@ class PlanEvalParameters(object):
         self.save_file = None
         self.plan_structures = list()
         self.match_table = dict()
+        self.report_list = None
 
         if base_path is not None:
             self.update_base_path(base_path)
