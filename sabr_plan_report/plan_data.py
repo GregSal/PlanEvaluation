@@ -23,12 +23,12 @@ def convert_units(starting_value, starting_units, target_units,
                   dose=1.0, volume=1.0):
     '''Take value in starting_units and convert to target_units.
     '''
-    conversion_table = {'cGy': {'cGy': 1.0, '%': 1.0/dose, 'Gy': 0.01},
-                        'Gy':  {'Gy': 1.0, '%': 100/dose, 'cGy': 100},
-                        'cc':  {'cc': 1.0, '%': 1/volume},
+    conversion_table = {'cGy': {'cGy': 1.0, '%': 100/dose, 'Gy': 0.01},
+                        'Gy':  {'Gy': 1.0, '%': 1.0/dose, 'cGy': 100},
+                        'cc':  {'cc': 1.0, '%': 100/volume},
                         '%':   {'%': 1.0,
                                 'cGy': dose/100.0,
-                                'Gy': dose/10000,
+                                'Gy': dose,
                                 'cc': volume/100}
                        }
     conversion_factor = conversion_table[starting_units][target_units]
