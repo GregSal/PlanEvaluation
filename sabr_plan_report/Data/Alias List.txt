@@ -7,6 +7,6 @@ Structure,Dose105[%]-PTV,,Dose 105%-PTV,105-PTV,D105%-PTV
 Structure,IGTV,,IGTV,IGTV 1,IGTV 2
 Structure,Ipsilat. Brach. Plex.,,Ipsilat_Brach_Plex,Brachial Plexus LT,Br Plexus,BrachialPlexus R
 Structure,Lung,Both,Whole_Lung
-Structure,BronchialTree,,Brl Tree,ProxBronchialZon,PRV20 Brl Tree,PRV20
+Structure,BronchialTree,,Brl Tree,ProxBronchialZon,PRV20 Brl Tree,PRV20,Prox Bronch Zone
 Structure,Trachea,,ProxBronchialZon,PRV20 Brl Tree,PRV20
 Structure,PRV5 SpinalCanal,,PRV 5mm,prv SC 5mm

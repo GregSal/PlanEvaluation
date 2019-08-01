@@ -10,7 +10,6 @@ Structure,Total Lung Volume (cc),Lung,Both,cc,Volume,G10,0.00
 Plan Property,Prescription Dose (cGy):,Prescribed dose,,cGy,,H4,General
 Plan Property,Fractions:,,,,,H5,0
 Plan Property,Plan Normalization Value (%),,,%,,G14,0.0%
-Reference Point,Dose @COM-PTV (%),,,%,,G15,0.0%
 Structure,PTV- Minimum Dose (%),PTV,,%,Min Dose,G17,0.0%
 Structure,PTV - V100(%),PTV,,%,V 100 %,G18,0.0%
 Structure,PTV - V90 (%),PTV,,%,V 90 %,G19,0.0%

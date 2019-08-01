@@ -1,0 +1,48 @@
+﻿Exception in Tkinter callback
+Traceback (most recent call last):
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\tkinter\__init__.py", line 1559, in __call__
+    return self.func(*args)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\report_gui.py", line 438, in update_and_run
+    run_cmd(self.data)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\build_sabr_plan_report.py", line 74, in run_report
+    report.build()
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\plan_report.py", line 364, in build
+    element.add_to_report(spreadsheet)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\plan_report.py", line 167, in add_to_report
+    self.element_target.add_value(element_value, sheet)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\plan_report.py", line 60, in add_value
+    sheet.range(cell_address).number_format = cell_format
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\xlwings\main.py", line 1303, in number_format
+    self.impl.number_format = value
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\xlwings\_xlwindows.py", line 810, in number_format
+    self.xl.NumberFormat = value
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\xlwings\_xlwindows.py", line 98, in __setattr__
+    return setattr(self._inner, key, value)
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\win32com\client\dynamic.py", line 549, in __setattr__
+    self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
+pywintypes.com_error: (-2146777998, 'OLE error 0x800ac472', None, None)
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\tkinter\__init__.py", line 1559, in __call__
+    return self.func(*args)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\report_gui.py", line 438, in update_and_run
+    run_cmd(self.data)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\build_sabr_plan_report.py", line 74, in run_report
+    report.build()
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\plan_report.py", line 364, in build
+    element.add_to_report(spreadsheet)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\plan_report.py", line 167, in add_to_report
+    self.element_target.add_value(element_value, sheet)
+  File "C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\sabr_plan_report\plan_report.py", line 60, in add_value
+    sheet.range(cell_address).number_format = cell_format
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\xlwings\main.py", line 1303, in number_format
+    self.impl.number_format = value
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\xlwings\_xlwindows.py", line 810, in number_format
+    self.xl.NumberFormat = value
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\xlwings\_xlwindows.py", line 98, in __setattr__
+    return setattr(self._inner, key, value)
+  File "C:\Users\Greg\Anaconda3\envs\SABR\lib\site-packages\win32com\client\dynamic.py", line 549, in __setattr__
+    self._oleobj_.Invoke(entry.dispid, 0, invoke_type, 0, value)
+pywintypes.com_error: (-2146777998, 'OLE error 0x800ac472', None, None)
+The thread 'MainThread' (0x15a0) has exited with code 0 (0x0).
+The program '[5636] pythonw.exe' has exited with code 0 (0x0).
