@@ -1,64 +1,35 @@
 '''Fill an Excel SABR Spreadsheet with values from a DVH file.
 '''
 from pathlib import Path
+import xml.etree.ElementTree as ET
 from sys import argv
 from functools import partial
 
+from plan_report import load_aliases
+from plan_report import Report
 from load_dvh_file import DvhFile
 from load_data import load_items
-from plan_report import Report
 from plan_data import Plan
 from plan_eval_parameters import PlanEvalParameters
 from report_gui import activate_gui
 
 
-def create_report(report_name, template_file, save_file, worksheet):
-    '''Create a report and load it's definitions.
-    '''
-    report = Report(report_name, template_file, save_file, worksheet)
-    report.save_file = save_file
-    return report
-
-def load_report_data(report, element_file, alias_file):
-    '''load the definitions for a report.
-    '''
-    alias_list = load_items(alias_file)
-    elements_list = load_items(element_file)
-    report.define_elements(elements_list)
-    report.add_aliases(alias_list)
-    return report
-
 def define_reports(base_path: Path, data_path: Path):
-    '''Load the two SABR plan report definitions
+    '''Load the SABR plan report definitions
     '''
-    # generic report files
-    template_file = data_path / 'SABR  Plan Evaluation Worksheet BLANK.xls'
-    alias_file = data_path / 'Alias List.txt'
-    save_file = base_path / 'SABR  Plan Evaluation Worksheet filled.xls'
+    # TODO Add method to scan directory for report_definition and alias_definition files
+    aliases_file = data_path / 'Aliases.xml'
+    report_definition = data_path / 'ReportDefinitions.xml'
 
-    report_parameters = {
-        'report_name': 'SABR 48 in 4',
-        'worksheet': 'EvalutionSheet 48Gy4F or 60Gy5F',
-        'template_file': template_file,
-        'save_file': save_file
-        }
-    report_data = {
-        'element_file': data_path / 'Report Reference 48 in 4.txt',
-        'alias_file': alias_file
-        }
-    report_48_in_4 = create_report(**report_parameters)
-    load_report_data(report_48_in_4, **report_data)
+    alias_reference = load_aliases(aliases_file)
 
-    report_parameters.update({'report_name': 'SABR 60 in 8',
-                              'worksheet': 'Evalution Sheet 60Gy 8F'})
-    report_data.update({
-        'element_file': data_path / 'Report Reference 60 in 8.txt'})
-    report_60_in_8 = create_report(**report_parameters)
-    load_report_data(report_60_in_8, **report_data)
-
-    report_selection = {'SABR 48 in 4': report_48_in_4,
-                        'SABR 60 in 8': report_60_in_8}
-    return report_selection
+    report_tree = ET.parse(report_definition)
+    report_root = report_tree.getroot()
+    report_definitions = dict()
+    for report_def in report_root.findall('Report'):
+        report = Report(report_def, alias_reference, data_path)
+        report_definitions[report.name] = report
+    return report_definitions
 
 def run_report(report_selection, report_param):
     '''Load plan data and generate report.

@@ -233,7 +233,7 @@ def main():
     '''
     plan_file_name = Path(r"..\Test Data\DVH Test Data.dvh")
     plan_file = DvhFile(plan_file_name)
-    test_plan = Plan('test1', plan_file_name)
+    test_plan = Plan('test1', plan_file)
     (plan_parameters, plan_structures) = plan_file.load_data()
     for parameters in plan_parameters:
         test_plan.add_plan_property(parameters)

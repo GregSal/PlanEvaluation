@@ -33,9 +33,9 @@ Functions
 '''
 from pathlib import Path
 # import warnings
-
-
-#Warning and Exception definitions
+# TODO plan_eval_parameters can be converted into a CustomVariableSet type
+# Python\Projects\Utilities\CustomVariableSet
+# Warning and Exception definitions
 class NameInUse(UserWarning):
     '''An output file or sheet name is already in use.
     '''

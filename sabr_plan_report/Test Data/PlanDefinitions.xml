@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+      Plan data items One of:
+        Plan Property
+          Data related to the overall Plan.
+          Elements:
+            Name
+              The name of the property.     
+            Source
+              The method for obtaining the property. One of:
+                DVH File
+                Query
+                User
+                Plan File
+        Reference Point
+          A reference point used by the plan.
+          Elements:
+            Name
+              The name of the reference point.     
+        Structure
+          Plan data associated with a particular structure.
+          Elements:
+            Name
+              The expected name of the structure.
+            Laterality
+              Can be Left, Right, Both. If blank or omitted no laterality is associated with the structure.
+            Aliases
+              Alternative names for the related structure. If omitted no aliases are associated with the structure.
+-->
+<!-- Data Related to the plan to be evaluated. 
+        Elements:
+          Defaults
+            Default settings to use when loading plan data.
+            Elements:
+              DoseUnit: 
+                One of ('Gy', 'cGy', '%')
+              VolumeUnit:
+                One of ('cc', '%')
+              DistanceUnit:
+                One of ('cm')
+              DVH_Path
+                The default path to the file containing DVH data. 
+    -->
+<Plan>
+  <Defaults>
+    <DoseUnit></DoseUnit>
+    <VolumeUnit></VolumeUnit>
+    <DistanceUnit></DistanceUnit>
+    <DVH_Path></DVH_Path>
+  </Defaults>
+  <PlanItems>
+
+    <PlanProperty>
+      <Name>Patient Name</Name>
+      <Source>DVH File</Source>
+    </PlanProperty>
+    <PlanProperty>
+      <Name>Patient ID</Name>
+      <Source>DVH File</Source>
+    </PlanProperty>
+    <PlanProperty>
+      <Name>Body Region</Name>
+      <Source>DVH File</Source>
+    </PlanProperty>
+    <PlanProperty>
+      <Name>Plan</Name>
+      <Source>DVH File</Source>
+    </PlanProperty>
+    <PlanProperty>
+      <Name>Prescribed dose</Name>
+      <Source>DVH File</Source>
+    </PlanProperty>
+    <PlanProperty>
+      <Name>Fractions:</Name>
+      <Source>Query</Source>
+    </PlanProperty>
+    <ReferencePoint>
+      <Name>Dose @COM-PTV (%)</Name>
+    </ReferencePoint>
+    <Structure>
+      <Name>
+        Body-PTV+20
+      </Name>
+      <Aliases>
+        <Alias>Body-PTV+2CM</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Dose 100[%]</Name>
+      <Aliases>
+        <Alias>Dose 100[%]1</Alias>
+        <Alias>Dose 100%</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Dose 105[%]</Name>
+      <Aliases>
+        <Alias>Dose 105[%]1</Alias>
+        <Alias>Dose 105%</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Dose 50[%]</Name>
+      <Aliases>
+        <Alias>Dose 50[%]1</Alias>
+        <Alias>Dose 50%</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Dose105[%]-PTV</Name>
+      <Aliases>
+        <Alias>D105%-PTV</Alias>
+        <Alias>105-PTV</Alias>
+        <Alias>Dose 105%-PTV</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>IGTV</Name>
+      <Aliases>
+        <Alias>IGTV 2</Alias>
+        <Alias>IGTV 1</Alias>
+        <Alias>IGTV</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Ipsilat. Brach. Plex.</Name>
+      <Aliases>
+        <Alias>BrachialPlexus R</Alias>
+        <Alias>Br Plexus</Alias>
+        <Alias>Brachial Plexus LT</Alias>
+        <Alias>Ipsilat_Brach_Plex</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Lung</Name>
+      <Laterality>Both</Laterality>
+      <Aliases>
+        <Alias>Whole_Lung</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>BronchialTree</Name>
+      <Aliases>
+        <Alias>Prox Bronch Zone</Alias>
+        <Alias>PRV20</Alias>
+        <Alias>PRV20 Brl Tree</Alias>
+        <Alias>ProxBronchialZon</Alias>
+        <Alias>Brl Tree</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>Trachea</Name>
+      <Aliases>
+        <Alias>PRV20</Alias>
+        <Alias>PRV20 Brl Tree</Alias>
+        <Alias>ProxBronchialZon</Alias>
+      </Aliases>
+    </Structure>
+    <Structure>
+      <Name>PRV5 SpinalCanal</Name>
+      <Aliases>
+        <Alias>prv SC 5mm</Alias>
+        <Alias>PRV 5mm</Alias>
+      </Aliases>
+    </Structure>
+  </PlanItems>
+</Plan>

@@ -5,13 +5,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{7e573dc3-f536-4d8e-aa14-38dfebdbdebe}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>build_sabr_plan_report.py</StartupFile>
+    <StartupFile>TestScript.py</StartupFile>
     <SearchPath>..\..\..\Utilities;..\..\..\Utilities\CustomVariableSet;..\..\..\Utilities\GUI_Management;..\sabr_plan_report</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>CondaEnv|CondaEnv|SABR</InterpreterId>
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda37-64</InterpreterId>
     <CommandLineArguments>
     </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
@@ -35,20 +35,14 @@
     <Compile Include="plan_eval_parameters.py" />
     <Compile Include="plan_report.py" />
     <Compile Include="report_gui.py" />
+    <Compile Include="TestScript.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="build_sabr_plan_report.spec" />
     <Content Include="compile.txt" />
-    <Content Include="Data Old\Alias List.txt" />
-    <Content Include="Data Old\Report Reference 48 in 4.txt" />
-    <Content Include="Data Old\Report Reference 54 in 3.txt" />
-    <Content Include="Data Old\Report Reference 60 in 8.txt" />
-    <Content Include="Data Old\ReportReference.xlsx" />
-    <Content Include="Data Old\SABR  Plan Evaluation Worksheet BLANK 2018.xls" />
-    <Content Include="Data Old\SABR  Plan Evaluation Worksheet BLANK A.xls" />
-    <Content Include="Data Old\SABR  Plan Evaluation Worksheet BLANK-Greg_HP.xls" />
-    <Content Include="Data Old\SABR  Plan Evaluation Worksheet BLANK.xls" />
     <Content Include="Data\Alias List.txt" />
     <Content Include="Data\Report Reference 48 in 4.txt" />
     <Content Include="Data\Report Reference 54 in 3.txt" />
@@ -62,14 +56,21 @@
     <Content Include="DVH2.ico" />
     <Content Include="DVH2.png" />
     <Content Include="environment.yml" />
-    <Content Include="New Data\Alias List.txt" />
-    <Content Include="New Data\Report Reference 48 in 4.txt" />
-    <Content Include="New Data\Report Reference 54 in 3.txt" />
-    <Content Include="New Data\Report Reference 60 in 8.txt" />
-    <Content Include="New Data\ReportReference.xlsx" />
-    <Content Include="New Data\SABR  Plan Evaluation Worksheet BLANK 2018.xls" />
-    <Content Include="New Data\SABR  Plan Evaluation Worksheet BLANK A.xls" />
-    <Content Include="New Data\SABR  Plan Evaluation Worksheet BLANK.xls" />
+    <Content Include="Laterality.xlsx" />
+    <Content Include="Plan Matching.xlsx" />
+    <Content Include="PlanItems.xlsx" />
+    <Content Include="Test Data\Alias List.txt" />
+    <Content Include="Test Data\Aliases.xml" />
+    <Content Include="Test Data\PlanDefinitions.xml" />
+    <Content Include="Test Data\reference conversion.txt" />
+    <Content Include="Test Data\Report Reference 48 in 4.txt" />
+    <Content Include="Test Data\Report Reference 54 in 3.txt" />
+    <Content Include="Test Data\Report Reference 60 in 8.txt" />
+    <Content Include="Test Data\ReportDefinitions.xml" />
+    <Content Include="Test Data\ReportReference.xlsx" />
+    <Content Include="Test Data\SABR  Plan Evaluation Worksheet BLANK 2018.xls" />
+    <Content Include="Test Data\SABR  Plan Evaluation Worksheet BLANK A.xls" />
+    <Content Include="Test Data\SABR  Plan Evaluation Worksheet BLANK.xls" />
     <Content Include="requirements.txt" />
     <Content Include="SABR Plan Report Testing set\Alias List.txt" />
     <Content Include="SABR Plan Report Testing set\DVH Data Feb 14 2018.dvh" />
@@ -91,17 +92,18 @@
     <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet Mar 05 2018.xls" />
     <Content Include="SABR Plan Report Testing set\test data pairs.csv" />
     <Content Include="SABR Plan Report Testing set\Test results.xls" />
+    <Content Include="Test Data\Test SABR  Plan Evaluation Standard.xls" />
+    <Content Include="Test Data\test.dvh" />
     <Content Include="test output.xls" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Data Old\" />
     <Folder Include="Data\" />
-    <Folder Include="New Data\" />
+    <Folder Include="Test Data\" />
     <Folder Include="SABR Plan Report Testing set\" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="CondaEnv|CondaEnv|sabr" />
     <InterpreterReference Include="CondaEnv|CondaEnv|SABR" />
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda37-64" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

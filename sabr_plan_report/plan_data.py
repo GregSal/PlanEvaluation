@@ -19,6 +19,21 @@ logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
+def find_unit(text):
+    '''Return a unit string and name from a text.
+    Unit is surrounded by [].
+    '''
+    unit = None
+    name = text
+    marker1 = text.find('[')
+    if marker1 != -1:
+        marker2 = text.find(']', marker1)
+        if marker2 != -1:
+            unit = text[marker1+1:marker2]
+            name = text[:marker1-1].strip()
+    return name, unit
+
+
 def convert_units(starting_value, starting_units, target_units,
                   dose=1.0, volume=1.0):
     '''Take value in starting_units and convert to target_units.
@@ -49,6 +64,12 @@ def add_laterality_indicator(structure_base_name: str, laterality,
     For Ipsilateral and Contralateral, the choice of left or right will
     depend on the plan laterality.
     '''
+    # FIXME Include laterality place holder in relevant alias names
+    # TODO allow for multiple laterality indicators e.g _L, L, LT, Lt, Left
+    # Plan can be Left, Right, Both, or None
+    # for Left and Right, have sets of laterality indicators
+    # Build laterality_selector from Left, Right and Both 
+    # For None, use empty string '' as laterality indicator.
     laterality_adjustor = {
         'Left': {'Ipsilateral': ' L', 'Contralateral': ' R'},
         'Right': {'Ipsilateral': ' R', 'Contralateral': ' L'}
@@ -65,9 +86,9 @@ def add_laterality_indicator(structure_base_name: str, laterality,
     return updated_structure
 
 
-class Element(object):
-    '''base class for all plan PlanElement and ReportElement objects.
-    Defines the name, value_type, unit and value attributes.
+class PlanElement():
+    '''A single value item for the plan.  e.g.: 'Normalization'.
+        Defines the name, value_type, unit and value attributes.
     Attributes:
         name: type str
             The name of the PlanElement instance.
@@ -80,12 +101,11 @@ class Element(object):
     Methods
         __init__(self, name=None, **parameter_values)
         define(self, element_value=None, unit=None)
-        convert_units(self, unit=None)
-        get_value(self, unit=None, **source)
+        get_value(self, unit=None, conversion_method=None)
         __repr__(self)
         __bool__(self)
     '''
-    def __init__(self, name=None, **parameter_values):
+    def __init__(self, name=None, element_value=None, unit=None):
         '''Initialize the base properties of all PlanElements.
         If name is not supplied, return an object with self.name = None as the
         only attribute.
@@ -94,7 +114,8 @@ class Element(object):
             self.name = str(name)
             self.unit = None
             self.element_value = None
-            self.define(**parameter_values)
+            self.conversion_factors = dict()
+            self.define(element_value, unit)
         else:
             self.name = None
 
@@ -102,61 +123,17 @@ class Element(object):
         '''Set Element Attributes.
         '''
         if element_value is not None:
-            self.element_value = element_value
+            try:
+                self.element_value = float(element_value)
+            except (ValueError, TypeError):
+                self.element_value = element_value
         if unit:
             self.unit = str(unit)
 
-    def __bool__(self):
-        '''Indicate empty Element.
-        Return my truth value (True or False).
-        '''
-        return bool(self.name)
-
-    def get_value(self,):
-        '''Returns the requested value.
-        '''
-        return self.element_value
-
-    def __repr__(self):
-        '''Describe a Report Element.
-        Add Report Element Attributes to the __repr__ definition of Element
-        '''
-        attr_str = 'name={}'.format(self.name)
-        if self.unit:
-            attr_str += ', unit={}'.format(self.unit)
-        if self.element_value:
-            attr_str += ', element_value={}'.format(self.element_value)
-        return 'Element(' + attr_str + ')'
-
-
-class PlanElement(Element):
-    '''A single value item for the plan.  e.g.:
-            ('Patient Name', 'Patient ID', 'Dose', 'Fractions', 'Plan Name',
-            'Body Region', 'Laterality', 'Normalization')
-    '''
-    def __init__(self, element_value=None, **parameters):
-        '''Initialize the base properties of all PlanElements.
-        '''
-        super().__init__(**parameters)
-        if self.name:
-            self.conversion_factors = dict()
-            self.define(element_value)
-
-    def define(self, element_value=None, **parameters):
-        '''Set the value with the appropriate units.
-        '''
-        if parameters:
-            super().define(**parameters)
-        try:
-            self.element_value = float(element_value)
-        except (ValueError, TypeError):
-            self.element_value = element_value
-
-    def get_value(self, desired_unit=None, conversion_method=None,
-                  **parameters):
+    def get_value(self, desired_unit=None, conversion_method=None):
         '''Returns the requested value in the desired units.
         '''
-        initial_value = super().get_value(**parameters)
+        initial_value = self.element_value
         if initial_value and desired_unit:
             final_value = conversion_method(initial_value, self.unit,
                                             desired_unit)
@@ -164,94 +141,218 @@ class PlanElement(Element):
             final_value = initial_value
         return final_value
 
+    def __bool__(self):
+        '''Indicate empty Element.
+        Return my truth value (True or False).
+        '''
+        return bool(self.name)
+
     def __repr__(self):
-        '''Describe a PlanElement.
-        Since no new attributes simple replace the Element name with
-        PlanElement.
+        '''Describe a Plan Element.
         '''
-        repr_str = super().__repr__()
-        repr_str = repr_str.replace('Element', 'PlanElement')
-        return repr_str
+        attr_str = 'name={}'.format(self.name)
+        if self.unit:
+            attr_str += ', unit={}'.format(self.unit)
+        if self.element_value:
+            attr_str += ', element_value={}'.format(self.element_value)
+        return 'PlanElement(' + attr_str + ')'
 
 
-class PlanReference(dict):
-    '''Contains information used to reference an individual Plan value.
-    Used to connect ReportElements and Plan data.
-    The dictionary may contain the following items as applicable:
-        reference_name:
-            The expected name of the related PlanElement.
-        reference_aliases:
-            A list of alternative names for the related PlanElement.
-        reference_type:
-            The type of PlanElement.  Can be one of:
-                ('Plan Property', Structure', 'Reference Point')
-        reference_laterality:
-            Indicates the laterality of a particular structure reference.
-            Can be one of:
-                ('Contralateral', 'Ipsilateral', 'Both', 'Left', 'Right')
-        reference_constructor:
-            A string describing the method for extracting the required value.
-            Includes:
-                ('Volume', 'Minimum', 'Maximum', 'Mean',
-                'V' # ['%', 'Gy', cGy],
-                'D' # ['%', 'cc'])
-        Methods
-            __init__(self, **parameters)
-            define(self, reference_name=None, reference_type='Plan Property',
-               **parameters)
-            update(self, match)
-'''
-    def __init__(self, **parameters):
-        '''Create the base dictionary and add values if supplied.
-        '''
-        super().__init__()
-        if parameters:
-            self.define(**parameters)
+class DvhFile():
+    '''Controls reading of a .dvh plan file.
+    A subclass of io.TextIOBase with the following additional Attributes and
+    Methods:
+    Attributes:
+        file_name:  type Path
+            The full path to a the dvh file.
+        file:
+            A text file stream object created by open()
+        last_line:  type str
+            The line that has most recently been returned by a readline() call.
+            This allows for a simple method to backup one line in the file.
+        previous_postions: type int
+            The previous file stream position, as defined by tell()
+            It points to the beginning of the previous line.
+            This allows for a method to backup one line in the file.
+    Methods:
+        __init__(file_name: Path **kwds):
+            Open the file to begin reading.
+        readline(previous=False)
+            read a line from the dvh file.
+            If previous=True, return last_line rather than reading a
+            new line.
+        backup(lines=1)
+            Move the current stream position of file backwards by 'lines'
+            number of lines.
+    '''
+    special_charaters = {'cm³': 'cc'}
 
-    def define(self, reference_type='Plan Property', reference_name=None,
-               **parameters):
-        '''Identify all reference related parameters and update the reference
-        dictionary with them.
-        Reference related parameters are expected to begin with 'reference_'.
-        Returns parameters with the reference related items removed.
+    def __init__(self, file_name: Path, **kwds):
+        '''Open the file_name file to begin reading.
+        **kwds are passed as parameters to the Path.open method.
+        Use utf_8 encoding by default.
         '''
-        self['reference_name'] = str(reference_name)
-        self['reference_type'] = str(reference_type)
-        if parameters:
-            reference_keys = [key for key in parameters
-                              if 'reference_' in key]
-            for key in reference_keys:
-                value = parameters.pop(key)
-                self[key] = str(value)
-        return parameters
+        if not kwds.get('encoding'):
+            kwds['encoding'] = 'utf_8'
+        self.file = file_name.open(**kwds)
+        self.file_name = file_name
+        self.last_line = None
+        self.do_previous = False
 
-    def update_match(self, match):
-        '''Update reference information resulting from matching with
-        plan_data.
-        Remove Laterality.
+    def catch_special_char(self, raw_line: str):
+        '''Convert line to ASCII.
+        Look for special character strings in the line and replace with
+        standard ASCII.
+        Remove all other non ASCII characters.
         '''
-        if match:
-            (reference_type, reference_name) = match
-            self['reference_name'] = reference_name
-            self['reference_type'] = reference_type
-            self.pop('reference_laterality', None)
+        for (special_char, replacement) in self.special_charaters.items():
+            if special_char in raw_line:
+                patched_line = raw_line.replace(special_char, replacement)
+            else:
+                patched_line = raw_line
+        bytes_line = patched_line.encode(encoding="ascii", errors="ignore")
+        new_line = bytes_line.decode()
+        return new_line
+
+    def readline(self, **kwds):
+        '''Read in the next line of text file, remembering previous line.
+        '''
+        if self.do_previous:
+            new_line = self.last_line
+            self.do_previous = False
         else:
-            self['reference_name'] = None
+            raw_line = self.file.readline(**kwds)
+            new_line = self.catch_special_char(raw_line)
+            self.last_line = new_line
+        return new_line
 
-    def add_aliases(self, list_of_aliases):
-        '''Add a list of alternative reference names.
+    def backstep(self):
+        '''Set the next call to self.readline to return last_line.
         '''
-        self['reference_aliases'] = list_of_aliases
+        self.do_previous = True
 
-    def __repr__(self):
-        '''Build an Target list string.
+    def read_lines(self, break_cond=None):
+        '''Iterate through lines of text data until the stop iteration
+        condition is met.
+        break_cond defines the stop iteration condition.
+        Parameters:
+            break_cond:
+                A string to look for in the current text line to indicate the
+                iteration should stop.
+                If break_cond is None, iteration will stop at the beginning of
+                the next blank line.
+                If break_cond is a string, iteration will stop at the first
+                occurrence of that string and the file pointer will be stepped
+                back one line.
+        Returns text_line: type str
         '''
-        repr_str = 'Element Reference: \n\t'
-        parameter_str = ''.join('{}: {}\n\t'.format(name, value)
-                                for (name, value) in self.items())
-        repr_str += parameter_str
-        return repr_str
+        # Set stop iteration condition
+        if break_cond is None:
+            def test(line):
+                '''one character for new line'''
+                return len(line) > 1
+        else:
+            def test(line):
+                '''check for break_cond.'''
+                return break_cond not in line
+        # Read file lines until stop iteration condition is met
+        text_line = self.readline()
+        while test(text_line):
+            yield text_line
+            text_line = self.readline()
+        # Move back one line in file
+        self.backstep()
 
+    def read_data_elements(self, break_cond=None):
+        '''Iterate through lines of text data and returning the resulting
+        element parameters extracted from each line.
+        break_cond is passed through to read_lines.
+            If break_cond is None, iteration will stop at the next blank line.
+            If break_cond is a string, iteration will stop at the first
+            occurrence of that string and the file pointer will be stepped
+            back one line.
+        Returns parameters
+        '''
+        def parse_element(text_line: str):
+            '''convert a line of text into PlanElement parameters.
+            '''
+            line_element = text_line.split(':', 1)
+            (item_name, item_unit) = find_unit(line_element[0].strip())
+            parameters = {'name': item_name,
+                          'unit': item_unit,
+                          'element_value': line_element[1].strip()}
+            return parameters
+
+        for text_line in self.read_lines(break_cond):
+            if ':' in text_line:
+                yield parse_element(text_line)
+
+    def load_dvh(self):
+        '''Load a DVH table from a .dvh file.
+        '''
+        def parse_line(text):
+            '''Split line into multiple numbers.
+            '''
+            return [float(num) for num in text.split()]
+
+        def make_column_list(dvh_header):
+            '''Build a list of DVH column identifiers.
+            '''
+            columns = list()
+            for (name, unit) in dvh_header:
+                column_name = name.strip().lower()
+                column_unit = unit.strip()
+                if 'dose' in column_name:
+                    columns.append({'Data Type': 'Dose',
+                                    'Unit': column_unit})
+                elif 'volume' in column_name:
+                    columns.append({'Data Type': 'Volume',
+                                    'Unit': column_unit})
+                else:
+                    columns.append({'Data Type': column_name,
+                                    'Unit': column_unit})
+            return columns
+
+        text_line = self.readline()
+        dvh_header_pattern = (
+            "([^\[]+)[\[]"  # everything until '[' # pylint: disable=anomalous-backslash-in-string
+            "([^\]]+)[\]]"  # everything inside the  [] # pylint: disable=anomalous-backslash-in-string
+            )
+        re_dvh_header = re.compile(dvh_header_pattern)
+        dvh_header = re_dvh_header.findall(text_line)
+        columns = make_column_list(dvh_header)
+        dvh_list = [parse_line(text) for text in self.read_lines()]
+        return {'dvh_columns': columns, 'dvh_list': dvh_list}
+
+    def load_structure(self):
+        '''Load data for a single structure from a .dvh file.
+        '''
+        structure_data = {'properties_list':
+                          [props for props in self.read_data_elements()]}
+        self.readline()  # Skip blank line
+        structure_data.update(self.load_dvh())
+        return structure_data
+
+    def load_structures(self):
+        '''Loads all structures in a file.
+        Returns a dictionary of structures with the structure name as key.
+        '''
+        text_line = self.readline()
+        while text_line:
+            if ':' in text_line:
+                structure_data = {'name': text_line.split(':', 1)[1].strip()}
+                structure_data.update(self.load_structure())
+                yield structure_data
+            text_line = self.readline()
+
+    def load_data(self):
+        '''Load data from the .dvh file.
+        '''
+        plan_parameters = [parameters for parameters in
+                           self.read_data_elements('Structure')]
+        plan_structures = [structure_data for structure_data in
+                           self.load_structures()]
+        return (plan_parameters, plan_structures)
 
 
 class DVH():
@@ -598,17 +699,19 @@ class Plan():
         full_reference_name = self.laterality_modifier(reference_name,
                                                        reference_laterality)
         match_pair = None
-        if reference_type:
-            plan_elements = self.get_data_group(reference_type)
-        if plan_elements and reference_name:
-            if full_reference_name in plan_elements:
-                match_pair = (reference_type, full_reference_name)
+        if reference_name:
+            if reference_type:
+                plan_elements = self.get_data_group(reference_type)
+                if plan_elements:
+                    if full_reference_name in plan_elements:
+                        match_pair = (reference_type, full_reference_name)
         return match_pair
 
     def set_laterality(self):
         '''Look for laterality indicator in plan name and use to set
         laterality modifier.
         '''
+        # FIXME add None as laterality option
         laterality_options = {'R': 'Right',
                               'L': 'Left',
                               'B': 'Both'}

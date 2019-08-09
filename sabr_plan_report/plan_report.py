@@ -2,15 +2,142 @@
 
 from pathlib import Path
 import logging
+import xml.etree.ElementTree as ET
+import pandas as pd
 import xlwings as xw
 from load_data import load_items
-from plan_data import Element
 from plan_data import Plan
-from plan_data import PlanReference
 
 
 logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
+
+
+def load_aliases(aliases_file: Path)->pd.DataFrame:
+    '''Read lists of alternate names for ReportElements from a .xml file.
+    Arguments:
+        aliases_file: {Path} -- Path to the .xml file containing the alias lists.
+    Returns {DataFrame}
+        A DataFrame for looking up Aliases for report elements.
+        The index is:
+            element_type
+                The type of PlanElement.  Can be one of:
+                    ('Plan Property', Structure', 'Reference Point')
+            name
+                The name of the related report element
+        Columns are:
+            aliases:
+                A list of alternate names for the report element.
+            laterality:
+                Indicates the laterality of a particular structure reference.
+                Can be one of:
+                    ('Contralateral', 'Ipsilateral', 'Both', 'Left', 'Right')
+'''
+    alias_tree = ET.parse(aliases_file)
+    alias_root = alias_tree.getroot()
+    element_list = list()
+    for element in alias_root.findall('PlanElement'):
+        if element is not None:
+            element_dict = dict()
+            element_dict['name'] = element.attrib.get('name')
+            element_dict['reference_name'] = element.findtext('ReferenceName')
+            element_dict['element_type'] = element.findtext('Type')
+            laterality = element.findtext('Laterality')
+            if laterality is not None:
+                element_dict['Laterality'] = laterality
+            aliases = element.find('Aliases')
+            if aliases is not None:
+                alias_list = list()
+                for alias in aliases.findall('Alias'):
+                    alias_list.append(alias.text)
+                element_dict['aliases'] = alias_list
+            element_list.append(element_dict)
+    alias_reference = pd.DataFrame(element_list)
+    alias_reference.set_index(['element_type', 'reference_name'],
+                              inplace=True,
+                              verify_integrity=True)
+    alias_reference.dropna(inplace=True)
+    return alias_reference
+
+
+class PlanReference(dict):
+    '''Contains information used to reference an individual Plan value.
+    Used to connect ReportElements and Plan data.
+    The dictionary may contain the following items as applicable:
+        reference_name:
+            The expected name of the related PlanElement.
+        reference_aliases:
+            A list of alternative names for the related PlanElement.
+        reference_type:
+            The type of PlanElement.  Can be one of:
+                ('Plan Property', Structure', 'Reference Point')
+        reference_laterality:
+            Indicates the laterality of a particular structure reference.
+            Can be one of:
+                ('Contralateral', 'Ipsilateral', 'Both', 'Left', 'Right')
+        reference_constructor:
+            A string describing the method for extracting the required value.
+            Includes:
+                ('Volume', 'Minimum', 'Maximum', 'Mean',
+                'V' # ['%', 'Gy', cGy],
+                'D' # ['%', 'cc'])
+        Methods
+            __init__(self, **parameters)
+            define(self, reference_name=None, reference_type='Plan Property',
+               **parameters)
+            update(self, match)
+'''
+    def __init__(self, reference_def, alias_reference: pd.DataFrame):
+        '''Create the base dictionary and add all reference related parameters.
+        '''
+        super().__init__()
+        self['reference_name'] = reference_def.findtext('Name')
+        self['reference_type'] = reference_def.findtext('Type')
+        self['Aliases'] = self.add_aliases(reference_def, alias_reference)
+        for element in reference_def.findall(r'./*'):
+            if 'Aliases' not in element.tag:
+                self[element.tag] = str(element.text)
+
+    def update_match(self, match):
+        '''Update reference information resulting from matching with
+        plan_data.
+        Remove Laterality.
+        '''
+        if match:
+            (reference_type, reference_name) = match
+            self['reference_name'] = reference_name
+            self['reference_type'] = reference_type
+            self.pop('reference_laterality', None)
+        else:
+            self['reference_name'] = None
+
+    def add_aliases(self, reference_def, alias_lookup):
+        '''Add a list of alternative reference names.
+        '''
+        aliases = reference_def.find('Aliases')
+        if aliases is not None:
+            alias_list = list()
+            for alias in aliases.findall('Alias'):
+                alias_list.append(alias.text)
+            return set(alias_list)
+        else:
+            ref_name = self['reference_name']
+            ref_type = self['reference_type']
+            try:
+                alias_list = alias_lookup.loc[(ref_type, ref_name),'aliases']
+            except KeyError:
+                return None
+            else:
+                return set(alias_list)
+
+    def __repr__(self):
+        '''Build an Target list string.
+        '''
+        repr_str = 'Element Reference: \n\t'
+        parameter_str = ''.join('{}: {}\n\t'.format(name, value)
+                                for (name, value) in self.items())
+        repr_str += parameter_str
+        return repr_str
 
 
 class Target(dict):
@@ -27,28 +154,12 @@ class Target(dict):
         __init__(self, **parameters)
         define(self, cell_address=None, cell_format='General', **parameters)
         '''
-    def __init__(self, **parameters):
+    def __init__(self, target_def):
         '''Create the base dictionary and add values if supplied.
         '''
         super().__init__()
-        if parameters:
-            self.define(**parameters)
-
-    def define(self, cell_address=None, cell_format='General', **parameters):
-        '''Identify all target related parameters and update the target
-        dictionary with them.
-        Target related parameters are expected to begin with 'cell_' or
-        'target_'.
-        '''
-        self['cell_address'] = str(cell_address)
-        self['cell_format'] = str(cell_format)
-        if parameters:
-            target_keys = [key for key in parameters
-                           if 'cell_' in key or 'target_' in key]
-            for key in target_keys:
-                value = parameters.pop(key)
-                self[key] = str(value)
-        return parameters
+        for element in target_def.findall(r'./*'):
+            self[element.tag] = str(element.text)
 
     def add_value(self, element_value, sheet):
         '''Enter the value into the spreadsheet.
@@ -72,7 +183,8 @@ class Target(dict):
         repr_str += parameter_str
         return repr_str
 
-class ReportElement(Element):
+
+class ReportElement():
     '''A base class for all ReportElement objects.
     A sub type of Element.
     Defines the source, category, and constructor.
@@ -107,54 +219,45 @@ class ReportElement(Element):
         add_to_report
             Enter the value into the report and set the format.
         '''
+    default_category = 'Info'
 
-    def __init__(self, name=None, category='Info', reference_name=None,
-                 **element_params):
+    def __init__(self, report_item, alias_reference: pd.DataFrame):
         '''Initialize the attributes unique to Report Elements.
         '''
-        self.category = str(category)
-        self.element_reference = PlanReference()
-        self.element_target = Target()
-        if not reference_name:
-            reference_name = name
-        remaining_params = self.define_reference(
-            reference_name=reference_name,
-            **element_params)
-        remaining_params = self.define_target(**remaining_params)
-        super().__init__(name=name, **remaining_params)
+        self.name = report_item.attrib.get('name')
+        label = report_item.findtext('Label')
+        if label is not None:
+            self.label = label
+        else:
+            self.label = self.name
 
-    def define_reference(self, **parameters):
-        '''Provide reference data for the ReportElement.
-        '''
-        remaining_params = self.element_reference.define(**parameters)
-        return remaining_params
+        category = report_item.findtext('Category')
+        if category is not None:
+            self.category = category
+        else:
+            self.category = self.default_category
+
+        self.element_value = None
+        reference = report_item.find('PlanReference')
+        if reference is not None:
+            self.reference = PlanReference(reference, alias_reference)
+        else:
+            self.reference = dict()
+        target = report_item.find('Target')
+        if target is not None:
+            self.target = Target(target)
+        else:
+            self.target = None
+        # If a reference name is not given use the report element name.
+        if not self.reference['reference_name']:
+            self.reference['reference_name'] = self.name
 
     def update_reference(self, match):
         '''Update reference information resulting from matching with
         plan_data.
         '''
-        self.element_reference.update_match(match)
-
-    def add_aliases(self, list_of_aliases):
-        '''Add a list of alternative reference names.
-        '''
-        self.element_reference.add_aliases(list_of_aliases)
-
-    def define_target(self, **parameters):
-        '''Provide target data for the ReportElement.
-        '''
-        remaining_params = self.element_target.define(**parameters)
-        return remaining_params
-
-    def __repr__(self):
-        '''Build an Element.
-        '''
-        repr_str = super().__repr__()
-        repr_str = repr_str.replace('Element', 'ReportElement')
-        repr_str += 'Category: {}\n\n'.format(self.category)
-        repr_str += self.element_reference.__repr__() + '\n\t'
-        repr_str += self.element_target.__repr__() + '\n\t'
-        return repr_str
+        # TODO update_reference seems to be a redundant method
+        self.reference.update_match(match)
 
     def add_to_report(self, sheet):
         '''enter the ReportElement into the spreadsheet.
@@ -164,7 +267,19 @@ class ReportElement(Element):
         '''
         element_value = self.element_value
         if element_value is not None:
-            self.element_target.add_value(element_value, sheet)
+            self.target.add_value(element_value, sheet)
+
+    def __repr__(self):
+        '''Describe a Report Element.
+        Add Report Element Attributes to the __repr__ definition of Element
+        '''
+        repr_str = '<ReportElement(name={}'.format(self.name)
+        repr_str += 'Category: {}\n\n'.format(self.category)
+        if self.element_value:
+            repr_str += ', element_value={}'.format(self.element_value)
+        repr_str += self.reference.__repr__() + '\n\t'
+        repr_str += self.target.__repr__() + '\n\t'
+        return repr_str
 
 
 class Report():
@@ -189,35 +304,33 @@ class Report():
         define(self, element_list)
         get_properties(self, plan)
         build(self)
+        Evaluation
         '''
 
-    def __init__(self, name, template_file=None, save_file=None,
-                 worksheet='Plan Report'):
+    def __init__(self, report_def: ET.Element,
+                 alias_reference: pd.DataFrame = None,
+                 data_path: Path = Path.cwd()):
         '''Define the spreadsheet paths, worksheet name and Report Elements.
         '''
-        self.name = str(name)
-        # Template File
-        self.template_file = str(template_file)
-        self.worksheet = str(worksheet)
-        if save_file:
-            self.save_file = str(save_file)
-        else:
-            self.save_file = Path(r'.\Report.xls')
-        self.report_elements = dict()
+        self.name = report_def.findtext('Name')
+        template_file_name = report_def.findtext(r'./FilePaths/Template/File')
+        self.template_file = data_path / template_file_name
+        self.worksheet = report_def.findtext(r'./FilePaths/Template/WorkSheet')
+        worksheet = report_def.findtext(r'./FilePaths/Template/WorkSheet')
 
-    def define_elements(self, element_list):
-        '''Define all of the Report Elements.
-        Parameters:
-            element_list: list of dictionaries containing ReportElement
-                properties.  Properties may include:
-                    ('name', 'reference_name', 'reference_type',
-                    'reference_laterality', 'reference_constructor', 'unit',
-                    'cell_address', cell_format')
-        '''
-        for element in element_list:
-            element_name = element.get('name')
-            if element_name:
-                self.report_elements[element_name] = ReportElement(**element)
+        self.report_elements = dict()
+        element_list = report_def.find('ReportItemList')
+        for element in element_list.findall('ReportItem'):
+            if element is not None:
+                element_name= element.attrib.get('name')
+                element_definition = ReportElement(element, alias_reference)
+                self.report_elements[element_name] = element_definition
+
+        save_path = report_def.findtext(r'./FilePaths/Save/Path')
+        save_file_name = report_def.findtext(r'./FilePaths/Save/File')
+        self.save_file = Path(save_path) / save_file_name
+        self.save_worksheet = report_def.findtext(r'./FilePaths/Save/WorkSheet')
+
 
     def get_references(self, reference_type=''):
         '''Create a dictionary of references for all ReportElements.
@@ -231,7 +344,7 @@ class Report():
         '''
         reference_dict = dict()
         for element in self.report_elements.values():
-            reference = element.element_reference
+            reference = element.reference
             if reference_type in reference['reference_type']:
                 reference_dict[element.name] = reference
         return reference_dict
@@ -261,20 +374,6 @@ class Report():
             for element_name in not_matched:
                 report_element = self.report_elements[element_name]
                 report_element.update_reference(match=None)
-
-    def insert_reference_aliases(self, element_name, alias_list):
-        ''' Add alias list to element.
-        '''
-        self.report_elements[element_name].add_aliases(alias_list)
-
-    def add_aliases(self, alias_list: list):
-        '''Add a list of alias strings to the references.
-        '''
-        for alias_item in alias_list:
-            element_list = self.select_by_reference(alias_item['name'],
-                                                    alias_item['type'])
-            for element in element_list:
-                self.insert_reference_aliases(element, alias_item['aliases'])
 
     def match_elements(self, plan: Plan):
         '''Find match in plan for report elements.
@@ -329,7 +428,7 @@ class Report():
         '''
         for element in self.report_elements.values():
             plan_value = plan.get_value(desired_unit=element.unit,
-                                        **element.element_reference)
+                                        **element.reference)
             if plan_value is not None:
                 element.define(element_value=plan_value)
 
