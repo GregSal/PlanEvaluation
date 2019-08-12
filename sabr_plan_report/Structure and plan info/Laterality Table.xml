@@ -1,0 +1,321 @@
+﻿<!-- Created with Liquid Studio 2019 (https://www.liquid-technologies.com) -->
+<LateralityTable>
+  <PlanLaterality>
+    <Value>Both</Value>
+    <ReportItemLaterality>
+      <Value>Both</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>B</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Both</Indicator>
+      <Indicator>Whole</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Contralateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Ipsilateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>None</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Proximal</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Prox</Indicator>
+    </ReportItemLaterality>
+  </PlanLaterality>
+  <PlanLaterality>
+    <Value>Left</Value>
+    <ReportItemLaterality>
+      <Value>Both</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>B</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Both</Indicator>
+      <Indicator>Whole</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Contralateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>R</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator>RT</Indicator>
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Right</Indicator>
+      <Indicator>Dist</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Ipsilateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>L</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator>LT</Indicator>
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Left</Indicator>
+      <Indicator>Prox</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>None</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Proximal</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>L</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator>LT</Indicator>
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Prox</Indicator>
+      <Indicator>Left</Indicator>
+    </ReportItemLaterality>
+  </PlanLaterality>
+  <PlanLaterality>
+    <Value>None</Value>
+    <ReportItemLaterality>
+      <Value>Both</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>B</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Both</Indicator>
+      <Indicator>Whole</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Contralateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Ipsilateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>None</Value>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Proximal</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Prox</Indicator>
+    </ReportItemLaterality>
+  </PlanLaterality>
+  <PlanLaterality>
+    <Value>Right</Value>
+    <ReportItemLaterality>
+      <Value>Both</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>B</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Both</Indicator>
+      <Indicator>Whole</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Contralateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>L</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator>LT</Indicator>
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Left</Indicator>
+      <Indicator>Dist</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Ipsilateral</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>R</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator>RT</Indicator>
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Right</Indicator>
+      <Indicator>Prox</Indicator>
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>None</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator />
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator />
+    </ReportItemLaterality>
+    <ReportItemLaterality>
+      <Value>Proximal</Value>
+      <Symbol>
+        <Value>~</Value>
+      </Symbol>
+      <Indicator>R</Indicator>
+      <Symbol>
+        <Value>~~</Value>
+      </Symbol>
+      <Indicator>RT</Indicator>
+      <Symbol>
+        <Value>~~~</Value>
+      </Symbol>
+      <Indicator>Prox</Indicator>
+      <Indicator>Right</Indicator>
+    </ReportItemLaterality>
+  </PlanLaterality>
+</LateralityTable>

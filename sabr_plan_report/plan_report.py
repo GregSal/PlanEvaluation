@@ -60,6 +60,37 @@ def load_aliases(aliases_file: Path)->pd.DataFrame:
     return alias_reference
 
 
+def add_laterality_indicator(structure_base_name: str, laterality,
+                             plan_laterality=None):
+    '''Add a letter to the end of a structure name to indicate the laterality
+    of the structure.
+    Possible letter suffixes are:
+        Left            ' L'
+        Right           ' R'
+        Both            ' B'
+        Contralateral   ' L' or ' R'
+        Ipsilateral     ' R' or ' L'
+    For Ipsilateral and Contralateral, the choice of left or right will
+    depend on the plan laterality.
+    '''
+    # FIXME use laterality table to select a indicator, use format to generate final match form
+    # TODO move add_laterality_indicator to report module 
+    laterality_adjustor = {
+        'Left': {'Ipsilateral': ' L', 'Contralateral': ' R'},
+        'Right': {'Ipsilateral': ' R', 'Contralateral': ' L'}
+        }
+    laterality_selector = {'Left': ' L', 'Right': ' R', 'Both': ' B'}
+    if plan_laterality and laterality_adjustor.get(plan_laterality):
+        # Add Ipsilateral and Contralateral terms to selector
+        laterality_selector.update(laterality_adjustor[plan_laterality])
+    structure_suffix = laterality_selector.get(laterality)
+    if structure_suffix:
+        updated_structure = structure_base_name + structure_suffix
+    else:
+        updated_structure = structure_base_name
+    return updated_structure
+
+
 class PlanReference(dict):
     '''Contains information used to reference an individual Plan value.
     Used to connect ReportElements and Plan data.
@@ -408,6 +439,7 @@ class Report():
         match = dict()
         not_matched = dict()
         do_match = plan.match_element
+        plan_laterality = plan.laterality
         for reference_type in plan.data_elements:
             report_references = self.get_references(reference_type)
             for (name, reference) in report_references.items():

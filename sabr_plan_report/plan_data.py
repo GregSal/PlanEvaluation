@@ -19,6 +19,12 @@ logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
+LATERALITY_EXCEPTIONS = ['ABLB', 'ABUB', 'GALL', 'ORAL', 'SKUL', 'SPIL',
+                         'SPTL', 'UVUL', 'LIVR', 'SACR', 'STER', 'UTER',
+                         'BOOS'
+                         ]
+
+
 def find_unit(text):
     '''Return a unit string and name from a text.
     Unit is surrounded by [].
@@ -49,41 +55,6 @@ def convert_units(starting_value, starting_units, target_units,
     conversion_factor = conversion_table[starting_units][target_units]
     new_value = float(starting_value)*conversion_factor
     return new_value
-
-
-def add_laterality_indicator(structure_base_name: str, laterality,
-                             plan_laterality=None):
-    '''Add a letter to the end of a structure name to indicate the laterality
-    of the structure.
-    Possible letter suffixes are:
-        Left            ' L'
-        Right           ' R'
-        Both            ' B'
-        Contralateral   ' L' or ' R'
-        Ipsilateral     ' R' or ' L'
-    For Ipsilateral and Contralateral, the choice of left or right will
-    depend on the plan laterality.
-    '''
-    # FIXME Include laterality place holder in relevant alias names
-    # TODO allow for multiple laterality indicators e.g _L, L, LT, Lt, Left
-    # Plan can be Left, Right, Both, or None
-    # for Left and Right, have sets of laterality indicators
-    # Build laterality_selector from Left, Right and Both 
-    # For None, use empty string '' as laterality indicator.
-    laterality_adjustor = {
-        'Left': {'Ipsilateral': ' L', 'Contralateral': ' R'},
-        'Right': {'Ipsilateral': ' R', 'Contralateral': ' L'}
-        }
-    laterality_selector = {'Left': ' L', 'Right': ' R', 'Both': ' B'}
-    if plan_laterality and laterality_adjustor.get(plan_laterality):
-        # Add Ipsilateral and Contralateral terms to selector
-        laterality_selector.update(laterality_adjustor[plan_laterality])
-    structure_suffix = laterality_selector.get(laterality)
-    if structure_suffix:
-        updated_structure = structure_base_name + structure_suffix
-    else:
-        updated_structure = structure_base_name
-    return updated_structure
 
 
 class PlanElement():
@@ -614,15 +585,17 @@ class Plan():
         '''
         self.name = str(name)
         self.data_source = Path(data_source.file_name)
+        self.unit_conversion = convert_units
         self.data_elements = {'Plan Property': dict(),
                               'Structure': dict(),
                               'Reference Point': dict()}
-
-        self.prescription_dose = PlanElement(name='prescription_dose')
-        self.laterality = None
-        self.unit_conversion = convert_units
         (plan_parameters, plan_structures) = data_source.load_data()
         self.add_plan_data(plan_parameters, plan_structures)
+        self.laterality = self.get_laterality()
+        # TODO convert set_prescription to get dose, move other steps here.
+        self.prescription_dose = PlanElement(name='prescription_dose')        
+        self.set_prescription()
+        
 
 
     def set_units(self, **default_units):
@@ -671,8 +644,7 @@ class Plan():
         '''
         for parameters in plan_parameters:
             self.add_plan_property(parameters)
-        self.set_prescription()
-        self.set_laterality()
+
         for structure_data in structure_data_sets:
             self.add_structure(**structure_data)
 
@@ -707,23 +679,27 @@ class Plan():
                         match_pair = (reference_type, full_reference_name)
         return match_pair
 
-    def set_laterality(self):
+    def get_laterality(self):
         '''Look for laterality indicator in plan name and use to set
         laterality modifier.
         '''
-        # FIXME add None as laterality option
+        # TODO need to deal with BOOS plan names
         laterality_options = {'R': 'Right',
                               'L': 'Left',
                               'B': 'Both'}
         plan_name = self.get_data_element(
             data_type='Plan Property',
             element_name='Plan')
+        body_region = plan_name.element_value[0:3]
+        if body_region in LATERALITY_EXCEPTIONS:
+            return None
         laterality_code = plan_name.element_value[3]
-        self.laterality = laterality_options.get(laterality_code)
+        return laterality_options.get(laterality_code, None)
 
     def laterality_modifier(self, name, laterality):
         '''Add suffix indicating laterality where appropriate.
         '''
+        # TODO move add laterality to Reports
         if laterality:
             full_name = \
                 add_laterality_indicator(name, laterality,

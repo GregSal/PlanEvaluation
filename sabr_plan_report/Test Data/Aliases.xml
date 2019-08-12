@@ -20,9 +20,71 @@
             If omitted no aliases are associated with the structure.
           Alias
             An alternative name for the related structure. 
+{Base}
+{Base} - ~~~
+{Base} ~ {Tail}
+{Base} ~
+{Base}_~
+{Base}_~_{Tail}
+~{Base}
+~_{Base}
+~~ {Base}
+~~_{Base}
+~~~ {Base}
+~~~{Base}
+~~~_{Base}
 -->
 <AliasList>
-  <PlanElement name="COM-PTV"><Type>ReferencePoint</Type>
+  <DefaultLateralityPatterns>
+    <Pattern Symbol="~">{Base} ~</Pattern>
+    </DefaultLateralityPatterns>
+  <PlanElement name="IpsBrachPlex">
+    <Type>Structure</Type>
+    <ReferenceName>Ipsilat. Brach. Plex.</ReferenceName>
+    <Aliases>
+      <Alias>BrachialPlexus R</Alias>
+      <Alias>Br Plexus</Alias>
+      <Alias>Brachial Plexus LT</Alias>
+      <Alias>Ipsilat_Brach_Plex</Alias>
+    </Aliases>
+  </PlanElement>
+  <PlanElement name="Lung">
+    <Type>Structure</Type>
+    <ReferenceName>Lung</ReferenceName>
+    <Laterality>Both</Laterality>
+        <Aliases>
+      <Alias>Whole_Lung</Alias>
+      <Alias Symbol="~">{Lung}_~</Alias> 
+    </Aliases>
+  </PlanElement>
+  <PlanElement name="BronchZone"><Type>Structure</Type>
+    <ReferenceName>ProxBronchZone</ReferenceName>
+    <Aliases>
+      <Alias Symbol="~~~">{LatIndicator}Bronch Zone</Alias>      
+    </Aliases>  </PlanElement>
+  <PlanElement name="BronchialTree">
+    <Type>Structure</Type>
+    <ReferenceName>BronchialTree</ReferenceName>
+    <Aliases>
+      <Alias>Prox Bronch Zone</Alias>
+      <Alias>PRV20</Alias>
+      <Alias>PRV20 Brl Tree</Alias>
+      <Alias>ProxBronchialZon</Alias>
+      <Alias>Brl Tree</Alias>
+    </Aliases>
+  </PlanElement>
+  <PlanElement name="Trachea">
+    <Type>Structure</Type>
+    <ReferenceName>Trachea</ReferenceName>
+    <Aliases>
+      <!-- TODO Trachea are the same as the BronchialTree Aliases-->
+      <Alias>PRV20</Alias>
+      <Alias>PRV20 Brl Tree</Alias>
+      <Alias>ProxBronchialZon</Alias>
+    </Aliases>
+  </PlanElement>
+  <PlanElement name="COM-PTV">
+    <Type>ReferencePoint</Type>
     <ReferenceName>Dose @COM-PTV (%)</ReferenceName>
   </PlanElement>
   <PlanElement name="Body-PTV+20"><Type>Structure</Type>
@@ -66,40 +128,6 @@
       <Alias>IGTV 2</Alias>
       <Alias>IGTV 1</Alias>
       <Alias>IGTV</Alias>
-    </Aliases>
-  </PlanElement>
-  <PlanElement name="IpsBrachPlex"><Type>Structure</Type>
-    <ReferenceName>Ipsilat. Brach. Plex.</ReferenceName>
-    <Aliases>
-      <Alias>BrachialPlexus R</Alias>
-      <Alias>Br Plexus</Alias>
-      <Alias>Brachial Plexus LT</Alias>
-      <Alias>Ipsilat_Brach_Plex</Alias>
-    </Aliases>
-  </PlanElement>
-  <PlanElement name="Lung"><Type>Structure</Type>
-    <ReferenceName>Lung</ReferenceName>
-    <Laterality>Both</Laterality><!--TODO Both is not needed-->
-    <Aliases>
-      <Alias>Whole_Lung</Alias> <!--TODO add place marker for laterality modifier-->
-    </Aliases>
-  </PlanElement>
-  <PlanElement name="BronchialTree"><Type>Structure</Type>
-    <ReferenceName>BronchialTree</ReferenceName>
-    <Aliases>
-      <Alias>Prox Bronch Zone</Alias>
-      <Alias>PRV20</Alias>
-      <Alias>PRV20 Brl Tree</Alias>
-      <Alias>ProxBronchialZon</Alias>
-      <Alias>Brl Tree</Alias>
-    </Aliases>
-  </PlanElement>
-  <PlanElement name="Trachea"><Type>Structure</Type>
-    <ReferenceName>Trachea</ReferenceName>
-    <Aliases>
-      <Alias>PRV20</Alias>
-      <Alias>PRV20 Brl Tree</Alias>
-      <Alias>ProxBronchialZon</Alias>
     </Aliases>
   </PlanElement>
   <PlanElement name="SpinePRV5"><Type>Structure</Type>

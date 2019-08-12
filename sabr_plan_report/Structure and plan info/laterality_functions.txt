@@ -1,0 +1,27 @@
+=IF(ISBLANK([@Laterality]),
+	"",
+	IF(EXACT("Suffix",[@Location]),
+		CONCATENATE("^(?P<base>.+)",
+					[@[Laterality Pattern]],
+					"$"),
+		IF(EXACT("Prefix",[@Location]),
+			CONCATENATE("^",
+						[@[Laterality Pattern]],
+						"(?P<base>.+)$"),
+			IF(EXACT("Mid",[@Location]),
+				CONCATENATE("^(?P<base>.+)",
+							[@[Laterality Pattern]],
+							"(?P<tail>.+)$"),
+				"^(?P<base>.+)$"))))
+
+
+=IF(ISBLANK([@Laterality]),
+	"",
+	CONCATENATE("(?P<Pattern>",
+				[@[Laterality Indicator]],
+				")"))
+
+
+=IF(ISBLANK([@Laterality]),"",IF(EXACT("Suffix",[@Location]),CONCATENATE("^(?P<base>.+)",[@[Laterality Pattern]],"$"),IF(EXACT("Prefix",[@Location]),CONCATENATE("^",[@[Laterality Pattern]],"(?P<base>.+)$"),IF(EXACT("Mid",[@Location]),CONCATENATE("^(?P<base>.+)",[@[Laterality Pattern]],"(?P<tail>.+)$"),"^(?P<base>.+)$"))))
+
+=IF(ISBLANK([@Laterality]),"",CONCATENATE("(?P<Pattern>",[@[Laterality Indicator]],")"))

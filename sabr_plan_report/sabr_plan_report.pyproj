@@ -28,6 +28,9 @@
     <Compile Include="file_type_definitions.py" />
     <Compile Include="load_data.py" />
     <Compile Include="load_dvh_file.py" />
+    <Compile Include="Make_Laterality_Table.py" />
+    <Compile Include="Misc and old scripts\extract_base_structure.py" />
+    <Compile Include="Misc and old scripts\Make_Laterality_Table.py" />
     <Compile Include="report_tests.py">
       <SubType>Code</SubType>
     </Compile>
@@ -35,6 +38,7 @@
     <Compile Include="plan_eval_parameters.py" />
     <Compile Include="plan_report.py" />
     <Compile Include="report_gui.py" />
+    <Compile Include="SABR Plan Report Testing\report_tests.py" />
     <Compile Include="TestScript.py">
       <SubType>Code</SubType>
     </Compile>
@@ -56,11 +60,45 @@
     <Content Include="DVH2.ico" />
     <Content Include="DVH2.png" />
     <Content Include="environment.yml" />
+    <Content Include="Icons\DVH.ico" />
+    <Content Include="Icons\DVH.png" />
+    <Content Include="Icons\DVH2.ico" />
+    <Content Include="Icons\DVH2.png" />
     <Content Include="Laterality.xlsx" />
     <Content Include="Plan Matching.xlsx" />
     <Content Include="PlanItems.xlsx" />
+    <Content Include="SABR Plan Report Testing\Alias List.txt" />
+    <Content Include="SABR Plan Report Testing\DVH Data Feb 14 2018.dvh" />
+    <Content Include="SABR Plan Report Testing\DVH Data Feb 27 2018.dvh" />
+    <Content Include="SABR Plan Report Testing\DVH Data Mar 05 2018.dvh" />
+    <Content Include="SABR Plan Report Testing\DVH Data Nov 17 2017.dvh" />
+    <Content Include="SABR Plan Report Testing\DVH Data Nov 22 2017.dvh" />
+    <Content Include="SABR Plan Report Testing\DVH_Data_29_Aug_2017.dvh" />
+    <Content Include="SABR Plan Report Testing\DVH_Data_29_Sept_2017.dvh" />
+    <Content Include="SABR Plan Report Testing\Output\Test output.xls" />
+    <Content Include="SABR Plan Report Testing\Report Reference 48 in 4.txt" />
+    <Content Include="SABR Plan Report Testing\Report Reference 60 in 8.txt" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 17 Nov 2017.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 22 Nov 2017.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 29 Aug 2017.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 29 Sept 2017.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet BLANK.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet Feb 14 2018.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet Feb 27 2018.xls" />
+    <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet Mar 05 2018.xls" />
+    <Content Include="SABR Plan Report Testing\test data pairs.csv" />
+    <Content Include="SABR Plan Report Testing\Test results.xls" />
+    <Content Include="Structure and plan info\Format.xlsx" />
+    <Content Include="Structure and plan info\Laterality Code Exceptions.xlsx" />
+    <Content Include="Structure and plan info\Laterality Table.xml" />
+    <Content Include="Structure and plan info\Laterality.xlsx" />
+    <Content Include="Structure and plan info\laterality_functions.txt" />
+    <Content Include="Structure and plan info\Plan Matching.xlsx" />
+    <Content Include="Structure and plan info\PlanItems.xlsx" />
+    <Content Include="Structure and plan info\Structure_base.xlsx" />
     <Content Include="Test Data\Alias List.txt" />
     <Content Include="Test Data\Aliases.xml" />
+    <Content Include="Test Data\LateralityTable.xlsx" />
     <Content Include="Test Data\PlanDefinitions.xml" />
     <Content Include="Test Data\reference conversion.txt" />
     <Content Include="Test Data\Report Reference 48 in 4.txt" />
@@ -98,6 +136,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Icons\" />
+    <Folder Include="Misc and old scripts\" />
+    <Folder Include="SABR Plan Report Testing\" />
+    <Folder Include="SABR Plan Report Testing\Output\" />
+    <Folder Include="Structure and plan info\" />
     <Folder Include="Test Data\" />
     <Folder Include="SABR Plan Report Testing set\" />
   </ItemGroup>
