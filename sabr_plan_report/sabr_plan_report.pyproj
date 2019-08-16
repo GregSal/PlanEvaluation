@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{7e573dc3-f536-4d8e-aa14-38dfebdbdebe}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>TestScript.py</StartupFile>
+    <StartupFile>build_sabr_plan_report.py</StartupFile>
     <SearchPath>..\..\..\Utilities;..\..\..\Utilities\CustomVariableSet;..\..\..\Utilities\GUI_Management;..\sabr_plan_report</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -25,48 +25,23 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="build_sabr_plan_report.py" />
-    <Compile Include="file_type_definitions.py" />
-    <Compile Include="load_data.py" />
-    <Compile Include="load_dvh_file.py" />
-    <Compile Include="Make_Laterality_Table.py" />
-    <Compile Include="Misc and old scripts\extract_base_structure.py" />
-    <Compile Include="Misc and old scripts\Make_Laterality_Table.py" />
-    <Compile Include="report_tests.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="plan_data.py" />
-    <Compile Include="plan_eval_parameters.py" />
     <Compile Include="plan_report.py" />
     <Compile Include="report_gui.py" />
     <Compile Include="SABR Plan Report Testing\report_tests.py" />
-    <Compile Include="TestScript.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="build_sabr_plan_report.spec" />
-    <Content Include="compile.txt" />
-    <Content Include="Data\Alias List.txt" />
-    <Content Include="Data\Report Reference 48 in 4.txt" />
-    <Content Include="Data\Report Reference 54 in 3.txt" />
-    <Content Include="Data\Report Reference 60 in 8.txt" />
-    <Content Include="Data\ReportReference.xlsx" />
-    <Content Include="Data\SABR  Plan Evaluation Worksheet BLANK 2018.xls" />
-    <Content Include="Data\SABR  Plan Evaluation Worksheet BLANK A.xls" />
-    <Content Include="Data\SABR  Plan Evaluation Worksheet BLANK.xls" />
-    <Content Include="DVH.ico" />
-    <Content Include="DVH.png" />
-    <Content Include="DVH2.ico" />
-    <Content Include="DVH2.png" />
-    <Content Include="environment.yml" />
+    <Content Include="Compile\build_sabr_plan_report.spec" />
+    <Content Include="Compile\compile.txt" />
+    <Content Include="Compile\environment.yml" />
+    <Content Include="Compile\requirements.txt" />
+    <Content Include="Data\ReportDefinitions.xml" />
+    <Content Include="Data\SABR Plan Evaluation Worksheet BLANK.xls" />
     <Content Include="Icons\DVH.ico" />
     <Content Include="Icons\DVH.png" />
     <Content Include="Icons\DVH2.ico" />
     <Content Include="Icons\DVH2.png" />
-    <Content Include="Laterality.xlsx" />
-    <Content Include="Plan Matching.xlsx" />
-    <Content Include="PlanItems.xlsx" />
     <Content Include="SABR Plan Report Testing\Alias List.txt" />
     <Content Include="SABR Plan Report Testing\DVH Data Feb 14 2018.dvh" />
     <Content Include="SABR Plan Report Testing\DVH Data Feb 27 2018.dvh" />
@@ -78,6 +53,7 @@
     <Content Include="SABR Plan Report Testing\Output\Test output.xls" />
     <Content Include="SABR Plan Report Testing\Report Reference 48 in 4.txt" />
     <Content Include="SABR Plan Report Testing\Report Reference 60 in 8.txt" />
+    <Content Include="SABR Plan Report Testing\TestReportDefinitions.xml" />
     <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 17 Nov 2017.xls" />
     <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 22 Nov 2017.xls" />
     <Content Include="SABR Plan Report Testing\SABR  Plan Evaluation Worksheet 29 Aug 2017.xls" />
@@ -96,53 +72,23 @@
     <Content Include="Structure and plan info\Plan Matching.xlsx" />
     <Content Include="Structure and plan info\PlanItems.xlsx" />
     <Content Include="Structure and plan info\Structure_base.xlsx" />
-    <Content Include="Test Data\Alias List.txt" />
-    <Content Include="Test Data\Aliases.xml" />
-    <Content Include="Test Data\LateralityTable.xlsx" />
-    <Content Include="Test Data\PlanDefinitions.xml" />
-    <Content Include="Test Data\reference conversion.txt" />
-    <Content Include="Test Data\Report Reference 48 in 4.txt" />
-    <Content Include="Test Data\Report Reference 54 in 3.txt" />
-    <Content Include="Test Data\Report Reference 60 in 8.txt" />
+    <Content Include="PlanEvaluationConfig.xml" />
+    <Content Include="Test Data\Output\SABR Plan Evaluation Worksheet filled.xls" />
     <Content Include="Test Data\ReportDefinitions.xml" />
-    <Content Include="Test Data\ReportReference.xlsx" />
-    <Content Include="Test Data\SABR  Plan Evaluation Worksheet BLANK 2018.xls" />
-    <Content Include="Test Data\SABR  Plan Evaluation Worksheet BLANK A.xls" />
-    <Content Include="Test Data\SABR  Plan Evaluation Worksheet BLANK.xls" />
-    <Content Include="requirements.txt" />
-    <Content Include="SABR Plan Report Testing set\Alias List.txt" />
-    <Content Include="SABR Plan Report Testing set\DVH Data Feb 14 2018.dvh" />
-    <Content Include="SABR Plan Report Testing set\DVH Data Feb 27 2018.dvh" />
-    <Content Include="SABR Plan Report Testing set\DVH Data Mar 05 2018.dvh" />
-    <Content Include="SABR Plan Report Testing set\DVH Data Nov 17 2017.dvh" />
-    <Content Include="SABR Plan Report Testing set\DVH Data Nov 22 2017.dvh" />
-    <Content Include="SABR Plan Report Testing set\DVH_Data_29_Aug_2017.dvh" />
-    <Content Include="SABR Plan Report Testing set\DVH_Data_29_Sept_2017.dvh" />
-    <Content Include="SABR Plan Report Testing set\Report Reference 48 in 4.txt" />
-    <Content Include="SABR Plan Report Testing set\Report Reference 60 in 8.txt" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet 17 Nov 2017.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet 22 Nov 2017.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet 29 Aug 2017.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet 29 Sept 2017.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet BLANK.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet Feb 14 2018.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet Feb 27 2018.xls" />
-    <Content Include="SABR Plan Report Testing set\SABR  Plan Evaluation Worksheet Mar 05 2018.xls" />
-    <Content Include="SABR Plan Report Testing set\test data pairs.csv" />
-    <Content Include="SABR Plan Report Testing set\Test results.xls" />
-    <Content Include="Test Data\Test SABR  Plan Evaluation Standard.xls" />
+    <Content Include="Structure and plan info\ReportReference.xlsx" />
+    <Content Include="Test Data\SABR Plan Evaluation Worksheet BLANK.xls" />
+    <Content Include="Test Data\Test SABR Plan Evaluation Standard.xls" />
     <Content Include="Test Data\test.dvh" />
-    <Content Include="test output.xls" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Compile\" />
     <Folder Include="Data\" />
     <Folder Include="Icons\" />
-    <Folder Include="Misc and old scripts\" />
     <Folder Include="SABR Plan Report Testing\" />
     <Folder Include="SABR Plan Report Testing\Output\" />
     <Folder Include="Structure and plan info\" />
     <Folder Include="Test Data\" />
-    <Folder Include="SABR Plan Report Testing set\" />
+    <Folder Include="Test Data\Output\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|SABR" />

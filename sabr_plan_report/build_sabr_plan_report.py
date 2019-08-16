@@ -1,70 +1,96 @@
 '''Fill an Excel SABR Spreadsheet with values from a DVH file.
 '''
+from copy import deepcopy
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from sys import argv
-from functools import partial
 
-from plan_report import load_aliases
 from plan_report import Report
-from load_dvh_file import DvhFile
-from load_data import load_items
-from plan_data import Plan
-from plan_eval_parameters import PlanEvalParameters
-from report_gui import activate_gui
+from plan_report import load_default_laterality
+from plan_report import load_aliases, load_laterality_table
+from plan_data import DvhFile, Plan
 
 
-def define_reports(base_path: Path, data_path: Path):
+def load_config(base_path: Path, config_file_name: str)->ET.Element:
+    config_path = base_path / config_file_name
+    config_tree = ET.parse(config_path)
+    config = config_tree.getroot()
+    return config
+
+
+def read_report(report_file, **report_parameters):
+    report_tree = ET.parse(report_file)
+    report_root = report_tree.getroot()
+    report_dict = dict()
+    for report_def in report_root.findall('Report'):
+        report = Report(report_def, **report_parameters)
+        report_dict[report.name] = report
+    return report_dict
+
+
+def load_report_definitions(config: ET.Element):
     '''Load the SABR plan report definitions
     '''
-    # TODO Add method to scan directory for report_definition and alias_definition files
-    aliases_file = data_path / 'Aliases.xml'
-    report_definition = data_path / 'ReportDefinitions.xml'
+    template_path = config.findtext(r'./DefaultDirectories/ReportTemplates')
+    alias_def = config.find('AliasList')
+    laterality_lookup_def = config.find('LateralityTable')
+    default_patterns_def = config.find('DefaultLateralityPatterns')
 
-    alias_reference = load_aliases(aliases_file)
+    report_parameters = dict(
+        alias_reference=load_aliases(alias_def),
+        template_path=Path(template_path),
+        laterality_lookup=load_laterality_table(laterality_lookup_def),
+        lat_patterns=load_default_laterality(default_patterns_def))
 
-    report_tree = ET.parse(report_definition)
-    report_root = report_tree.getroot()
     report_definitions = dict()
-    for report_def in report_root.findall('Report'):
-        report = Report(report_def, alias_reference, data_path)
-        report_definitions[report.name] = report
+    report_path = config.findtext(r'./DefaultDirectories/ReportDefinitions')
+    # TODO Add method to scan directory for report_definition
+    report_file = Path(report_path) / 'ReportDefinitions.xml'
+    report_dict = read_report(report_file, **report_parameters)
+    report_definitions.update(report_dict)
     return report_definitions
 
-def run_report(report_selection, report_param):
+
+def run_report(plan, report):
+    (match, not_matched) = report.match_elements(plan)
+    report.get_values(plan)
+    report.build()
+
+def build_report(report_selection, report_name, plan_file_name,
+                 save_file=None, plan_name='plan'):
     '''Load plan data and generate report.
     '''
-    plan_file_name = report_param.dvh_file
-    report = report_selection[report_param.report_name]
-    report.save_file = report_param.save_file
-    test_plan = Plan('test1', DvhFile(plan_file_name))
+    report = report_selection[report_name]
+    if save_file:
+        report.save_file = save_file
+    plan = Plan(plan_name, DvhFile(plan_file_name))
+    run_report(plan, report)
 
-    (match, not_matched) = report.match_elements(test_plan)
-    report.update_references(match, not_matched)
-    report.get_values(test_plan)
-    report.build()
 
 
 def main():
     '''Test
     '''
-    if len(argv) > 1:
-        base_path = Path(argv[1])
-    else:
-        base_path = Path('.').resolve()
-        #base_path = Path(
-        #            r'M:\Dosimetry Planning Documents\SABR Plan Evaluation')
-    data_path = Path.cwd() / 'Data'
-    report_selection = define_reports(base_path, data_path)
+    #%% Load Config File Data
+    base_path = Path.cwd()
+    config_file = 'PlanEvaluationConfig.xml'
+    config = load_config(base_path, config_file)
 
-    report_param = PlanEvalParameters(\
-        base_path=base_path,
-        report_list=list(report_selection.keys()),
-        save_file='SABR Plan Report.xls',
-        report_name=' ')
+    #%% Load Report Definitions
+    report_definitions = load_report_definitions(config)
+    report_name = 'SABR 48 in 4'
+    report = deepcopy(report_definitions[report_name])
 
-    run_cmd = partial(run_report, report_selection)
-    activate_gui(report_param, run_cmd)
+    #%% Load Plan File
+    dvh_file_name = 'test.dvh'
+    test_plan = Plan('Test Plan', config, dvh_file_name)
+
+    #%% Do match
+    (match, not_matched) = report.match_elements(test_plan)
+    report.get_values(test_plan)
+    report.build()
+
+    #run_cmd = partial(run_report, report_selection)
+    #activate_gui(report_param, run_cmd)
 
 if __name__ == '__main__':
     main()

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid Studio 2019 (https://www.liquid-technologies.com) -->
+<LateralityCodeExceptions>
+  <BodyRegion Name="ABLB">lower abdomen</BodyRegion>
+  <BodyRegion Name="ABUB">upper abdomen</BodyRegion>
+  <BodyRegion Name="GALL">gall bladder</BodyRegion>
+  <BodyRegion Name="ORAL">oral cavity / buccal mucosa</BodyRegion>
+  <BodyRegion Name="SKUL">skull</BodyRegion>
+  <BodyRegion Name="SPIL">lumbar spine</BodyRegion>
+  <BodyRegion Name="SPTL">thoracic & lumbar spine</BodyRegion>
+  <BodyRegion Name="UVUL">uvula</BodyRegion>
+  <BodyRegion Name="LIVR">liver</BodyRegion>
+  <BodyRegion Name="SACR">sacrum</BodyRegion>
+  <BodyRegion Name="STER">sternum</BodyRegion>
+  <BodyRegion Name="UTER">uterus</BodyRegion>
+  <BodyRegion Name="BOOS">boost, area previously treated</BodyRegion>
+</LateralityCodeExceptions>

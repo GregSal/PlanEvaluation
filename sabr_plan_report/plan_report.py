@@ -1,11 +1,10 @@
 '''Report on Plan parameters based on defined Criteria'''
 
+from typing import Dict, Tuple
 from pathlib import Path
 import logging
 import xml.etree.ElementTree as ET
-import pandas as pd
 import xlwings as xw
-from load_data import load_items
 from plan_data import Plan
 
 
@@ -13,82 +12,76 @@ logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
-def load_aliases(aliases_file: Path)->pd.DataFrame:
-    '''Read lists of alternate names for ReportElements from a .xml file.
+def load_aliases(alias_root: ET.Element)->Dict[Tuple[str], str]:
+    '''Read lists of alternate names for ReportElements from a .xml element.
     Arguments:
-        aliases_file: {Path} -- Path to the .xml file containing the alias lists.
-    Returns {DataFrame}
-        A DataFrame for looking up Aliases for report elements.
-        The index is:
-            element_type
-                The type of PlanElement.  Can be one of:
-                    ('Plan Property', Structure', 'Reference Point')
-            name
-                The name of the related report element
-        Columns are:
+        aliases: {ET.Element} -- .xml element containing the alias lists.
+    Returns {Dict[Tuple[str], str]}
+        A dictionary for looking up Aliases for report elements.
+        The key is a four element tuple:
+            (ReferenceType, ReferenceName, Laterality, Size)
+                ReferenceType: {str} -- The type of PlanElement.
+                    Can be one of:
+                        ('Plan Property', Structure', 'Reference Point')
+            ReferenceName: {str} -- The primary reference name of the related
+                report element.
+            Laterality: {optional, str} -- The relative laterality of the
+                related report element.
+                    Can be one of:
+                        ('Contralateral', 'Ipsilateral', 'Both', 'Left', 'Right')
+                    or None, if a non-lateral related report element.
+            Size: {optional, int} -- The size of the Laterality indicator
+                required by the alias.
+            Columns are:
             aliases:
                 A list of alternate names for the report element.
-            laterality:
-                Indicates the laterality of a particular structure reference.
-                Can be one of:
-                    ('Contralateral', 'Ipsilateral', 'Both', 'Left', 'Right')
+
 '''
-    alias_tree = ET.parse(aliases_file)
-    alias_root = alias_tree.getroot()
-    element_list = list()
+    alias_reference = dict()
     for element in alias_root.findall('PlanElement'):
-        if element is not None:
-            element_dict = dict()
-            element_dict['name'] = element.attrib.get('name')
-            element_dict['reference_name'] = element.findtext('ReferenceName')
-            element_dict['element_type'] = element.findtext('Type')
+        aliases = element.find('Aliases')
+        if aliases is not None:
+            ref_name = element.findtext('ReferenceName')
+            ref_type = element.findtext('Type')
             laterality = element.findtext('Laterality')
-            if laterality is not None:
-                element_dict['Laterality'] = laterality
-            aliases = element.find('Aliases')
-            if aliases is not None:
-                alias_list = list()
-                for alias in aliases.findall('Alias'):
-                    alias_list.append(alias.text)
-                element_dict['aliases'] = alias_list
-            element_list.append(element_dict)
-    alias_reference = pd.DataFrame(element_list)
-    alias_reference.set_index(['element_type', 'reference_name'],
-                              inplace=True,
-                              verify_integrity=True)
-    alias_reference.dropna(inplace=True)
+            for alias in aliases.findall('Alias'):
+                size = alias.attrib.get('Size', None)
+                if size:
+                    size = int(size)
+                alias_value = (alias.text, size)
+                alias_index = (ref_type, ref_name, laterality)
+                alias_list = alias_reference.get(alias_index)
+                if alias_list:
+                    alias_list.append(alias_value)
+                else:
+                    alias_list = [alias_value]
+                alias_reference[alias_index] = alias_list
     return alias_reference
 
 
-def add_laterality_indicator(structure_base_name: str, laterality,
-                             plan_laterality=None):
-    '''Add a letter to the end of a structure name to indicate the laterality
-    of the structure.
-    Possible letter suffixes are:
-        Left            ' L'
-        Right           ' R'
-        Both            ' B'
-        Contralateral   ' L' or ' R'
-        Ipsilateral     ' R' or ' L'
-    For Ipsilateral and Contralateral, the choice of left or right will
-    depend on the plan laterality.
-    '''
-    # FIXME use laterality table to select a indicator, use format to generate final match form
-    # TODO move add_laterality_indicator to report module 
-    laterality_adjustor = {
-        'Left': {'Ipsilateral': ' L', 'Contralateral': ' R'},
-        'Right': {'Ipsilateral': ' R', 'Contralateral': ' L'}
-        }
-    laterality_selector = {'Left': ' L', 'Right': ' R', 'Both': ' B'}
-    if plan_laterality and laterality_adjustor.get(plan_laterality):
-        # Add Ipsilateral and Contralateral terms to selector
-        laterality_selector.update(laterality_adjustor[plan_laterality])
-    structure_suffix = laterality_selector.get(laterality)
-    if structure_suffix:
-        updated_structure = structure_base_name + structure_suffix
-    else:
-        updated_structure = structure_base_name
-    return updated_structure
+def load_default_laterality(default_laterality_root):
+    laterality_patterns = list()
+    for element in default_laterality_root.findall('Pattern'):
+        size = element.attrib.get('Size')
+        if size:
+            size = int(size)
+            aliases = element.find('Aliases')
+        pattern = element.text
+        laterality_patterns.append((pattern, size))
+    return laterality_patterns
+
+
+def load_laterality_table(laterality_root: ET.Element)->Dict[Tuple[str], str]:
+    laterality_lookup = dict()
+    for element in laterality_root.findall('LateralityIndicator'):
+        plan_lat = element.attrib.get('PlanLaterality')
+        report_lat = element.attrib.get('ReportItemLaterality')
+        size = element.attrib.get('Size')
+        if size:
+            size = int(size)
+        laterality_index = (plan_lat, report_lat, size)
+        laterality_lookup[laterality_index] = element.text
+    return laterality_lookup
 
 
 class PlanReference(dict):
@@ -118,48 +111,93 @@ class PlanReference(dict):
                **parameters)
             update(self, match)
 '''
-    def __init__(self, reference_def, alias_reference: pd.DataFrame):
+    def __init__(self, reference_def, alias_reference):
         '''Create the base dictionary and add all reference related parameters.
         '''
         super().__init__()
         self['reference_name'] = reference_def.findtext('Name')
         self['reference_type'] = reference_def.findtext('Type')
-        self['Aliases'] = self.add_aliases(reference_def, alias_reference)
-        for element in reference_def.findall(r'./*'):
-            if 'Aliases' not in element.tag:
-                self[element.tag] = str(element.text)
+        self['reference_laterality'] = reference_def.findtext('Laterality')
+        self['constructor'] = reference_def.findtext('Constructor')
+        aliases_def = reference_def.find('Aliases')
+        self['Aliases'] = self.add_aliases(aliases_def, alias_reference)
+        self['plan_element'] = None
 
-    def update_match(self, match):
-        '''Update reference information resulting from matching with
-        plan_data.
-        Remove Laterality.
-        '''
-        if match:
-            (reference_type, reference_name) = match
-            self['reference_name'] = reference_name
-            self['reference_type'] = reference_type
-            self.pop('reference_laterality', None)
-        else:
-            self['reference_name'] = None
+    def lookup_aliases(self, alias_reference):
+        ref_name = self.get('reference_name')
+        ref_type = self.get('reference_type')
+        ref_lat = self.get('reference_laterality')
+        alias_index = (ref_type, ref_name, ref_lat)
+        aliases = alias_reference.get(alias_index)
+        if not aliases:
+            aliases = []
+        return aliases
 
-    def add_aliases(self, reference_def, alias_lookup):
+    def add_aliases(self, aliases_def, alias_reference):
         '''Add a list of alternative reference names.
         '''
-        aliases = reference_def.find('Aliases')
-        if aliases is not None:
-            alias_list = list()
-            for alias in aliases.findall('Alias'):
+        add_aliases = True
+        alias_list = list()
+        if aliases_def is not None:
+            join = aliases_def.attrib.get('Join')
+            if 'Replace' in join:
+                add_aliases = False
+            for alias in aliases_def.findall('Alias'):
                 alias_list.append(alias.text)
-            return set(alias_list)
-        else:
-            ref_name = self['reference_name']
-            ref_type = self['reference_type']
-            try:
-                alias_list = alias_lookup.loc[(ref_type, ref_name),'aliases']
-            except KeyError:
-                return None
+        if add_aliases:
+            alias_list.extend(self.lookup_aliases(alias_reference))
+        return set(alias_list)
+
+    def match_laterality(self, plan_elements, plan_laterality=None,
+                         lat_patterns=None, laterality_lookup=None):
+        matched_element = None
+        item_laterality = self.get('reference_laterality')
+        if item_laterality:
+            reference_name = self['reference_name']
+            for (pattern, size) in lat_patterns:
+                lat_index = (plan_laterality, item_laterality, size)
+                lat_indicator = laterality_lookup[lat_index]
+                lookup_name = pattern.format(Base=reference_name,
+                                                LatIndicator=lat_indicator)
+                matched_element = plan_elements.get(lookup_name)
+                if matched_element:
+                    break
+        return matched_element
+
+    def match_alias(self, plan_elements, plan_laterality=None,
+                    lat_patterns=None, laterality_lookup=None):
+        matched_element = None
+        aliases = self.get('Aliases',{})
+        item_laterality = self.get('reference_laterality')
+        for (pattern, size) in aliases:
+            if not size:
+                matched_element = plan_elements.get(pattern)
             else:
-                return set(alias_list)
+                lat_index = (plan_laterality, item_laterality, size)
+                lat_indicator = laterality_lookup[lat_index]
+                lookup_name = pattern.format(LatIndicator=lat_indicator)
+                matched_element = plan_elements.get(lookup_name)
+            if matched_element:
+                break
+        return matched_element
+
+    def match_element(self, plan_elements, **lat_param):
+        '''Find match in plan for report elements.
+        '''
+        matched_element = None
+        reference_type = self['reference_type']
+        reference_name = self['reference_name']
+        # Try reference_name
+        matched_element = plan_elements.get(reference_name)
+        if not matched_element:
+            # Try laterality
+            matched_element = self.match_laterality(plan_elements, **lat_param)
+            if not matched_element:
+                # Try Aliases
+                matched_element = self.match_alias(plan_elements, **lat_param)
+        if matched_element:
+            self['plan_element'] = matched_element
+        return matched_element
 
     def __repr__(self):
         '''Build an Target list string.
@@ -188,22 +226,29 @@ class Target(dict):
     def __init__(self, target_def):
         '''Create the base dictionary and add values if supplied.
         '''
-        super().__init__()
-        for element in target_def.findall(r'./*'):
-            self[element.tag] = str(element.text)
+        def read_item(target_def, target_item):
+            item = target_def.findtext(target_item)
+            if item:
+                return str(item)
+            return None
 
-    def add_value(self, element_value, sheet):
+        super().__init__()
+        self['Unit'] = read_item(target_def, 'Unit')
+        self['CellAddress'] = read_item(target_def, 'CellAddress')
+        self['CellFormat'] = read_item(target_def, 'CellFormat')
+
+    def add_value(self, value, sheet):
         '''Enter the value into the spreadsheet.
         '''
-        cell_address = self.get('cell_address')
+        cell_address = self.get('CellAddress')
         if cell_address:
-            cell_format = self.get('cell_format')
+            cell_format = self.get('CellFormat')
             if cell_format:
                 sheet.range(cell_address).number_format = cell_format
                 if '%' in cell_format:
-                    element_value = element_value/100
+                    value = value/100
                     # spreadsheet expects percent values as a decimal
-            sheet.range(cell_address).value = element_value
+            sheet.range(cell_address).value = value
 
     def __repr__(self):
         '''Build an Target list string.
@@ -252,7 +297,7 @@ class ReportElement():
         '''
     default_category = 'Info'
 
-    def __init__(self, report_item, alias_reference: pd.DataFrame):
+    def __init__(self, report_item, alias_reference):
         '''Initialize the attributes unique to Report Elements.
         '''
         self.name = report_item.attrib.get('name')
@@ -268,7 +313,7 @@ class ReportElement():
         else:
             self.category = self.default_category
 
-        self.element_value = None
+        self.value = None
         reference = report_item.find('PlanReference')
         if reference is not None:
             self.reference = PlanReference(reference, alias_reference)
@@ -282,13 +327,26 @@ class ReportElement():
         # If a reference name is not given use the report element name.
         if not self.reference['reference_name']:
             self.reference['reference_name'] = self.name
+    pass
 
-    def update_reference(self, match):
-        '''Update reference information resulting from matching with
-        plan_data.
+    def get_value(self, conversion_parameters):
+        '''Get values for the Report Elements from the plan data.
+        Parameters:
+            plan: type Plan
+            convert_units(starting_value, starting_units, target_units,
+                  dose=1.0, volume=1.0):
         '''
-        # TODO update_reference seems to be a redundant method
-        self.reference.update_match(match)
+        plan_element = self.reference['plan_element']
+        if self.target:
+            target_units = self.target.get('Unit')
+        else:
+            target_units = None
+        constructor =self.reference.get('constructor','')
+        if plan_element:
+            conversion_parameters['target_units'] = target_units
+            conversion_parameters['constructor'] = constructor
+            self.value = plan_element.get_value(**conversion_parameters)
+        pass
 
     def add_to_report(self, sheet):
         '''enter the ReportElement into the spreadsheet.
@@ -296,9 +354,10 @@ class ReportElement():
             sheet: type xlwings worksheet
                 The worksheet to enter the value into.
         '''
-        element_value = self.element_value
-        if element_value is not None:
-            self.target.add_value(element_value, sheet)
+        value = self.value
+        if value is not None:
+            self.target.add_value(value, sheet)
+    pass
 
     def __repr__(self):
         '''Describe a Report Element.
@@ -337,17 +396,22 @@ class Report():
         build(self)
         Evaluation
         '''
-
     def __init__(self, report_def: ET.Element,
-                 alias_reference: pd.DataFrame = None,
-                 data_path: Path = Path.cwd()):
+                 template_path: Path = Path.cwd(),
+                 save_path: Path = Path.cwd(),
+                 alias_reference=None,
+                 laterality_lookup=None,
+                 lat_patterns=None):
         '''Define the spreadsheet paths, worksheet name and Report Elements.
         '''
         self.name = report_def.findtext('Name')
         template_file_name = report_def.findtext(r'./FilePaths/Template/File')
-        self.template_file = data_path / template_file_name
-        self.worksheet = report_def.findtext(r'./FilePaths/Template/WorkSheet')
         worksheet = report_def.findtext(r'./FilePaths/Template/WorkSheet')
+        self.template_file = template_path / template_file_name
+        self.worksheet = worksheet
+
+        self.laterality_lookup = laterality_lookup
+        self.lat_patterns = lat_patterns
 
         self.report_elements = dict()
         element_list = report_def.find('ReportItemList')
@@ -362,107 +426,41 @@ class Report():
         self.save_file = Path(save_path) / save_file_name
         self.save_worksheet = report_def.findtext(r'./FilePaths/Save/WorkSheet')
 
-
-    def get_references(self, reference_type=''):
-        '''Create a dictionary of references for all ReportElements.
-            Key is ReportElement name
-            Value is the ReportElement reference Dictionary.
-        If reference_type is not given, all references will be returned.
-        Returns:
-            reference_dict:
-                A dict of reference dictionaries for the requested
-                PlanElements, with the key being the ReportElement name.
-        '''
-        reference_dict = dict()
-        for element in self.report_elements.values():
-            reference = element.reference
-            if reference_type in reference['reference_type']:
-                reference_dict[element.name] = reference
-        return reference_dict
-
-    def select_by_reference(self, reference_name, reference_type=''):
-        '''return a list of report element names associated with the given
-        reference name.
-        If reference_type is not given, all references will be searched for
-        the matching name.
-        '''
-        reference_dict = self.get_references(reference_type)
-        element_list = [name for (name, reference) in reference_dict.items()
-                        if reference_name in reference['reference_name']]
-        return element_list
-
-    def update_references(self, matched=None, not_matched=None):
-        '''Update reference information for the ReportElements matched and
-        not_matched.
-            match:  type dictionary
-                contains tuples of matching plan element and element_type.
-        '''
-        if matched:
-            for (element_name, match_pair) in matched.items():
-                report_element = self.report_elements[element_name]
-                report_element.update_reference(match_pair)
-        if not_matched:
-            for element_name in not_matched:
-                report_element = self.report_elements[element_name]
-                report_element.update_reference(match=None)
-
     def match_elements(self, plan: Plan):
         '''Find match in plan for report elements.
         '''
-        def try_alias(match_method, reference, alias_list=None):
-            '''Loop through aliases to find a match
-            '''
-            item_match = None
-            if alias_list:
-                for alias in alias_list:
-                    reference['reference_name'] = alias
-                    item_match = match_method(**reference)
-                    if item_match:
-                        break
-            return item_match
-
-        def get_match_references(reference: PlanReference):
-            '''Return a dictionary with the parameters needed for element
-            matching.
-            '''
-            required_parameters = [
-                'reference_type',
-                'reference_name',
-                'reference_laterality']
-            alias_list = reference.pop('reference_aliases', None)
-            match_reference = {key: value
-                               for key, value in reference.items()
-                               if key in required_parameters}
-            return match_reference, alias_list
-
-        # method to extract match references
-        match = dict()
+        matched = dict()
         not_matched = dict()
-        do_match = plan.match_element
-        plan_laterality = plan.laterality
-        for reference_type in plan.data_elements:
-            report_references = self.get_references(reference_type)
-            for (name, reference) in report_references.items():
-                (match_ref, alias_list) = get_match_references(reference)
-                item_match = do_match(**match_ref)
-                if not item_match:
-                    item_match = try_alias(do_match, match_ref, alias_list)
-                if item_match:
-                    match[name] = item_match
-                else:
-                    not_matched[name] = (None, None)
-        return (match, not_matched)
+        lat_param = dict(plan_laterality=plan.laterality,
+                         lat_patterns=self.lat_patterns,
+                         laterality_lookup=self.laterality_lookup)
+        for report_item in self.report_elements.values():
+            name = report_item.name
+            reference = report_item.reference
+            reference_type = reference['reference_type']
+            plan_elements = plan.data_elements.get(reference_type)
+            if plan_elements:
+                matched_element = reference.match_element(plan_elements,
+                                                          **lat_param)
+            if matched_element:
+                matched[name] = matched_element
+            else:
+                not_matched[name] = (None, None)
+        return (matched, not_matched)
 
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
         Parameters:
             plan: type Plan
+            convert_units(starting_value, starting_units, target_units,
+                  dose=1.0, volume=1.0):
         '''
+        conversion_parameters = dict(
+            dose=plan.prescription_dose.element_value
+            )
         for element in self.report_elements.values():
-            plan_value = plan.get_value(desired_unit=element.unit,
-                                        **element.reference)
-            if plan_value is not None:
-                element.define(element_value=plan_value)
+            element.get_value(conversion_parameters)
+        pass
 
     def build(self):
         '''Open the spreadsheet and save the Report elements.
@@ -506,30 +504,3 @@ class Report():
             repr_str += element.__repr__()
         return repr_str
 
-
-def main():
-    '''Test
-    '''
-    template_file = \
-        Path(r'..\Test Data\SABR  Plan Evaluation Worksheet Test Copy.xls')
-    save_file = \
-        Path(r'..\Test Data\SABR  Plan Evaluation Worksheet Test Save.xls')
-    worksheet = 'EvalutionSheet 48Gy4F or 60Gy5F'
-    report = Report('Test', template_file, save_file, worksheet)
-
-    element_file = Path(r"..\Test Data\ReportReference.txt")
-    elements_list = load_items(element_file)
-    report.define_elements(elements_list)
-
-    plan_values_file = Path(r'..\Test Data\ElementValues.txt')
-    element_values = load_items(plan_values_file)
-    plan = {element['PlanElement']:
-            dict([('element_value', element['element_value']), ])
-            for element in element_values}
-
-    report.get_values(plan)
-    report.build()
-
-
-if __name__ == '__main__':
-    main()

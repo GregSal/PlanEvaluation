@@ -36,7 +36,7 @@
 -->
 <AliasList>
   <DefaultLateralityPatterns>
-    <Pattern Symbol="~">{Base} ~</Pattern>
+    <Pattern Size="1">{Base} {LatIndicator}</Pattern>
     </DefaultLateralityPatterns>
   <PlanElement name="IpsBrachPlex">
     <Type>Structure</Type>
@@ -54,13 +54,13 @@
     <Laterality>Both</Laterality>
         <Aliases>
       <Alias>Whole_Lung</Alias>
-      <Alias Symbol="~">{Lung}_~</Alias> 
+      <Alias Size="1">Lung_~</Alias> 
     </Aliases>
   </PlanElement>
   <PlanElement name="BronchZone"><Type>Structure</Type>
     <ReferenceName>ProxBronchZone</ReferenceName>
     <Aliases>
-      <Alias Symbol="~~~">{LatIndicator}Bronch Zone</Alias>      
+      <Alias Size="3">{LatIndicator}Bronch Zone</Alias>      
     </Aliases>  </PlanElement>
   <PlanElement name="BronchialTree">
     <Type>Structure</Type>

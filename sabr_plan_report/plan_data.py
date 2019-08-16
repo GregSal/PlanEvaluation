@@ -8,21 +8,39 @@ elements for analysis.
 
 
 from pathlib import Path
-from functools import partial
 import logging
 import re
 from scipy.interpolate import interp1d
 import numpy as np
+import xml.etree.ElementTree as ET
 
 
 logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
-LATERALITY_EXCEPTIONS = ['ABLB', 'ABUB', 'GALL', 'ORAL', 'SKUL', 'SPIL',
-                         'SPTL', 'UVUL', 'LIVR', 'SACR', 'STER', 'UTER',
-                         'BOOS'
-                         ]
+def get_laterality_exceptions(region_code_root):
+    region_code_list = list()
+    for element in region_code_root.findall('BodyRegion'):
+        region_code = element.attrib.get('Name')
+        region_code_list.append(region_code)
+    return region_code_list
+
+
+def get_default_units(config: ET.Element):
+    '''Sets the default units for the plan data.
+    Parameters
+        One or more of the following:
+                DoseUnit: One of ('Gy', 'cGy', '%')
+                VolumeUnit: One of ('cc', '%')
+                DistanceUnit: 'cm')
+    '''
+    default_units_settings = dict()
+    for default_unit in config.findall(r'./PlanDefaults/*'):
+        unit_type = default_unit.tag
+        unit = default_unit.text
+        default_units_settings[unit_type] = unit
+    return default_units_settings
 
 
 def find_unit(text):
@@ -81,33 +99,33 @@ class PlanElement():
         If name is not supplied, return an object with self.name = None as the
         only attribute.
         '''
-        if name:
-            self.name = str(name)
-            self.unit = None
-            self.element_value = None
-            self.conversion_factors = dict()
-            self.define(element_value, unit)
-        else:
-            self.name = None
+        self.name = str(name)
+        self.unit = None
+        self.value = None
+        self.define(element_value, unit)
 
     def define(self, element_value=None, unit=None):
         '''Set Element Attributes.
         '''
-        if element_value is not None:
-            try:
-                self.element_value = float(element_value)
-            except (ValueError, TypeError):
-                self.element_value = element_value
+        try:
+            self.element_value = float(element_value)
+        except (ValueError, TypeError):
+            self.element_value = element_value
         if unit:
             self.unit = str(unit)
+        else:
+            self.unit = unit
+        pass
 
-    def get_value(self, desired_unit=None, conversion_method=None):
+    def get_value(self, constructor='', **conversion_parameters):
         '''Returns the requested value in the desired units.
         '''
+        # TODO constructor can be regular expression to derive custom string values e.g. site from Plan Name
         initial_value = self.element_value
-        if initial_value and desired_unit:
-            final_value = conversion_method(initial_value, self.unit,
-                                            desired_unit)
+        initial_unit = self.unit
+        if initial_value and initial_unit:
+            final_value = convert_units(initial_value, initial_unit,
+                                        **conversion_parameters)
         else:
             final_value = initial_value
         return final_value
@@ -346,12 +364,11 @@ class DVH():
             If unit is None, returns the value in the default units defined
             with set_units.
     '''
-    def __init__(self, columns=None, dvh_curve=None, conversion_method=None):
+    def __init__(self, columns=None, dvh_curve=None):
         '''Initialize a DVH data set.
         '''
         self.dvh_columns = columns
         self.dvh_curve = np.array(dvh_curve).T
-        self.unit_conversion = conversion_method
 
     def select_columns(self, x_unit, y_type, y_unit=None):
         '''Select the appropriate x and y DVH columns.
@@ -387,15 +404,16 @@ class DVH():
             target_value = None
         return target_value
 
-    def get_value(self, dvh_constructor=None):
+    def get_value(self, dvh_constructor=None, **conversion_parameters):
         '''Return the value in the requested units.
         '''
         (y_type, x_value, x_unit) = dvh_constructor
         (x_column, y_column, desired_x_unit) = \
             self.select_columns(x_unit, y_type)
         if desired_x_unit:
-            x_value = self.unit_conversion(float(x_value),
-                                           x_unit, desired_x_unit)
+            x_value = convert_units(float(x_value), x_unit,
+                                    target_units=desired_x_unit,
+                                    **conversion_parameters)
         dvh_value = self.get_dvh_point(x_column, y_column, x_value)
         dvh_unit = self.dvh_columns[y_column]['Unit']
         dvh_name = ''.join(dvh_constructor)
@@ -426,7 +444,7 @@ class Structure():
         volume
             Returns the structures volume
     '''
-    def __init__(self, name=None, conversion_method=None, **properties):
+    def __init__(self, name=None, **properties):
         '''Initialize a structure.
         Parameters:
             name:  type str
@@ -438,7 +456,6 @@ class Structure():
         '''
         if name:
             self.name = str(name)
-            self.unit_conversion = conversion_method
             self.structure_properties = dict()
             self.dose_data = None
             self.define(**properties)
@@ -456,14 +473,12 @@ class Structure():
             for element_properties in properties_list:
                 element = PlanElement(**element_properties)
                 self.structure_properties[element.name] = element
-        self.set_units()  # Update conversion_method with structure volume
-        self.dose_data = DVH(columns=dvh_columns, dvh_curve=dvh_list,
-                             conversion_method=self.unit_conversion)
+        self.dose_data = DVH(columns=dvh_columns, dvh_curve=dvh_list)
 
-    def get_value(self, reference_constructor='', **parameters):
+    def get_value(self, constructor='', **conversion):
         '''Return the value in the requested units.
         '''
-        def parse_constructor(reference_constructor):
+        def parse_constructor(constructor):
             '''Parse the element constructor for reference to a DVH point.
             DVH point constructors take the form:
                 one of D or V - representing Dose or Volume as the y axis
@@ -477,28 +492,24 @@ class Structure():
                 r'(?P<value>\d+\.?\d)\s?'  # Search value a decimal or integer
                 r'(?P<unit>[\w%]+)$'           # Units of search value
                 )
-            dvh_constructor = re_construct.findall(reference_constructor)
+            dvh_constructor = re_construct.findall(constructor)
             return dvh_constructor
 
-        parameters['conversion_method'] = self.unit_conversion
-        dvh_constructor = parse_constructor(reference_constructor)
+        volume_property = self.structure_properties.get('Volume')
+        if volume_property:
+            conversion['volume'] = volume_property.element_value
+        else:
+            conversion['volume'] = 1.0
+        dvh_constructor = parse_constructor(constructor)
         if dvh_constructor:
             element = self.dose_data.get_value(dvh_constructor[0])
         else:
-            element = self.structure_properties.get(reference_constructor)
+            element = self.structure_properties.get(constructor)
         if element:
-            value = element.get_value(**parameters)
+            value = element.get_value(**conversion)
         else:
             value = None
         return value
-
-    def set_units(self):
-        '''Updates the unit conversion method to include the structure volume.
-        '''
-        volume_element = self.structure_properties.get('Volume')
-        structure_volume = volume_element.element_value
-        self.unit_conversion = partial(self.unit_conversion,
-                                       volume=structure_volume)
 
     def __bool__(self):
         '''Indicate empty Structure.
@@ -575,40 +586,25 @@ class Plan():
         fractions
             returns the number of fractions in the prescription.
     '''
-    default_units = {'DoseUnit': 'cGy',
-                     'VolumeUnit': '%',
-                     'DistanceUnit': 'cm'
-                    }
-
-    def __init__(self, name, data_source):
+    def __init__(self, name, config: ET.Element, dvh_file_name: str):
         '''Define the path to the file containing the plan data.
         '''
         self.name = str(name)
-        self.data_source = Path(data_source.file_name)
-        self.unit_conversion = convert_units
+        dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
+        dvh_file = dvh_path / dvh_file_name
+        data_source = DvhFile(dvh_file)
+        self.data_source = Path(data_source.file_name) #Plan.data_source appears redundant
+        self.default_units = get_default_units(config)
         self.data_elements = {'Plan Property': dict(),
                               'Structure': dict(),
                               'Reference Point': dict()}
         (plan_parameters, plan_structures) = data_source.load_data()
         self.add_plan_data(plan_parameters, plan_structures)
-        self.laterality = self.get_laterality()
-        # TODO convert set_prescription to get dose, move other steps here.
-        self.prescription_dose = PlanElement(name='prescription_dose')        
-        self.set_prescription()
-        
 
-
-    def set_units(self, **default_units):
-        '''Sets the default units for the plan data.
-        Parameters
-            One or more of the following:
-                 DoseUnit: One of ('Gy', 'cGy', '%')
-                 VolumeUnit: One of ('cc', '%')
-                 DistanceUnit: 'cm')
-        '''
-        if default_units:
-            for (unit_type, unit) in default_units.items():
-                self.default_units[unit_type] = unit
+        code_exceptions_def = config.find('LateralityCodeExceptions')
+        laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
+        self.laterality = self.get_laterality(laterality_exceptions)
+        self.prescription_dose = self.set_prescription()
 
     def add_data_item(self, element_category, element):
         '''Add a PlanElement as a new plan property.
@@ -617,69 +613,25 @@ class Plan():
         self.data_elements[element_category].update(element_entry)
         LOGGER.debug('Created %s: %s', element_category, element.name)
 
-    def add_plan_property(self, parameters):
-        '''Add a PlanElement as a new plan property.
-        '''
-        element = PlanElement(**parameters)
-        self.add_data_item('Plan Property', element)
-
-    def add_structure(self, name=None, **properties):
-        '''Add a Structure to the plan.
-        Build a unit conversion for the structure based on its volume.
-        Parameters:
-            name:  type str
-                The name of the structure
-            properties_list:  type list
-                contains a list of dictionaries of structure properties
-            dvh_columns
-            dvh_list
-        '''
-        structure = Structure(name, conversion_method=self.unit_conversion,
-                              **properties)
-        self.add_data_item('Structure', structure)
-
     def add_plan_data(self, plan_parameters, structure_data_sets):
         '''Insert supplied plan parameters and structure data.
         Build a unit conversion for the plan based on the prescription dose.
         '''
         for parameters in plan_parameters:
-            self.add_plan_property(parameters)
-
+            element = PlanElement(**parameters)
+            self.add_data_item('Plan Property', element)
         for structure_data in structure_data_sets:
-            self.add_structure(**structure_data)
-
-    def get_data_group(self, data_type):
-        '''Return a dictionary containing the plan properties of the
-        requested type.
-            data_type is one of:
-                ('Plan Property', 'Structure', 'Reference Point')
-        '''
-        data_group = self.data_elements.get(data_type)
-        return data_group
+            structure = Structure(**structure_data)
+            self.add_data_item('Structure', structure)
 
     def get_data_element(self, data_type, element_name):
         '''Return the PlanElement of type property_type with property_name.
         '''
-        data_group = self.get_data_group(data_type)
+        data_group = self.data_elements.get(data_type)
         element = data_group.get(element_name) if data_group else None
         return element
 
-    def match_element(self, reference_type=None, reference_name=None,
-                      reference_laterality=None):
-        '''Returns tuple of (reference_type, reference_name).
-        '''
-        full_reference_name = self.laterality_modifier(reference_name,
-                                                       reference_laterality)
-        match_pair = None
-        if reference_name:
-            if reference_type:
-                plan_elements = self.get_data_group(reference_type)
-                if plan_elements:
-                    if full_reference_name in plan_elements:
-                        match_pair = (reference_type, full_reference_name)
-        return match_pair
-
-    def get_laterality(self):
+    def get_laterality(self, laterality_exceptions):
         '''Look for laterality indicator in plan name and use to set
         laterality modifier.
         '''
@@ -691,22 +643,10 @@ class Plan():
             data_type='Plan Property',
             element_name='Plan')
         body_region = plan_name.element_value[0:3]
-        if body_region in LATERALITY_EXCEPTIONS:
+        if body_region in laterality_exceptions:
             return None
         laterality_code = plan_name.element_value[3]
         return laterality_options.get(laterality_code, None)
-
-    def laterality_modifier(self, name, laterality):
-        '''Add suffix indicating laterality where appropriate.
-        '''
-        # TODO move add laterality to Reports
-        if laterality:
-            full_name = \
-                add_laterality_indicator(name, laterality,
-                                         plan_laterality=self.laterality)
-        else:
-            full_name = name
-        return full_name
 
     def set_prescription(self):
         '''Sets the prescription dose in the default units to enable unit
@@ -721,23 +661,9 @@ class Plan():
         if dose.unit != desired_units:
             dose_value = convert_units(dose_value, dose.unit,
                                        desired_units)
-        self.unit_conversion = partial(convert_units, dose=dose_value)
-        self.prescription_dose = PlanElement(element_value=dose_value,
-                                             unit=desired_units)
-
-    def get_value(self, reference_type='', reference_name='', **parameters):
-        '''Returns the requested value in the correct units.
-        Calls get_value(parameters) method of PlanElement,
-        Structure or ReferencePoint.
-        '''
-        plan_property = self.get_data_element(reference_type, reference_name)
-        if plan_property:
-            element_value = plan_property.get_value(
-                conversion_method=self.unit_conversion,
-                **parameters)
-        else:
-            element_value = None
-        return element_value
+        return PlanElement(name='prescription_dose',
+                           element_value=dose_value,
+                           unit=desired_units)
 
     def __repr__(self):
         '''Describe a Plan.
