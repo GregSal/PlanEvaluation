@@ -1,112 +1,11 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<ReportDefinitions>
-  <!--Report
-      Defines a Plan Evaluation Report.
-      Elements:
-        Name:
-          The name of the report
-        Template:
-          References to the Excel file used as a template for the report.  If not given a blank file will be used.
-          Elements:
-            File:
-              The path to an Excel file containing the template for the report. 
-            WorkSheet:
-              The name of the Excel worksheet where the template is located.
-        Save:
-          The default file name and worksheet to use for saving the Excel Report file.
-          Elements:
-            File:
-              The name of the Excel file to save the report as. Default is 'PlanReport.xlsx'.
-            Worksheet:
-              The name of the Excel worksheet to save the report in. Default is the report name.
-    ReportItems: 
-          All report elements to be entered as part of the report.
--->
-  <!--
-    ReportItem
-      Defines the source, category, and constructor.
-      Elements:
-        Name:   
-          The name of the item.
-        Category:
-          Defines the subclass of the ReportElement. Can be one of:
-                ('Info', 'Property', 'Condition')
-                If not specified, 'Info' is used.
-        PlanReference:
-          Contains information used to link this ReportElement to an individual Plan item and value.
-          Elements:
-            Type:
-              The plan item type.  One of:
-                PlanProperty
-                Structure
-                ReferencePoint
-                Ratio
-            Name:
-              The name of the related plan item if applicable.
-            Aliases:
-              Alternative names for a structure.  If supplied overrides Aliases supplied in Plan.
-            Laterality:
-              Indicates the laterality of a particular structure reference. 
-              Ignored if the Plan Structure does not have an associated laterality. Can be one of:
-                Contralateral
-                Ipsilateral
-                Both
-                Left
-                Right
-            Constructor:
-              A string describing the method for extracting the required value.
-                For Structure Includes:
-                  DVH curve values:
-                    'V' # ['%', 'Gy', cGy],
-                    'D' # ['%', 'cc'])
-                  Structure values:
-                    Volume
-                    Minimum
-                    Maximum
-                    Mean
-                For Ratio has the form:
-                 [StructureName] ([Unit]) / [StructureName] ([Unit])
-                    [StructureName]: The name of a Structure item defined in Plan.
-                    [Unit]: If applicable, one of:
-                      Gy
-                      cGy
-                      %
-                      cc
-                      %
-                      cm
-                      N/A
-            Target 
-              Contains information used to write this Report Item to the spreadsheet.
-              Elements:
-                Unit:
-                  The units (if applicable) to be used for the item in the report.  One of:
-                    DoseUnit:
-                      Gy
-                      cGy
-                      %
-                    VolumeUnit:
-                      cc
-                      %
-                    DistanceUnit:
-                      mm
-                      cm
-                CellAddress
-                  The Excel cell address in "A1" format.
-                CellFormat:
-                  The Excel number format to be used for the cell. If not specified, 'General' is used. Includes:
-                    General
-                    @
-                    0.00
-                    0.00%
-                    yyyy-mm-dd
-  -->
+﻿<ReportDefinitions>
   <Report>
     <Name>SABR 48 in 4</Name>
-    <Description></Description>
+    <Description />
     <FilePaths>
       <Template>
         <File>./SABR Plan Evaluation Worksheet BLANK.xls</File>
-        <WorkSheet>EvaluationSheet 48Gy4For60Gy5F</WorkSheet>
+        <WorkSheet>EvaluationSheet 48Gy4F 60Gy5F</WorkSheet>
       </Template>
       <Save>
         <Path>./Test Data/Output</Path>
@@ -144,7 +43,7 @@
           <Name>Body Region</Name>
         </PlanReference>
         <Target>
-          <CellAddress>L5</CellAddress>
+          <CellAddress>L4</CellAddress>
           <CellFormat>@</CellFormat>
         </Target>
       </ReportItem>
@@ -256,7 +155,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G16</CellAddress>
+          <CellAddress>G17</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -269,7 +168,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G17</CellAddress>
+          <CellAddress>G18</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -282,7 +181,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G18</CellAddress>
+          <CellAddress>G19</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -300,7 +199,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G20</CellAddress>
+          <CellAddress>G21</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -313,11 +212,11 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G21</CellAddress>
+          <CellAddress>G22</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="LowDoseSpillageLocation">
+      <ReportItem name="LowDoseSpillage">
         <Label>LOW Dose Spillage Location</Label>
         <PlanReference>
           <Type>Structure</Type>
@@ -326,7 +225,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G23</CellAddress>
+          <CellAddress>G24</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -339,7 +238,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G24</CellAddress>
+          <CellAddress>G25</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -353,7 +252,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G28</CellAddress>
+          <CellAddress>G29</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -367,7 +266,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G29</CellAddress>
+          <CellAddress>G30</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -381,7 +280,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G30</CellAddress>
+          <CellAddress>G31</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -395,7 +294,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G31</CellAddress>
+          <CellAddress>G32</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -409,7 +308,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G32</CellAddress>
+          <CellAddress>G33</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -422,7 +321,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G34</CellAddress>
+          <CellAddress>G35</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -435,7 +334,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G35</CellAddress>
+          <CellAddress>G36</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -448,7 +347,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G36</CellAddress>
+          <CellAddress>G37</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -461,7 +360,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G37</CellAddress>
+          <CellAddress>G38</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -474,7 +373,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G38</CellAddress>
+          <CellAddress>G39</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -487,7 +386,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G39</CellAddress>
+          <CellAddress>G40</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -500,7 +399,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G40</CellAddress>
+          <CellAddress>G41</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -513,7 +412,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G41</CellAddress>
+          <CellAddress>G42</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -526,7 +425,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G42</CellAddress>
+          <CellAddress>G43</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -539,7 +438,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G43</CellAddress>
+          <CellAddress>G44</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -552,7 +451,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G44</CellAddress>
+          <CellAddress>G45</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -565,7 +464,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G45</CellAddress>
+          <CellAddress>G46</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -578,7 +477,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G46</CellAddress>
+          <CellAddress>G47</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -591,7 +490,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G47</CellAddress>
+          <CellAddress>G48</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -604,7 +503,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G48</CellAddress>
+          <CellAddress>G49</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -617,7 +516,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G49</CellAddress>
+          <CellAddress>G50</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -630,7 +529,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G50</CellAddress>
+          <CellAddress>G51</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -643,7 +542,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G51</CellAddress>
+          <CellAddress>G52</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -669,7 +568,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>B53</CellAddress>
+          <CellAddress>B54</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -682,7 +581,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G54</CellAddress>
+          <CellAddress>A55</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -695,7 +594,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G54</CellAddress>
+          <CellAddress>B55</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -708,7 +607,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G55</CellAddress>
+          <CellAddress>G56</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -721,7 +620,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G56</CellAddress>
+          <CellAddress>G57</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -733,7 +632,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H20</CellAddress>
+          <CellAddress>H21</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -745,7 +644,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H21</CellAddress>
+          <CellAddress>H22</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -757,7 +656,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H24</CellAddress>
+          <CellAddress>H25</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -789,7 +688,7 @@
     <FilePaths>
       <Template>
         <File>./SABR Plan Evaluation Worksheet BLANK.xls</File>
-        <WorkSheet>Evaluation Sheet 60Gy 8F</WorkSheet>
+        <WorkSheet>EvaluationSheet 60Gy 8F</WorkSheet>
       </Template>
       <Save>
         <Path>./Test Data/Output</Path>
@@ -911,7 +810,7 @@
         <Label>Fractions:</Label>
         <PlanReference>
           <Type>Plan Property</Type>
-          <Name></Name>
+          <Name />
         </PlanReference>
         <Target>
           <CellAddress>H5</CellAddress>
@@ -922,7 +821,7 @@
         <Label>Plan Normalization Value (%)</Label>
         <PlanReference>
           <Type>Plan Property</Type>
-          <Name></Name>
+          <Name />
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -931,19 +830,30 @@
         </Target>
       </ReportItem>
       <ReportItem name="PTV_Min">
-        <Label>PTV- Minimum Dose (%)</Label>
+        <Label>Dose @COM-PTV (%)</Label>
         <PlanReference>
-          <Type>Structure</Type>
-          <Name>PTV</Name>
-          <Constructor>Min Dose</Constructor>
+          <Type>Reference Point</Type>
+          <Name>PTV Center Point</Name>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G16</CellAddress>
-          <CellFormat>0.0%</CellFormat>
+          <CellAddress>G17</CellAddress>
+          <CellFormat>0.00%</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="PTVV100">
+      <ReportItem name="Ref Point">
+        <Label>Dose @COM-PTV (cGy)</Label>
+        <PlanReference>
+          <Type>Reference Point</Type>
+          <Name>COM-PTV</Name>
+        </PlanReference>
+        <Target>
+          <Unit>%</Unit>
+          <CellAddress>G15</CellAddress>
+          <CellFormat>0.00%</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="PTV_V100">
         <Label>PTV - V100(%)</Label>
         <PlanReference>
           <Type>Structure</Type>
@@ -952,11 +862,11 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G17</CellAddress>
+          <CellAddress>G18</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="PTVV90">
+      <ReportItem name="PTV_V90">
         <Label>PTV - V90 (%)</Label>
         <PlanReference>
           <Type>Structure</Type>
@@ -965,7 +875,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G18</CellAddress>
+          <CellAddress>G19</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -978,7 +888,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G20</CellAddress>
+          <CellAddress>G21</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -991,7 +901,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G21</CellAddress>
+          <CellAddress>G22</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1004,7 +914,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G23</CellAddress>
+          <CellAddress>G24</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1017,7 +927,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G24</CellAddress>
+          <CellAddress>G25</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1031,7 +941,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G28</CellAddress>
+          <CellAddress>G29</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1045,7 +955,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G29</CellAddress>
+          <CellAddress>G30</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1059,7 +969,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G30</CellAddress>
+          <CellAddress>G31</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1068,12 +978,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>Aorta</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G32</CellAddress>
+          <CellAddress>G33</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1086,7 +996,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G33</CellAddress>
+          <CellAddress>G34</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1099,7 +1009,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G34</CellAddress>
+          <CellAddress>G35</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1112,7 +1022,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G35</CellAddress>
+          <CellAddress>G36</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1125,7 +1035,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G36</CellAddress>
+          <CellAddress>G37</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1138,7 +1048,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G37</CellAddress>
+          <CellAddress>G38</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1147,12 +1057,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G38</CellAddress>
+          <CellAddress>G39</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1165,7 +1075,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G39</CellAddress>
+          <CellAddress>G40</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1178,7 +1088,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G40</CellAddress>
+          <CellAddress>G41</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1191,7 +1101,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G41</CellAddress>
+          <CellAddress>G42</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1204,7 +1114,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G42</CellAddress>
+          <CellAddress>G43</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1217,7 +1127,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G43</CellAddress>
+          <CellAddress>G44</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1226,12 +1136,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>A44</CellAddress>
+          <CellAddress>A45</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1240,12 +1150,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>BronchialTree</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>B44</CellAddress>
+          <CellAddress>B45</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1254,12 +1164,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>A45</CellAddress>
+          <CellAddress>A46</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1268,12 +1178,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>BronchialTree</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>B45</CellAddress>
+          <CellAddress>B46</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1286,7 +1196,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G46</CellAddress>
+          <CellAddress>G47</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1299,7 +1209,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G47</CellAddress>
+          <CellAddress>G48</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1311,8 +1221,8 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <Unit></Unit>
-          <CellAddress>H20</CellAddress>
+          <Unit />
+          <CellAddress>H21</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1324,7 +1234,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H21</CellAddress>
+          <CellAddress>H22</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1336,7 +1246,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H24</CellAddress>
+          <CellAddress>H22</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1407,7 +1317,7 @@
           <CellFormat>@</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="PlanName:">
+      <ReportItem name="PlanName">
         <Label>Plan Name:</Label>
         <PlanReference>
           <Type>Plan Property</Type>
@@ -1500,8 +1410,20 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G14</CellAddress>
+          <CellAddress>H14</CellAddress>
           <CellFormat>0.0%</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="Ref Point">
+        <Label>Dose @COM-PTV (cGy)</Label>
+        <PlanReference>
+          <Type>Reference Point</Type>
+          <Name>COM-PTV</Name>
+        </PlanReference>
+        <Target>
+          <Unit>%</Unit>
+          <CellAddress>G15</CellAddress>
+          <CellFormat>0.00%</CellFormat>
         </Target>
       </ReportItem>
       <ReportItem name="PTV_Min">
@@ -1513,11 +1435,11 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G16</CellAddress>
+          <CellAddress>G17</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="PTVV100">
+      <ReportItem name="PTV_V100">
         <Label>PTV - V100(%)</Label>
         <PlanReference>
           <Type>Structure</Type>
@@ -1526,11 +1448,11 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G17</CellAddress>
+          <CellAddress>H18</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="PTVV90">
+      <ReportItem name="PTV_V90">
         <Label>PTV - V90 (%)</Label>
         <PlanReference>
           <Type>Structure</Type>
@@ -1539,7 +1461,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G18</CellAddress>
+          <CellAddress>H19</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1552,7 +1474,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G20</CellAddress>
+          <CellAddress>G21</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1565,7 +1487,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G21</CellAddress>
+          <CellAddress>G22</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1578,7 +1500,7 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G23</CellAddress>
+          <CellAddress>G24</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1591,7 +1513,7 @@
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G24</CellAddress>
+          <CellAddress>G25</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1605,7 +1527,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G28</CellAddress>
+          <CellAddress>G29</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1619,7 +1541,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G29</CellAddress>
+          <CellAddress>G30</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1633,7 +1555,35 @@
         </PlanReference>
         <Target>
           <Unit>%</Unit>
-          <CellAddress>G30</CellAddress>
+          <CellAddress>G31</CellAddress>
+          <CellFormat>0.0%</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="LungV1160">
+        <Label>Lung-Basic Function</Label>
+        <PlanReference>
+          <Type>Structure</Type>
+          <Name>Lung</Name>
+          <Laterality>Both</Laterality>
+          <Constructor>V 1160 cGy</Constructor>
+        </PlanReference>
+        <Target>
+          <Unit>%</Unit>
+          <CellAddress>G32</CellAddress>
+          <CellFormat>0.0%</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="LungV1240">
+        <Label>Lung-Pneumonitis</Label>
+        <PlanReference>
+          <Type>Structure</Type>
+          <Name>Lung</Name>
+          <Laterality>Both</Laterality>
+          <Constructor>V 1240 cGy</Constructor>
+        </PlanReference>
+        <Target>
+          <Unit>%</Unit>
+          <CellAddress>G33</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1646,21 +1596,8 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G32</CellAddress>
+          <CellAddress>G35</CellAddress>
           <CellFormat>0.0</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="AortaV60">
-        <Label>Aorta V60Gy</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>Aorta</Name>
-          <Constructor>V 6000 cGy</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cc</Unit>
-          <CellAddress>G33</CellAddress>
-          <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
       <ReportItem name="PulmonaryArteryMaxDose">
@@ -1672,21 +1609,8 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G34</CellAddress>
+          <CellAddress>G36</CellAddress>
           <CellFormat>0.0</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="PulmonaryArteryV60">
-        <Label>Artery-Pulmonary V60Gy</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>PulmonaryArtery</Name>
-          <Constructor>V 6000 cGy</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cc</Unit>
-          <CellAddress>G35</CellAddress>
-          <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
       <ReportItem name="SpineMaxDose">
@@ -1698,7 +1622,20 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G36</CellAddress>
+          <CellAddress>G37</CellAddress>
+          <CellFormat>0.0</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="SpinePRV5MaxDose">
+        <Label>Spinal Canal-PRV 5mm</Label>
+        <PlanReference>
+          <Type>Structure</Type>
+          <Name>PRV5 SpinalCanal</Name>
+          <Constructor>Max Dose</Constructor>
+        </PlanReference>
+        <Target>
+          <Unit>cGy</Unit>
+          <CellAddress>G38</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1707,34 +1644,7 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
-          <Laterality></Laterality>
-          <Constructor>Max Dose</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cGy</Unit>
-          <CellAddress>G37</CellAddress>
-          <CellFormat>0.0</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="IpsBrachPlexV30">
-        <Label>Ipsilat. Brach. Plex. V30Gy</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>Ipsilat. Brach. Plex.</Name>
-          <Laterality></Laterality>
-          <Constructor>V 3000 cGy</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cc</Unit>
-          <CellAddress>G38</CellAddress>
-          <CellFormat>0.00</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="HeartMaximumDose">
-        <Label>Heart Maximum Dose</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>Heart</Name>
+          <Laterality />
           <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
@@ -1743,12 +1653,12 @@
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="HeartV60">
-        <Label>Heart V60Gy</Label>
+      <ReportItem name="SkinV30">
+        <Label>Skin</Label>
         <PlanReference>
           <Type>Structure</Type>
-          <Name>Heart</Name>
-          <Constructor>V 6000 cGy</Constructor>
+          <Name>Skin</Name>
+          <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1756,7 +1666,20 @@
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="MaxDose">
+      <ReportItem name="HeartMaxDose">
+        <Label>Heart Maximum Dose</Label>
+        <PlanReference>
+          <Type>Structure</Type>
+          <Name>Heart</Name>
+          <Constructor>Max Dose</Constructor>
+        </PlanReference>
+        <Target>
+          <Unit>cGy</Unit>
+          <CellAddress>G41</CellAddress>
+          <CellFormat>0.0</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="EsoMaxDose">
         <Label>Esophagus Maximum Dose</Label>
         <PlanReference>
           <Type>Structure</Type>
@@ -1765,7 +1688,7 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G41</CellAddress>
+          <CellAddress>G42</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1778,20 +1701,33 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>G42</CellAddress>
+          <CellAddress>G43</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
-      <ReportItem name="ChestWallV50">
-        <Label>Chestwall (rib) V50Gy</Label>
+      <ReportItem name="ChestWallV2820">
+        <Label>Chestwall (rib) V28.2Gy</Label>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>V 5000 cGy</Constructor>
+          <Constructor>V 2820 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
-          <CellAddress>G43</CellAddress>
+          <CellAddress>G44</CellAddress>
+          <CellFormat>0.00</CellFormat>
+        </Target>
+      </ReportItem>
+      <ReportItem name="ChestWallV30">
+        <Label>Chestwall (rib) V30Gy</Label>
+        <PlanReference>
+          <Type>Structure</Type>
+          <Name>Chest Wall</Name>
+          <Constructor>V 3000 cGy</Constructor>
+        </PlanReference>
+        <Target>
+          <Unit>cc</Unit>
+          <CellAddress>G45</CellAddress>
           <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
@@ -1800,12 +1736,12 @@
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
-          <Laterality></Laterality>
+          <Laterality />
           <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>A44</CellAddress>
+          <CellAddress>A47</CellAddress>
           <CellFormat>0.0</CellFormat>
         </Target>
       </ReportItem>
@@ -1818,62 +1754,8 @@
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
-          <CellAddress>B44</CellAddress>
+          <CellAddress>B47</CellAddress>
           <CellFormat>0.0</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="ProxTrachV60">
-        <Label>Proximal Trachea V60Gy</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>Trachea</Name>
-          <Laterality></Laterality>
-          <Constructor>V 6000 cGy</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cc</Unit>
-          <CellAddress>A45</CellAddress>
-          <CellFormat>0.00</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="ProxBronchV60">
-        <Label>Proximal Bronchial Tree V60Gy</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>BronchialTree</Name>
-          <Laterality></Laterality>
-          <Constructor>V 6000 cGy</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cc</Unit>
-          <CellAddress>B45</CellAddress>
-          <CellFormat>0.00</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="StomachMaxDose">
-        <Label>Stomach and Intestines Maximum Dose</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>Stomach</Name>
-          <Constructor>Max Dose</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cGy</Unit>
-          <CellAddress>G46</CellAddress>
-          <CellFormat>0.0</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="Stomach and Intestines V36Gy">
-        <Label>StomachV36</Label>
-        <PlanReference>
-          <Type>Structure</Type>
-          <Name>Stomach</Name>
-          <Constructor>V 3600 cGy</Constructor>
-        </PlanReference>
-        <Target>
-          <Unit>cc</Unit>
-          <CellAddress>G47</CellAddress>
-          <CellFormat>0.00</CellFormat>
         </Target>
       </ReportItem>
       <ReportItem name="V105-PTV_PTVratio">
@@ -1884,7 +1766,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H20</CellAddress>
+          <CellAddress>H21</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1896,7 +1778,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H21</CellAddress>
+          <CellAddress>H22</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>
@@ -1908,7 +1790,7 @@
           <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
-          <CellAddress>H24</CellAddress>
+          <CellAddress>H25</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
       </ReportItem>

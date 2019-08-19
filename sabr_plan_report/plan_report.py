@@ -12,6 +12,16 @@ logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
 
+def load_alias_list(aliases):
+    alias_list = list()
+    for alias in aliases.findall('Alias'):
+        size = alias.attrib.get('Size', None)
+        if size:
+            size = int(size)
+        alias_value = (alias.text, size)
+        alias_list.append(alias_value)
+        return alias_list
+
 def load_aliases(alias_root: ET.Element)->Dict[Tuple[str], str]:
     '''Read lists of alternate names for ReportElements from a .xml element.
     Arguments:
@@ -44,18 +54,9 @@ def load_aliases(alias_root: ET.Element)->Dict[Tuple[str], str]:
             ref_name = element.findtext('ReferenceName')
             ref_type = element.findtext('Type')
             laterality = element.findtext('Laterality')
-            for alias in aliases.findall('Alias'):
-                size = alias.attrib.get('Size', None)
-                if size:
-                    size = int(size)
-                alias_value = (alias.text, size)
-                alias_index = (ref_type, ref_name, laterality)
-                alias_list = alias_reference.get(alias_index)
-                if alias_list:
-                    alias_list.append(alias_value)
-                else:
-                    alias_list = [alias_value]
-                alias_reference[alias_index] = alias_list
+            alias_list = load_alias_list(aliases)
+            alias_index = (ref_type, ref_name, laterality)
+            alias_reference[alias_index] = alias_list
     return alias_reference
 
 
@@ -128,22 +129,20 @@ class PlanReference(dict):
         ref_type = self.get('reference_type')
         ref_lat = self.get('reference_laterality')
         alias_index = (ref_type, ref_name, ref_lat)
-        aliases = alias_reference.get(alias_index)
-        if not aliases:
-            aliases = []
+        aliases = alias_reference.get(alias_index, [])
         return aliases
 
     def add_aliases(self, aliases_def, alias_reference):
         '''Add a list of alternative reference names.
         '''
-        add_aliases = True
-        alias_list = list()
+        add_aliases = True        
         if aliases_def is not None:
-            join = aliases_def.attrib.get('Join')
+            join = aliases_def.attrib.get('Join','')
             if 'Replace' in join:
                 add_aliases = False
-            for alias in aliases_def.findall('Alias'):
-                alias_list.append(alias.text)
+            alias_list = load_alias_list(aliases_def)
+        else:
+            alias_list = list()
         if add_aliases:
             alias_list.extend(self.lookup_aliases(alias_reference))
         return set(alias_list)
