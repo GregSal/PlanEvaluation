@@ -31,6 +31,7 @@ def load_report_definitions(config: ET.Element):
     '''Load the SABR plan report definitions
     '''
     template_path = config.findtext(r'./DefaultDirectories/ReportTemplates')
+    template_path=Path(template_path)
     alias_def = config.find('AliasList')
     laterality_lookup_def = config.find('LateralityTable')
     default_patterns_def = config.find('DefaultLateralityPatterns')
@@ -54,6 +55,7 @@ def run_report(plan, report):
     (match, not_matched) = report.match_elements(plan)
     report.get_values(plan)
     report.build()
+
 
 def build_report(report_selection, report_name, plan_file_name,
                  save_file=None, plan_name='plan'):

@@ -380,14 +380,14 @@ class DVH():
                 y_possible = index
                 if y_unit and (y_unit in column['Unit']):
                     y_column = index
-            else:
+            elif x_column is None:
                 x_possible = index
                 if x_unit in column['Unit']:
                     x_column = index
                     desired_x_unit = None
                 else:
                     desired_x_unit = column['Unit']
-        if not x_column:
+        if x_column is None:
             x_column = x_possible
         if not y_column:
             y_column = y_possible
@@ -586,13 +586,18 @@ class Plan():
         fractions
             returns the number of fractions in the prescription.
     '''
-    def __init__(self, name, config: ET.Element, dvh_file_name: str):
+    def __init__(self, name, config: ET.Element, dvh_file):
         '''Define the path to the file containing the plan data.
         '''
         self.name = str(name)
-        dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
-        dvh_file = dvh_path / dvh_file_name
-        data_source = DvhFile(dvh_file)
+        if isinstance(dvh_file, DvhFile):
+            data_source = dvh_file
+        elif isinstance(dvh_file, Path):
+            data_source = DvhFile(dvh_file)
+        else:
+            dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
+            dvh_file = dvh_path / dvh_file_name
+            data_source = DvhFile(dvh_file)
         self.data_source = Path(data_source.file_name) #Plan.data_source appears redundant
         self.default_units = get_default_units(config)
         self.data_elements = {'Plan Property': dict(),
