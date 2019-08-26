@@ -1427,14 +1427,14 @@
         </Target>
       </ReportItem>
       <ReportItem name="PTV_Min">
-        <Label>PTV- Minimum Dose (%)</Label>
+        <Label>PTV- Minimum Dose</Label>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
           <Constructor>Min Dose</Constructor>
         </PlanReference>
         <Target>
-          <Unit>%</Unit>
+          <Unit>cGy</Unit>
           <CellAddress>G17</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
@@ -1568,7 +1568,7 @@
           <Constructor>V 1160 cGy</Constructor>
         </PlanReference>
         <Target>
-          <Unit>%</Unit>
+          <Unit>cc</Unit>
           <CellAddress>G32</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>
@@ -1582,7 +1582,7 @@
           <Constructor>V 1240 cGy</Constructor>
         </PlanReference>
         <Target>
-          <Unit>%</Unit>
+          <Unit>cc</Unit>
           <CellAddress>G33</CellAddress>
           <CellFormat>0.0%</CellFormat>
         </Target>

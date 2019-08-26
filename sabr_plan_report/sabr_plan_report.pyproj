@@ -25,12 +25,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="build_sabr_plan_report.py" />
-    <Compile Include="fixDef.py" />
     <Compile Include="plan_data.py" />
     <Compile Include="plan_report.py" />
     <Compile Include="report_gui.py" />
     <Compile Include="SABR_Plan_Report_Testing\report_tests.py" />
     <Compile Include="SABR_Plan_Report_Testing\__init__.py" />
+    <Compile Include="Structure and plan info\report_definition_table.py" />
     <Compile Include="testing.py">
       <SubType>Code</SubType>
     </Compile>
@@ -55,16 +55,31 @@
     <Content Include="SABR_Plan_Report_Testing\DVH_Data_Aug_29_2017.dvh" />
     <Content Include="SABR_Plan_Report_Testing\DVH_Data_Sept_29_2017.dvh" />
     <Content Include="SABR_Plan_Report_Testing\Output\Test Report.xls" />
+    <Content Include="SABR_Plan_Report_Testing\Output\Test Results Aug 19.xlsx" />
     <Content Include="SABR_Plan_Report_Testing\Output\Test results.xls" />
+    <Content Include="SABR_Plan_Report_Testing\ReportDefinitions.xml" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Aug 29 2017.xls" />
-    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet BLANK.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet BLANK For testing.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet BLANK For testing.xlsx" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Feb 14 2018.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Feb 27 2018.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Mar 05 2018.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Nov 17 2017.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Nov 22 2017.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet SABR1.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet SABR2.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet SABR3.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet SABR4.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet SABR5.xls" />
+    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet SABR6.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Sept 29 2017.xls" />
-    <Content Include="SABR_Plan_Report_Testing\TestReportDefinitions.xml" />
+    <Content Include="SABR_Plan_Report_Testing\SABR1.dvh" />
+    <Content Include="SABR_Plan_Report_Testing\SABR2.dvh" />
+    <Content Include="SABR_Plan_Report_Testing\SABR3.dvh" />
+    <Content Include="SABR_Plan_Report_Testing\SABR4.dvh" />
+    <Content Include="SABR_Plan_Report_Testing\SABR5.dvh" />
+    <Content Include="SABR_Plan_Report_Testing\SABR6.dvh" />
+    <Content Include="SABR_Plan_Report_Testing\TestPlanEvaluationConfig.xml" />
     <Content Include="SABR_Plan_Report_Testing\test data pairs.csv" />
     <Content Include="Structure and plan info\Format.xlsx" />
     <Content Include="Structure and plan info\Laterality Code Exceptions.xlsx" />
@@ -72,7 +87,11 @@
     <Content Include="Structure and plan info\Laterality.xlsx" />
     <Content Include="Structure and plan info\laterality_functions.txt" />
     <Content Include="Structure and plan info\Plan Matching.xlsx" />
+    <Content Include="Structure and plan info\PlanEvaluationConfig.xml" />
     <Content Include="Structure and plan info\PlanItems.xlsx" />
+    <Content Include="Structure and plan info\ReportDefinitions - no com.xml" />
+    <Content Include="Structure and plan info\ReportDefinitions.xml" />
+    <Content Include="Structure and plan info\Report_tables.xlsx" />
     <Content Include="Structure and plan info\Structure_base.xlsx" />
     <Content Include="PlanEvaluationConfig.xml" />
     <Content Include="Test Data\Output\SABR Plan Evaluation Worksheet filled.xls" />

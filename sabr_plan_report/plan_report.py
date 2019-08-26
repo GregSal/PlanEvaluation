@@ -20,7 +20,7 @@ def load_alias_list(aliases):
             size = int(size)
         alias_value = (alias.text, size)
         alias_list.append(alias_value)
-        return alias_list
+    return alias_list
 
 def load_aliases(alias_root: ET.Element)->Dict[Tuple[str], str]:
     '''Read lists of alternate names for ReportElements from a .xml element.
@@ -130,12 +130,15 @@ class PlanReference(dict):
         ref_lat = self.get('reference_laterality')
         alias_index = (ref_type, ref_name, ref_lat)
         aliases = alias_reference.get(alias_index, [])
+        if ref_lat:
+            alias_index = (ref_type, ref_name, None)
+            aliases.extend(alias_reference.get(alias_index, []))
         return aliases
 
     def add_aliases(self, aliases_def, alias_reference):
         '''Add a list of alternative reference names.
         '''
-        add_aliases = True        
+        add_aliases = True
         if aliases_def is not None:
             join = aliases_def.attrib.get('Join','')
             if 'Replace' in join:
@@ -143,7 +146,7 @@ class PlanReference(dict):
             alias_list = load_alias_list(aliases_def)
         else:
             alias_list = list()
-        if add_aliases:
+        if add_aliases and alias_reference:
             alias_list.extend(self.lookup_aliases(alias_reference))
         return set(alias_list)
 
@@ -173,9 +176,12 @@ class PlanReference(dict):
                 matched_element = plan_elements.get(pattern)
             else:
                 lat_index = (plan_laterality, item_laterality, size)
-                lat_indicator = laterality_lookup[lat_index]
-                lookup_name = pattern.format(LatIndicator=lat_indicator)
-                matched_element = plan_elements.get(lookup_name)
+                lat_indicator = laterality_lookup.get(lat_index)
+                if lat_indicator:
+                    lookup_name = pattern.format(LatIndicator=lat_indicator)
+                    matched_element = plan_elements.get(lookup_name)
+                else:
+                    matched_element = None
             if matched_element:
                 break
         return matched_element
@@ -358,6 +364,19 @@ class ReportElement():
             self.target.add_value(value, sheet)
     pass
 
+    def table_output(self):
+        '''Build an Target list string.
+        '''
+        item_dict = dict()
+        item_dict['Item Name'] = self.name
+        item_dict['Item Label'] = self.label
+        item_dict['Item Category'] = self.category
+        if self.reference:
+            item_dict.update(self.reference)
+        if self.target:
+            item_dict.update(self.target)
+        return item_dict
+
     def __repr__(self):
         '''Describe a Report Element.
         Add Report Element Attributes to the __repr__ definition of Element
@@ -491,6 +510,22 @@ class Report():
         for element in self.report_elements.values():
             element.add_to_report(spreadsheet)
         workbook.save(str(self.save_file))
+
+    def table_output(self):
+        '''Build an Target list string.
+        '''
+        report_dict = dict()
+        report_dict['Report Name'] = self.name
+        report_dict['Template File'] = self.template_file
+        report_dict['Template Worksheet'] = self.worksheet
+        report_dict['Save File'] = self.save_file
+        report_dict['Save Worksheet'] = self.save_worksheet
+        item_list = list()
+        for element in self.report_elements.values():
+            item_dict = element.table_output()
+            item_dict.update(report_dict)
+            item_list.append(item_dict)
+        return item_list
 
     def __repr__(self):
         '''Report description

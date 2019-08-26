@@ -75,7 +75,6 @@ def save_to_excel(file_name, sheet='output', starting_cell='A1',
     else:
         output_sheet = output_book.sheets.add(name=sheet)
     output_range = output_sheet.range(starting_cell)
-    print('here')
     while True:
         yield output_range
         output_range = output_range.offset(column_offset=column_increment)
@@ -84,22 +83,26 @@ def save_to_excel(file_name, sheet='output', starting_cell='A1',
 def save_comparison(original_sheet, test_sheet, test_files, save_range):
     '''Save the original and test data into the comparison spreadsheet.
     '''
-    original_data = original_sheet.range('B6:G57')
+    original_data = original_sheet.range('O4:P60')
     save_range.value = original_data.value
 
-    test_data = test_sheet.range('G6:G57')
+    test_data = test_sheet.range('O4:P60')
     test_shift = original_data.shape[1]
     save_test = save_range.offset(column_offset=test_shift)
-    save_test.options(transpose=True).value = test_data.value
+    save_test.value = test_data.value
 
     sheet_name = original_sheet.name
     original_dvh_file = test_files['DVH File']
+    header_shift = save_test.shape[1]
     header_range = save_range.offset(row_offset=-1, column_offset=test_shift-2)
-    header_range.value = [sheet_name, original_dvh_file, 'Test_results']
+    header_range.value = [sheet_name, original_dvh_file, sheet_name,
+                          'Test_results', 'Difference']
 
-    dif_range = save_test.offset(column_offset=1)
-    dif_range = dif_range.resize(original_data.shape[0], 1)
-    dif_range.formula = '=R[0]C[-1]-R[0]C[-2]'
+    dif_shift = test_data.shape[1]
+    dif_range = save_test.offset(column_offset=dif_shift)
+    dif_range = dif_range.resize(test_data.shape[0], 1)
+    dif_function =  '=IFERROR(R[0]C[-3]-R[0]C[-1],EXACT(R[0]C[-1],R[0]C[-3]))'
+    dif_range.formula = dif_function
 
 
 def run_tests(data_path, output_itter,
