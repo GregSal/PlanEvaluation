@@ -1,4 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!--Created with Liquid Studio 2019 (https://www.liquid-technologies.com)-->
 <!-- Test Version located in SABR_Plan_Report_Testing
 -->
 <PlanEvaluationConfig>
@@ -35,7 +36,6 @@
     <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Contralateral" Size="1">L</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Contralateral" Size="2">LT</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Contralateral" Size="3">Left</LateralityIndicator>
-    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Contralateral" Size="3">Dist</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Proximal" Size="1">R</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Proximal" Size="2">RT</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Proximal" Size="3">Right</LateralityIndicator>
@@ -53,13 +53,10 @@
     <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Proximal" Size="3">Left</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Both" Size="1">B</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Both" Size="3">Both</LateralityIndicator>
-    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Both" Size="3">Whole</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Both" ReportItemLaterality="Both" Size="1">B</LateralityIndicator>
     <LateralityIndicator PlanLaterality="Both" ReportItemLaterality="Both" Size="3">Both</LateralityIndicator>
-    <LateralityIndicator PlanLaterality="Both" ReportItemLaterality="Both" Size="3">Whole</LateralityIndicator>
     <LateralityIndicator PlanLaterality="None" ReportItemLaterality="Both" Size="1">B</LateralityIndicator>
     <LateralityIndicator PlanLaterality="None" ReportItemLaterality="Both" Size="3">Both</LateralityIndicator>
-    <LateralityIndicator PlanLaterality="None" ReportItemLaterality="Both" Size="3">Whole</LateralityIndicator>
   </LateralityTable>
   <DefaultLateralityPatterns>
     <Pattern Size="1">{Base} {LatIndicator}</Pattern>
@@ -99,13 +96,11 @@
       <Laterality>Ipsilateral</Laterality>
       <Aliases>
         <Alias Size="3">{LatIndicator}Bronch Zone</Alias>
-          <Alias>Prox Bronch Zone</Alias>
-          <Alias>ProxBronchZone</Alias>
-          <Alias>PRV20</Alias>
-          <Alias>PRV20 Brl Tree</Alias>
-          <Alias>ProxBronchialZon</Alias>
-          <Alias>BronchialTree</Alias>
-          <Alias>Brl Tree</Alias>
+        <Alias>Prox Bronch Zone</Alias>
+        <Alias>ProxBronchZone</Alias>
+        <Alias>PRV20</Alias>
+        <Alias>PRV20 Brl Tree</Alias>
+        <Alias>ProxBronchialZon</Alias>
       </Aliases>
     </PlanElement>
     <PlanElement name="BronchialTree">
@@ -114,16 +109,7 @@
       <Aliases>
         <Alias>BronchialTree</Alias>
         <Alias>Brl Tree</Alias>
-      </Aliases>
-    </PlanElement>
-    <PlanElement name="Trachea">
-      <Type>Structure</Type>
-      <ReferenceName>Trachea</ReferenceName>
-      <Aliases>
-        <!-- TODO Trachea are the same as the BronchialTree Aliases-->
-        <Alias>PRV20</Alias>
-        <Alias>PRV20 Brl Tree</Alias>
-        <Alias>ProxBronchialZon</Alias>
+        <Alias>Bronchial_Tree</Alias>
       </Aliases>
     </PlanElement>
     <PlanElement name="COM-PTV">

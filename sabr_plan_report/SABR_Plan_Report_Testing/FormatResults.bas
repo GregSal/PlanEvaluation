@@ -22,3 +22,18 @@ Attribute FormatResults.VB_ProcData.VB_Invoke_Func = "g\n14"
     Selection.Delete Shift:=xlToLeft
     ActiveCell.Offset(0, 5).Range("A1").Select
 End Sub
+
+Sub DeleteColumn()
+Attribute DeleteColumn.VB_ProcData.VB_Invoke_Func = "h\n14"
+'
+' DeleteColumn Macro
+' Remove label columns
+'
+' Keyboard Shortcut: Ctrl+h
+'
+    Selection.EntireColumn.Delete
+    ActiveCell.Offset(0, 1).Range("A1").Select
+    Selection.EntireColumn.Delete
+    ActiveCell.Offset(0, 3).Range("A1").Select
+End Sub
+
