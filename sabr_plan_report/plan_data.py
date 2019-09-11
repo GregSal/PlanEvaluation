@@ -7,19 +7,47 @@ elements for analysis.
 '''
 
 
+from typing import Optional, Union, Any, Dict, Tuple, List, Set
 from pathlib import Path
-import logging
-import re
-from scipy.interpolate import interp1d
-import numpy as np
 import xml.etree.ElementTree as ET
+import re
+import logging
+import numpy as np
+from scipy.interpolate import interp1d
 
 
-logging.basicConfig(level=logging.WARNING)
+Value = Union[int, float, str]
+ConversionParameters = Dict[str, Union[str, float, None]]
+ColumnDef = Dict[str, str] # 2 items: 'Data Type','Unit'
+# TODO Make ColumnDef a named tuple
+Header = List[ColumnDef]
+DvhData = List[List[float]]
+# number of items in List[float] = number of items in List[ColumnDef]
+# TODO Make DvhConstructor a named tuple
+DvhConstructor = Tuple[str, float, str] # (y_type, x_value, x_unit)
+# TODO Make DvhIndex a named tuple
+DvhIndex = Tuple[int, int, str]
+#x_column, y_column, desired_x_unit
+
+DvhSource = Union[DvhFile, Path, str, None]
+# Optional methods for specifying the dvh data
+
+Elements = Union[PlanElement, Structure]
+# Possible elements to add to a Plan
 LOGGER = logging.getLogger(__name__)
 
 
-def get_laterality_exceptions(region_code_root):
+def get_laterality_exceptions(region_code_root: ET.Element)->List[str]:
+    '''Load list of body region codes that appear to have a laterality,
+        but do not.
+    Arguments:
+        region_code_root {ET.Element} -- An XML element containing a series of
+            body region codes that end in "L", "R" or "B", where the letter
+            does not indicate laterality. e.e "ORAL".
+    Returns:
+        List[str] -- a list of 4-letter body region codes which should not be
+            treated as indicating laterality in the plan.
+    '''
     region_code_list = list()
     for element in region_code_root.findall('BodyRegion'):
         region_code = element.attrib.get('Name')
@@ -27,13 +55,17 @@ def get_laterality_exceptions(region_code_root):
     return region_code_list
 
 
-def get_default_units(config: ET.Element):
+def get_default_units(config: ET.Element)->Dict[str, str]:
     '''Sets the default units for the plan data.
-    Parameters
-        One or more of the following:
+    Arguments:
+        config {ET.Element} -- An XML element containing a series of
+            default units for plan values.
+    Returns:
+        Dict[str, str] -- A dictionary listing unit types and the corresponding
+            default unit. Contains one or more of the following:
                 DoseUnit: One of ('Gy', 'cGy', '%')
                 VolumeUnit: One of ('cc', '%')
-                DistanceUnit: 'cm')
+                DistanceUnit: ('mm', 'cm')
     '''
     default_units_settings = dict()
     for default_unit in config.findall(r'./PlanDefaults/*'):
@@ -43,25 +75,34 @@ def get_default_units(config: ET.Element):
     return default_units_settings
 
 
-def find_unit(text):
-    '''Return a unit string and name from a text.
-    Unit is surrounded by [].
-    '''
-    unit = None
-    name = text
-    marker1 = text.find('[')
-    if marker1 != -1:
-        marker2 = text.find(']', marker1)
-        if marker2 != -1:
-            unit = text[marker1+1:marker2]
-            name = text[:marker1-1].strip()
-    return name, unit
-
-
-def convert_units(starting_value, starting_units, target_units,
-                  dose=1.0, volume=1.0):
+def convert_units(starting_value: Value, starting_units: str, target_units: str,
+                  dose: float = None, volume: float = None)->float:
     '''Take value in starting_units and convert to target_units.
+    Arguments:
+        starting_value {Value} -- The initial numerical value. If
+            starting_value is a string try to convert it to a float. If
+            conversion is not successful raise ValueError.
+        starting_units {str} -- The initial units of starting_value. Must
+            match a key in the conversion table.
+        target_units {str} -- The unit to convert starting_value to. Must
+            be of the same unit type as starting_units.
+    Keyword Arguments:
+        dose {float} -- The reference dose value to use for % dose conversions.
+          Default is None. (This will raise an error if dose % conversion is
+          attempted without supplying a reference dose.)
+        volume {float} -- The reference volume value to use for % volume
+            conversions. Default is None. (This will raise an error if % volume
+            conversion is attempted without supplying a reference dose.)
+    Returns:
+        float -- The initial value converted to the new units.
     '''
+    # TODO Move the conversion_table to the config XML file.
+    # Make it easier to add new unit types.
+    # TODO re-consider "Value" class that contains number and unit.
+    # convert_units would become a method of the Value" class.
+    # find_unit and get_default_units could also become part of Value
+    # constructors.  Config could contain different text parsing definitions
+    # that would extract name, value and units.
     conversion_table = {'cGy': {'cGy': 1.0, '%': 100/dose, 'Gy': 0.01},
                         'Gy':  {'Gy': 1.0, '%': 1.0/dose, 'cGy': 100},
                         'cc':  {'cc': 1.0, '%': 100/volume},
@@ -70,14 +111,74 @@ def convert_units(starting_value, starting_units, target_units,
                                 'Gy': dose,
                                 'cc': volume/100}
                        }
-    conversion_factor = conversion_table[starting_units][target_units]
+    try:
+        conversion_factor = conversion_table[starting_units][target_units]
+    except KeyError as err:
+        raise ValueError('Unknown units') from err
     new_value = float(starting_value)*conversion_factor
     return new_value
+
+
+def get_dvh(self, config: ET.Element, dvh_file: DvhSource = None)->DvhFile:
+    '''Define the path to the file containing the plan DVH data and open the
+        file for reading.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file, or
+            the name of a .dvh file in the default DVH directory. If not given,
+            the default DVH file in config will be used.
+    Returns:
+        DvhFile -- The plan DVH object for reading.
+    '''
+    if isinstance(dvh_file, DvhFile):
+        dvh_data_source = dvh_file
+    elif isinstance(dvh_file, Path):
+        dvh_data_source = DvhFile(dvh_file)
+    else:
+        dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
+        dvh_file_name = config.findtext(r'./DefaultDirectories/DVH_File')
+        dvh_file = dvh_path / dvh_file_name
+        dvh_data_source = DvhFile(dvh_file)
+    return dvh_data_source
+
+
+# Question consider a Constructor class
+# constructor would take a plan element as argument and return a value.
+# This requires some thinking.  it is not straight forward.
+def parse_constructor(constructor: str)->DvhConstructor:
+    ''''Parse the element constructor for reference to a DVH point.
+    Arguments:
+        constructor {str} -- A DVH point constructor with the form:
+            One of D or V - representing Dose or Volume as the y-axis
+            A number (either float or integer) to look up on the x-axis
+            The units of the number as a text string
+    Returns:
+        DvhConstructor -- If a point constructor was found:
+            A tuple of the form:
+                ([D or V], [x-axis value], [units of the x-axis value])
+            None otherwise.
+    '''
+    re_construct = re.compile(
+        r'^(?P<target>[DV])\s?'  # Target type: D for dose of V for volume
+        r'(?P<value>\d+\.?\d)\s?'  # Search value a decimal or integer
+        r'(?P<unit>[\w%]+)$'           # Units of search value
+        )
+    dvh_constructor = re_construct.findall(constructor)
+    if dvh_constructor:
+        dvh_constructor = dvh_constructor[0]
+    else:
+        dvh_constructor = None
+    return dvh_constructor
 
 
 class PlanElement():
     '''A single value item for the plan.  e.g.: 'Normalization'.
         Defines the name, value_type, unit and value attributes.
+    Arguments:
+        name {str} -- The name of the PlanElement.
+        element_value {Value} -- The value of the PlanElement.
+        unit {str} -- The units of the supplied value. (Only applies to
+            numerical values).
     Attributes:
         name: type str
             The name of the PlanElement instance.
@@ -87,40 +188,70 @@ class PlanElement():
             Defines the units of the PlanProperty value. Valid options depend
             on value_type.  Possible values are:
                 ('%', 'Gy', 'cGy', 'cc', 'cm', 'N/A')
-    Methods
-        __init__(self, name=None, **parameter_values)
-        define(self, element_value=None, unit=None)
-        get_value(self, unit=None, conversion_method=None)
-        __repr__(self)
-        __bool__(self)
+    Methods:
+        define(element_value: Value, unit: str = None)->Tuple[Value, str]
+            Set Element value.
+            Returns:
+                Tuple[Value, str] -- The Element value and corresponding units.
+        get_value(self, constructor: str = '', **conversion_parameters)->Value
+            Returns the requested value in the desired units.
+        __repr__(self)->str
+            Describe a Plan Element.
+        __bool__(self)->bool
+            Returns True if the element is not empty.
     '''
-    def __init__(self, name=None, element_value=None, unit=None):
-        '''Initialize the base properties of all PlanElements.
-        If name is not supplied, return an object with self.name = None as the
-        only attribute.
+    def __init__(self, name: str = None, element_value: Value = None,
+                 unit: str = None):
+        '''Initialize the base properties of a PlanElement.
+            If name is not supplied, return an object with self.name = None
+            as the only attribute.
+        Keyword Arguments:
+            name {str} -- The name of the PlanElement.
+            element_value {Value} -- The value of the PlanElement.
+            unit {str} -- The units of the supplied value. (Only applies to
+                numerical values).
         '''
         self.name = str(name)
         self.unit = None
         self.value = None
         self.define(element_value, unit)
 
-    def define(self, element_value=None, unit=None):
-        '''Set Element Attributes.
+    def define(self, element_value: Value = None,
+               unit: str = None)->Tuple[Value, str]:
+        '''Set Element value.
+        Keyword Arguments:
+            element_value {Value} -- The value of the PlanElement.
+            unit {str} -- The units of the supplied value. (Only applies to
+                numerical values).
+        Returns:
+            Tuple[Value, str] -- The Element value and corresponding units.
         '''
         try:
             self.element_value = float(element_value)
         except (ValueError, TypeError):
             self.element_value = element_value
-        if unit:
-            self.unit = str(unit)
         else:
-            self.unit = unit
-        pass
+            if unit:
+                self.unit = str(unit)
+            else:
+                self.unit = None
+        return (self.element_value, self.unit)
 
-    def get_value(self, constructor='', **conversion_parameters):
+    def get_value(self, constructor: str = '', **conversion_parameters)->Value:
         '''Returns the requested value in the desired units.
+        Arguments:
+            constructor {str} -- A string describing the method for generating
+            the requested value from this plan element.
+        conversion_parameters {ConversionParameters} -- A dictionary
+                containing the data used to perform any necessary unit
+                conversion.
+        Returns:
+            Value -- The requested value from the plan element.
         '''
-        # TODO constructor can be regular expression to derive custom string values e.g. site from Plan Name
+        # Question Consider constructor as a regular expression to derive custom string values
+        # e.g. site from Plan Name
+        if constructor:
+            pass # not yet implemented
         initial_value = self.element_value
         initial_unit = self.unit
         if initial_value and initial_unit:
@@ -130,14 +261,17 @@ class PlanElement():
             final_value = initial_value
         return final_value
 
-    def __bool__(self):
+    def __bool__(self)->bool:
         '''Indicate empty Element.
-        Return my truth value (True or False).
+        Returns:
+            bool -- True if the element is not empty.
         '''
         return bool(self.name)
 
-    def __repr__(self):
+    def __repr__(self)->str:
         '''Describe a Plan Element.
+        Returns:
+            str -- PlanElement Summary String.
         '''
         attr_str = 'name={}'.format(self.name)
         if self.unit:
@@ -147,52 +281,305 @@ class PlanElement():
         return 'PlanElement(' + attr_str + ')'
 
 
+class DVH():
+    '''DVH dose data for a given structure.
+    Arguments:
+        columns {Header} -- Data on each column in the DVH table
+        dvh_curve {DvhData} -- The DVH curve data.
+    Attributes:
+        dvh_columns {Header} -- Each element of the list is a dictionary
+            corresponding to one column of data. The dictionary contains the
+            following elements:
+                'name': the name of the data column
+                'unit': units defined for the column
+        dvh_curve {np.array} -- An nxm array of Dose and Volume.
+    Methods:
+        select_columns(x_unit: str, y_type: str,
+                       y_unit: str = None)->Tuple[int, int, str]
+            Select the appropriate x and y DVH columns.
+        get_dvh_point(self, x_column: int, y_column: int, x_value: float)->float
+            Interpolate DVH curve to select a value.
+        get_value(self, dvh_constructor: DvhConstructor,
+                  **conversion_parameters)->PlanElement
+            Return the value in the requested units.
+    '''
+    def __init__(self, columns: Header, dvh_curve: DvhData):
+        '''Initialize a DVH data set.
+        Arguments:
+            columns {Header} -- Data on each column in the DVH table
+            dvh_curve {DvhData} -- The DVH curve data.
+        '''
+        self.dvh_columns = columns
+        self.dvh_curve = np.array(dvh_curve).T
+
+    def select_columns(self, x_unit: str, y_type: str,
+                       y_unit: str = None)->Tuple[int, int, str]:
+        '''Select the appropriate x and y DVH columns.
+        Arguments:
+            x_unit {str} -- The required units for the x axis point.
+            y_type {str} -- The type of value for the y axis.
+                One of 'Dose' or 'Volume'.
+            y_unit {str} -- The required units for the y axis point.
+                (default: {None})
+        Returns:
+            Tuple[int, int, str] -- Index to x and y dvh columns, x_units for
+                conversion if necessary.
+        '''
+        # Initially no columns have been identified and not x unit conversion
+        x_column = y_column = x_possible = y_possible = None
+        desired_x_unit = None
+        for(index, column) in enumerate(self.dvh_columns):
+            # Check to see if the column matches the "y" type
+            if y_type in column['Data Type']:
+                y_possible = index
+                # The column can be used for "y"
+                if y_unit and (y_unit in column['Unit']):
+                    # If the "y" units match, use this column
+                    y_column = index
+            elif x_column is None:
+                # If the column is not "y" type it must be "x" type
+                x_possible = index
+                if x_unit in column['Unit']:
+                    # If the "x" units match, use this column
+                    # Note that an x unit conversion won't be required.
+                    x_column = index
+                    desired_x_unit = None
+                else:
+                    # If the "x" units don't match, note that an x unit
+                    # conversion may be required.
+                    desired_x_unit = column['Unit']
+        if x_column is None:
+            # If no column with matching "x" units is found,
+            # Use a column with the right type and do a unit conversion.
+            x_column = x_possible
+        if not y_column:
+            # If no column with matching "y" units is found,
+            # Use a column with the right type.
+            y_column = y_possible
+        return x_column, y_column, desired_x_unit
+
+    def get_dvh_point(self, x_column: int, y_column: int, x_value: float)->float:
+        '''Interpolate DVH curve to select a value.
+        Arguments:
+            x_column {int} -- Index to x dvh column.
+            y_column {int} -- Index to y dvh column.
+            x_value {float} -- x value to use in the interpolation.
+        Returns:
+            float -- The y value interpolated to the x point.
+        '''
+        data = self.dvh_curve
+        # x_value must be within the range of the x data.
+        if min(data[x_column]) < float(x_value) < max(data[x_column]):
+            linear_interp = interp1d(data[x_column], data[y_column])
+            target_value = float(linear_interp(x_value))
+        else:
+            # Question should I raise an error if the dvh interpolation fails?
+            target_value = None
+        return target_value
+
+    def get_value(self, dvh_constructor: DvhConstructor,
+                  **conversion_parameters)->PlanElement:
+        '''Return the value in the requested units.
+        Keyword Arguments:
+            dvh_constructor {DvhConstructor} -- The parameters required to
+                extract a point from the dvh curve. (default: {None})
+            conversion_parameters: {ConversionParameters} -- A dictionary
+                containing the data used to perform any necessary unit
+                conversion.
+        Returns:
+            float -- the requested value from  the DVH curve.
+        '''
+        (y_type, x_value, x_unit) = dvh_constructor
+        (x_column, y_column, desired_x_unit) = \
+            self.select_columns(x_unit, y_type)
+        if desired_x_unit:
+            x_value = convert_units(float(x_value), x_unit,
+                                    target_units=desired_x_unit,
+                                    **conversion_parameters)
+        dvh_value = self.get_dvh_point(x_column, y_column, x_value)
+        dvh_unit = self.dvh_columns[y_column]['Unit']
+        dvh_name = ''.join(dvh_constructor)
+        dvh_point = PlanElement(name=dvh_name,
+                                element_value=dvh_value,
+                                unit=dvh_unit)
+        return dvh_point
+
+class Structure():
+    '''Plan data associated with a particular structure.
+    Keyword Arguments:
+        name {str} -- The name of the structure. (default: {None})
+        properties {Dict[str, PlanElement]} -- The dose and volume
+            properties. (default: {None})
+        dvh {DVH} -- The DVH curve for the structure. (default: {None})
+    Attributes:
+        name {str} -- The name of the structure.
+        structure_properties {Dict[str, PlanElement]} -- The dose and volume
+            properties of the structure.
+        dose_data {DVH} -- The DVH data associated with the structure.
+    Methods:
+        add_element(properties: Dict[str, Value])->PlanElement
+            Add or update a structure element.
+        get_value(constructor: str = '',
+                  conversion: ConversionParameters = None)->Value:
+            Return the requested value in the desired units.
+        __repr__(self)->str
+            Describe a Plan Element.
+        __bool__(self)->bool
+            Returns True if the element is not empty.
+    '''
+    def __init__(self, name: str = None,
+                 properties: Dict[str, PlanElement] = None,
+                 dvh: DVH = None):
+        '''Initialize a structure.
+        Keyword Arguments:
+            name {str} -- The name of the structure. (default: {None})
+            properties {Dict[str, PlanElement]} -- The dose and volume
+                properties. (default: {None})
+            dvh {DVH} -- The DVH curve for the structure. (default: {None})
+        '''
+        self.name = str(name)
+        self.structure_properties = properties
+        self.dose_data = dvh
+
+    def add_element(self, properties: Dict[str, Value])->PlanElement:
+        '''Add or update a structure element.
+        Arguments:
+            properties {Dict[str, Value]} -- parameters defining an element:
+                name {str} -- The name of the PlanElement instance.
+                element_value {Value} -- The numeric or text value of the
+                    property.
+                unit {optional, str} -- If element_value is a number, the
+                    units of that number.
+        Returns:
+            PlanElement -- The element added or updated
+        '''
+        element = PlanElement(**properties)
+        self.structure_properties[element.name] = element
+        return element
+
+    def get_value(self, constructor: str = '',
+                  conversion: ConversionParameters = None)->Value:
+        '''Return the requested value in the desired units.
+        Keyword Arguments:
+            constructor {str} -- The structure property or a DVH point
+                description. (default: {''})
+            conversion {ConversionParameters} -- A dictionary containing the
+                data used to perform any necessary unit conversion.
+                (default: {None})
+        Returns:
+            Value -- The requested value in the desired units.
+        '''
+        if not conversion:
+            conversion = dict()
+        volume_property = self.structure_properties.get('Volume')
+        if volume_property:
+            conversion['volume'] = volume_property.element_value
+        else:
+            # Question Do I want to raise an error if unit conversion tries to use an un-set volume?
+            conversion['volume'] = 1.0
+        dvh_constructor = parse_constructor(constructor)
+        if dvh_constructor:
+            element = self.dose_data.get_value(dvh_constructor)
+        else:
+            element = self.structure_properties.get(constructor)
+        if element:
+            value = element.get_value(**conversion)
+        else:
+            value = None
+        return value
+
+    def __bool__(self):
+        '''Indicate empty Structure.
+        Returns:
+            bool -- True if the structure is not empty.
+        '''
+        return bool(self.name)
+
+    def __repr__(self)->str:
+        '''Describe a Structure.
+        Returns:
+            str -- A string summary of a structure.
+        '''
+        # Start with name of a structure
+        text_items = dict(name=self.name)
+        # Indicate the number of properties defined
+        if self.structure_properties:
+            properties_str = ' Contains {} properties'
+            text_items['properties'] = properties_str.format(
+                len(self.structure_properties))
+        else:
+            text_items['properties'] = ''
+        # Indicate id DVH is defined
+        if self.dose_data:
+            text_items['dvh'] = ' Contains DVH'
+        else:
+            text_items['dvh'] = ''
+        repr_string = '<Structure (name={name})\t{properties}\t{dvh}>'
+        return repr_string.format(text_items)
+
+
 class DvhFile():
     '''Controls reading of a .dvh plan file.
     A subclass of io.TextIOBase with the following additional Attributes and
     Methods:
+    Class Attributes:
+        special_charaters {Dict[str, str]} -- A dict to convert special
+            non-ASCII character strings to an equivalent ASCII string.
     Attributes:
-        file_name:  type Path
-            The full path to a the dvh file.
-        file:
-            A text file stream object created by open()
-        last_line:  type str
-            The line that has most recently been returned by a readline() call.
-            This allows for a simple method to backup one line in the file.
-        previous_postions: type int
-            The previous file stream position, as defined by tell()
-            It points to the beginning of the previous line.
-            This allows for a method to backup one line in the file.
+        file_name {Path} -- The full path to a the dvh file.
+        file {TextIOWrapper} -- the .dvh file as a text file stream object.
+        do_previous {bool} -- Return the previous line at the next readline()
+            call.
+    Arguments:
+        file_name {Path} -- The full path to the .dvh file.
+        **kwds {dict} -- Arguments passed to the Path.open method.
     Methods:
-        __init__(file_name: Path **kwds):
-            Open the file to begin reading.
-        readline(previous=False)
+        catch_special_char(raw_line: str)->str:
+            Convert line to ASCII.
+        readline(**kwds)
             read a line from the dvh file.
-            If previous=True, return last_line rather than reading a
-            new line.
-        backup(lines=1)
-            Move the current stream position of file backwards by 'lines'
-            number of lines.
+            **kwds are passed as parameters to the Path.open method.
+        backstep():
+            Set the next call to self.readline to return last_line.
+        read_lines(break_cond: str = None)->str:
+            Iterate through lines of text data until break_cond is encountered.
+        read_data_elements(break_cond: str = None)->Dict[str, Value]:
+            Iterate through lines of text data until break_cond is encountered,
+            returning the parameters obtained from each line.
+        load_dvh(self)->DVH
+            Load a DVH table from a .dvh file.
+        load_structure(self, name: str)->Structure
+            Load data for a single structure from a .dvh file.
+        load_structures(self)->Dict[str, Structure]
+            Loads all structures in a dvh file.
+        load_data(self)->Tuple[Dict[str, PlanElement], Dict[str, Structure]]
+            Load data from the .dvh file.
     '''
     special_charaters = {'cm³': 'cc'}
+    # TODO Move special_charaters to the config file
 
     def __init__(self, file_name: Path, **kwds):
         '''Open the file_name file to begin reading.
-        **kwds are passed as parameters to the Path.open method.
-        Use utf_8 encoding by default.
+            Use utf_8 encoding by default.
+        Arguments:
+            file_name {Path} -- The full path to the .dvh file.
+            **kwds are passed as parameters to the Path.open method.
         '''
         if not kwds.get('encoding'):
             kwds['encoding'] = 'utf_8'
         self.file = file_name.open(**kwds)
         self.file_name = file_name
-        self.last_line = None
+        self._last_line = None
         self.do_previous = False
 
-    def catch_special_char(self, raw_line: str):
+    def catch_special_char(self, raw_line: str)->str:
         '''Convert line to ASCII.
-        Look for special character strings in the line and replace with
-        standard ASCII.
-        Remove all other non ASCII characters.
+            Look for special character strings in the line and replace with
+            standard ASCII. Remove all other non ASCII characters.
+        Arguments:
+            raw_line {str} -- The original string to be cleaned.
+        Returns:
+            str -- raw_line with all non-ASCII characters converted or removed.
         '''
         for (special_char, replacement) in self.special_charaters.items():
             if special_char in raw_line:
@@ -203,16 +590,20 @@ class DvhFile():
         new_line = bytes_line.decode()
         return new_line
 
-    def readline(self, **kwds):
+    def readline(self, **kwds)->str:
         '''Read in the next line of text file, remembering previous line.
+            **kwds are passed as parameters to the Path.open method.
+            if self.do_previous is True return the previous line.
+        Returns:
+            str -- A line of ASCII text from the .dvh file.
         '''
         if self.do_previous:
-            new_line = self.last_line
+            new_line = self._last_line
             self.do_previous = False
         else:
             raw_line = self.file.readline(**kwds)
             new_line = self.catch_special_char(raw_line)
-            self.last_line = new_line
+            self._last_line = new_line
         return new_line
 
     def backstep(self):
@@ -220,20 +611,20 @@ class DvhFile():
         '''
         self.do_previous = True
 
-    def read_lines(self, break_cond=None):
+    def read_lines(self, break_cond: str = None)->str:
         '''Iterate through lines of text data until the stop iteration
         condition is met.
         break_cond defines the stop iteration condition.
-        Parameters:
-            break_cond:
-                A string to look for in the current text line to indicate the
-                iteration should stop.
+        Arguments:
+            break_cond {Optional[str]} -- A string to look for in the current
+                text line to indicate the iteration should stop.
                 If break_cond is None, iteration will stop at the beginning of
                 the next blank line.
                 If break_cond is a string, iteration will stop at the first
                 occurrence of that string and the file pointer will be stepped
                 back one line.
-        Returns text_line: type str
+        Returns:
+            str -- text_line: type str
         '''
         # Set stop iteration condition
         if break_cond is None:
@@ -252,40 +643,83 @@ class DvhFile():
         # Move back one line in file
         self.backstep()
 
-    def read_data_elements(self, break_cond=None):
+    def read_elements(self, break_cond: str = None)->Dict[str, PlanElement]:
         '''Iterate through lines of text data and returning the resulting
         element parameters extracted from each line.
-        break_cond is passed through to read_lines.
-            If break_cond is None, iteration will stop at the next blank line.
-            If break_cond is a string, iteration will stop at the first
-            occurrence of that string and the file pointer will be stepped
-            back one line.
-        Returns parameters
+        Arguments:
+            break_cond {Optional[str]} -- A string to look for in the current
+                text line to indicate the iteration should stop.
+                If break_cond is None, iteration will stop at the beginning of
+                the next blank line.
+                If break_cond is a string, iteration will stop at the first
+                occurrence of that string and the file pointer will be stepped
+                back one line. break_cond is passed through to read_lines.
+        Returns:
+            Dict[str, PlanElement] -- a dictionary of plan element extracted
+                from the file. The keys are the names of the plan elements.
         '''
-        def parse_element(text_line: str):
+        def find_unit(text: str)->Tuple[str, str]:
+            '''Return a unit string and name from a text.
+            Arguments:
+                text {str} -- Text containing an item name and it's units, surrounded
+                    by []. e.g. "Volume [cm³]"
+            Returns:
+                Tuple[str, str] -- A two-string tuple with the item name and units.
+            '''
+            unit = None
+            name = text
+            marker1 = text.find('[')
+            if marker1 != -1:
+                marker2 = text.find(']', marker1)
+                if marker2 != -1:
+                    unit = text[marker1+1:marker2]
+                    name = text[:marker1-1].strip()
+            return name, unit
+
+        def parse_element(text_line: str)->PlanElement:
             '''convert a line of text into PlanElement parameters.
+            Arguments:
+                text_line {str} -- A line of text from the .dvh file.
+            Returns:
+                PlanElement -- The plan element extracted from the file.
             '''
             line_element = text_line.split(':', 1)
             (item_name, item_unit) = find_unit(line_element[0].strip())
             parameters = {'name': item_name,
                           'unit': item_unit,
                           'element_value': line_element[1].strip()}
-            return parameters
+            return PlanElement(**parameters)
 
+        element_set = dict()
         for text_line in self.read_lines(break_cond):
             if ':' in text_line:
-                yield parse_element(text_line)
+                element = parse_element(text_line)
+                element_set[element.name] = element
+        return element_set
 
-    def load_dvh(self):
+    def load_dvh(self)->DVH:
         '''Load a DVH table from a .dvh file.
+        Returns:
+            DVH -- The DVH data obtained from the table.
         '''
-        def parse_line(text):
+        def parse_line(text: str)->List[float]:
             '''Split line into multiple numbers.
+            Arguments:
+                text {str} -- A row of dvh values.
+            Returns:
+                List[float] -- The text line converted into a lust of numbers.
             '''
             return [float(num) for num in text.split()]
 
-        def make_column_list(dvh_header):
+        def make_column_list(dvh_header: str)->Header:
             '''Build a list of DVH column identifiers.
+            Arguments:
+                dvh_header {str} -- The text header line from the dvh file.
+            Returns:
+                Header -- A list of two item dictionaries with the following
+                    entries:
+                        'Data Type' {str} -- "Volume' or 'Dose',
+                        'Unit' {str} -- The units ove values in the column.
             '''
             columns = list()
             for (name, unit) in dvh_header:
@@ -303,241 +737,61 @@ class DvhFile():
             return columns
 
         text_line = self.readline()
-        dvh_header_pattern = (
-            "([^\[]+)[\[]"  # everything until '[' # pylint: disable=anomalous-backslash-in-string
-            "([^\]]+)[\]]"  # everything inside the  [] # pylint: disable=anomalous-backslash-in-string
-            )
-        re_dvh_header = re.compile(dvh_header_pattern)
+        # pylint: disable=anomalous-backslash-in-string
+        dvh_header_pattern = '''
+                ([^\[]+) # everything until the first square bracket ([)
+                [\[]     # ignore the opening square bracket ([)
+                ([^\]]+) # everything inside the square brackets ([])
+                [\]]     # ignore the closing square bracket (])
+            '''
+        re_dvh_header = re.compile(dvh_header_pattern, re.VERBOSE)
         dvh_header = re_dvh_header.findall(text_line)
-        columns = make_column_list(dvh_header)
+        dvh_columns = make_column_list(dvh_header)
         dvh_list = [parse_line(text) for text in self.read_lines()]
-        return {'dvh_columns': columns, 'dvh_list': dvh_list}
+        return DVH(columns=dvh_columns, dvh_curve=dvh_list)
 
-    def load_structure(self):
+    def load_structure(self, name: str)->Structure:
         '''Load data for a single structure from a .dvh file.
+        Arguments:
+            name {str} -- The structure name
+        Returns:
+            Structure -- The structure read in from a DVH file.
         '''
-        structure_data = {'properties_list':
-                          [props for props in self.read_data_elements()]}
+        structure_data = self.read_elements()
         self.readline()  # Skip blank line
-        structure_data.update(self.load_dvh())
-        return structure_data
+        dvh_data = self.load_dvh()
+        return Structure(name, structure_data, dvh=dvh_data)
 
-    def load_structures(self):
-        '''Loads all structures in a file.
-        Returns a dictionary of structures with the structure name as key.
+    def load_structures(self)->Dict[str, Structure]:
+        '''Loads all structures in a dvh file.
+        Returns:
+            Dict[str, Structure] -- A dictionary of structures with the
+                structure name as key.
         '''
         text_line = self.readline()
+        structure_set = dict()
         while text_line:
             if ':' in text_line:
-                structure_data = {'name': text_line.split(':', 1)[1].strip()}
-                structure_data.update(self.load_structure())
-                yield structure_data
+                structure_name = text_line.split(':', 1)[1].strip()
+                new_structure = self.load_structure(structure_name)
+                structure_set[structure_name] = new_structure
             text_line = self.readline()
+        return structure_set
 
-    def load_data(self):
+    def load_data(self)->Tuple[Dict[str, PlanElement], Dict[str, Structure]]:
         '''Load data from the .dvh file.
+        Returns:
+            Tuple[Dict[str, PlanElement], Dict[str, Structure]] -- The plan
+                elements and structures read in from the .dvh file.
         '''
-        plan_parameters = [parameters for parameters in
-                           self.read_data_elements('Structure')]
-        plan_structures = [structure_data for structure_data in
-                           self.load_structures()]
+        # Plan Parameters occur before structure data
+        plan_parameters = self.read_elements(break_cond='Structure')
+        plan_structures = self.load_structures()
         return (plan_parameters, plan_structures)
 
 
-class DVH():
-    '''DVH dose data for a given structure.
-    Attributes:
-        dvh_columns:  type list of dictionaries
-            Each element of the list is a dictionary corresponding to one
-            column of data.
-            The dictionary contains the following elements:
-                name: the name of the data column
-                unit: units defined for the column
-        dvh_curve
-            A 3xN array of Dose and Volume
-    Methods:
-        load_dvh_curve
-            parse DVH data read in from the plan file
-        get_dvh_value(constructor, unit=None)
-            extract a specific dose or volume value.
-            Returns the value in the requested units.
-            If unit is None, returns the value in the default units defined
-            with set_units.
-    '''
-    def __init__(self, columns=None, dvh_curve=None):
-        '''Initialize a DVH data set.
-        '''
-        self.dvh_columns = columns
-        self.dvh_curve = np.array(dvh_curve).T
-
-    def select_columns(self, x_unit, y_type, y_unit=None):
-        '''Select the appropriate x and y DVH columns.
-        '''
-        x_column = y_column = x_possible = y_possible = None
-        desired_x_unit = None
-        for(index, column) in enumerate(self.dvh_columns):
-            if y_type in column['Data Type']:
-                y_possible = index
-                if y_unit and (y_unit in column['Unit']):
-                    y_column = index
-            elif x_column is None:
-                x_possible = index
-                if x_unit in column['Unit']:
-                    x_column = index
-                    desired_x_unit = None
-                else:
-                    desired_x_unit = column['Unit']
-        if x_column is None:
-            x_column = x_possible
-        if not y_column:
-            y_column = y_possible
-        return x_column, y_column, desired_x_unit
-
-    def get_dvh_point(self, x_column, y_column, x_value):
-        '''Interpolate DVH curve to select a value.
-        '''
-        data = self.dvh_curve
-        if min(data[x_column]) < float(x_value) < max(data[x_column]):
-            linear_interp = interp1d(data[x_column], data[y_column])
-            target_value = float(linear_interp(x_value))
-        else:
-            target_value = None
-        return target_value
-
-    def get_value(self, dvh_constructor=None, **conversion_parameters):
-        '''Return the value in the requested units.
-        '''
-        (y_type, x_value, x_unit) = dvh_constructor
-        (x_column, y_column, desired_x_unit) = \
-            self.select_columns(x_unit, y_type)
-        if desired_x_unit:
-            x_value = convert_units(float(x_value), x_unit,
-                                    target_units=desired_x_unit,
-                                    **conversion_parameters)
-        dvh_value = self.get_dvh_point(x_column, y_column, x_value)
-        dvh_unit = self.dvh_columns[y_column]['Unit']
-        dvh_name = ''.join(dvh_constructor)
-        dvh_point = PlanElement(name=dvh_name,
-                                element_value=dvh_value,
-                                unit=dvh_unit)
-        return dvh_point
-
-
-class Structure():
-    '''Plan data associated with a particular structure.
-    Attributes:
-        properties type dict
-            A dictionary of structure properties of a PlanElement sub-type.
-        dose_data type DVH
-            The DVH data associated with the structure.
-    Methods:
-        load_structure
-            parse structure data read in from the plan file
-        get_laterality
-            Determine laterality, if any of the structure from the plan data.
-            Store laterality in properties as a PlanElement.
-        get_volume
-            Determine the volume of the structure from the plan data.
-            Store volume in properties as a PlanElement.
-        laterality
-            Returns the structures laterality
-        volume
-            Returns the structures volume
-    '''
-    def __init__(self, name=None, **properties):
-        '''Initialize a structure.
-        Parameters:
-            name:  type str
-                The name of the structure
-            unit_conversion:  type callable
-                function to convert units.
-            properties:  type list
-                contains a list of dictionaries of structure properties
-        '''
-        if name:
-            self.name = str(name)
-            self.structure_properties = dict()
-            self.dose_data = None
-            self.define(**properties)
-        else:
-            self.name = None
-
-    def define(self, dvh_columns=None, dvh_list=None, properties_list=None):
-        '''Set Element Attributes.
-            dvh_columns, dvh_list:
-                Passed to DVH to generate DVH data.
-            properties_list:  type list
-                contains a list of dictionaries of structure properties
-        '''
-        if properties_list:
-            for element_properties in properties_list:
-                element = PlanElement(**element_properties)
-                self.structure_properties[element.name] = element
-        self.dose_data = DVH(columns=dvh_columns, dvh_curve=dvh_list)
-
-    def get_value(self, constructor='', **conversion):
-        '''Return the value in the requested units.
-        '''
-        def parse_constructor(constructor):
-            '''Parse the element constructor for reference to a DVH point.
-            DVH point constructors take the form:
-                one of D or V - representing Dose or Volume as the y axis
-                a number (either float or integer) to look up on the x axis
-                the units of the number as a text string
-            returns a three-element tuple if a point constructor was found
-            returns None otherwise
-            '''
-            re_construct = re.compile(
-                r'^(?P<target>[DV])\s?'  # Target type: D for dose of V for volume
-                r'(?P<value>\d+\.?\d)\s?'  # Search value a decimal or integer
-                r'(?P<unit>[\w%]+)$'           # Units of search value
-                )
-            dvh_constructor = re_construct.findall(constructor)
-            return dvh_constructor
-
-        volume_property = self.structure_properties.get('Volume')
-        if volume_property:
-            conversion['volume'] = volume_property.element_value
-        else:
-            conversion['volume'] = 1.0
-        dvh_constructor = parse_constructor(constructor)
-        if dvh_constructor:
-            element = self.dose_data.get_value(dvh_constructor[0])
-        else:
-            element = self.structure_properties.get(constructor)
-        if element:
-            value = element.get_value(**conversion)
-        else:
-            value = None
-        return value
-
-    def __bool__(self):
-        '''Indicate empty Structure.
-        Return my truth value (True or False).'''
-        return bool(self.name)
-
-    def __repr__(self):
-        '''Describe a Structure.
-        '''
-        # Start with base attributes of a structure
-        attr_str = 'name={}'.format(self.name)
-        # Indicate the number of properties defined
-        if self.structure_properties:
-            properties_str = \
-                'Contains {} properties'.format(
-                    len(self.structure_properties))
-        else:
-            properties_str = ''
-        # Indicate id DVH is defined
-        if self.dose_data:
-            dose_data_str = 'Contains DVH'
-        else:
-            dose_data_str = ''
-        repr_string = '< Type Structure(' + attr_str + ')' + properties_str +\
-            dose_data_str
-        return repr_string
-
-
+# Done To Here
+# TODO update Plan class doc string
 class Plan():
     '''Contains all plan elements for a single plan.
     Class Attributes:
@@ -548,7 +802,7 @@ class Plan():
                  'VolumeUnit': One of ('cc', '%')
                  'DistanceUnit': 'cm')
     Instance Attributes:
-        data_source:  type Path
+        dvh_data_source:  type Path
             The path to a file containing the plan data.
         self.data_elements   type dict
             Contains all of the different categories of plan data items as
@@ -586,78 +840,100 @@ class Plan():
         fractions
             returns the number of fractions in the prescription.
     '''
-    def __init__(self, name, config: ET.Element, dvh_file):
-        '''Define the path to the file containing the plan data.
+    def __init__(self, config: ET.Element, name: str = 'Plan',
+                 dvh_file: DvhSource = None):
+        '''Load  the plan data.
+        Arguments:
+            config {ET.Element} -- An XML element containing default paths,
+                settings and tables.
+        Keyword Arguments:
+            name {str} -- The name of the plan. Default is 'Plan'
+            dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+                or the name of a .dvh file in the default DVH directory. If not
+                given, the default DVH file in config will be used.
+                (default: {None})
         '''
         self.name = str(name)
-        if isinstance(dvh_file, DvhFile):
-            data_source = dvh_file
-        elif isinstance(dvh_file, Path):
-            data_source = DvhFile(dvh_file)
-        else:
-            dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
-            dvh_file = dvh_path / dvh_file_name
-            data_source = DvhFile(dvh_file)
-        self.data_source = Path(data_source.file_name) #Plan.data_source appears redundant
+        # initialize class structure
         self.default_units = get_default_units(config)
+        code_exceptions_def = config.find('LateralityCodeExceptions')
+        laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
         self.data_elements = {'Plan Property': dict(),
                               'Structure': dict(),
                               'Reference Point': dict()}
-        (plan_parameters, plan_structures) = data_source.load_data()
-        self.add_plan_data(plan_parameters, plan_structures)
 
-        code_exceptions_def = config.find('LateralityCodeExceptions')
-        laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
+        # Set a .dvh file as the data source
+        dvh_data = self.get_dvh(dvh_file, config)
+        self.dvh_data_source = Path(dvh_data.file_name)
+
+        # Load the dvh data
+        (plan_parameters, plan_structures) = dvh_data.load_data()
+        self.data_elements['Plan Property'].update(plan_parameters)
+        self.data_elements['Structure'].update(plan_structures)
+
+        # Derive laterality and dose
         self.laterality = self.get_laterality(laterality_exceptions)
         self.prescription_dose = self.set_prescription()
 
-    def add_data_item(self, element_category, element):
+    def add_data_item(self, element_category: str, element: Elements):
         '''Add a PlanElement as a new plan property.
+        Arguments:
+            element_category {str} -- The element type.  One of:
+                'Plan Property'
+                'Structure'
+                'Reference Point'
+            element {Elements} -- The element data to be added.
         '''
         element_entry = {element.name: element}
         self.data_elements[element_category].update(element_entry)
         LOGGER.debug('Created %s: %s', element_category, element.name)
 
-    def add_plan_data(self, plan_parameters, structure_data_sets):
-        '''Insert supplied plan parameters and structure data.
-        Build a unit conversion for the plan based on the prescription dose.
-        '''
-        for parameters in plan_parameters:
-            element = PlanElement(**parameters)
-            self.add_data_item('Plan Property', element)
-        for structure_data in structure_data_sets:
-            structure = Structure(**structure_data)
-            self.add_data_item('Structure', structure)
-
-    def get_data_element(self, data_type, element_name):
+    def get_data_element(self, data_type: str, element_name: str)->Elements:
         '''Return the PlanElement of type property_type with property_name.
+        Arguments:
+            data_type {str} -- The element type.  One of:
+                'Plan Property'
+                'Structure'
+                'Reference Point'The element data to be added.
+            element_name {str} -- The name of the requested element.
+        Returns:
+            Elements -- The requested plan data item.
         '''
         data_group = self.data_elements.get(data_type)
         element = data_group.get(element_name) if data_group else None
         return element
 
-    def get_laterality(self, laterality_exceptions):
-        '''Look for laterality indicator in plan name and use to set
-        laterality modifier.
+    def get_laterality(self, lat_exceptions: List[str])->Union[str, None]:
+        '''Look for laterality indicator in plan name and use to set plan
+            laterality.
+        List[str] --
+
+        Arguments:
+            lat_exceptions {List[str]} -- A list of 4-letter body region codes
+                which should not be treated as indicating laterality in the
+                plan.
+        Returns:
+            Union[str, None] -- The plan laterality.  One of:
+                'Right', 'Left', 'Both'
+                or None if no laterality.
         '''
         # TODO need to deal with BOOS plan names
-        laterality_options = {'R': 'Right',
-                              'L': 'Left',
-                              'B': 'Both'}
+        lat_options = {'R': 'Right', 'L': 'Left', 'B': 'Both'}
         plan_name = self.get_data_element(
             data_type='Plan Property',
             element_name='Plan')
         body_region = plan_name.element_value[0:3]
-        if body_region in laterality_exceptions:
+        if body_region in lat_exceptions:
             return None
-        laterality_code = plan_name.element_value[3]
-        return laterality_options.get(laterality_code, None)
+        lat_code = plan_name.element_value[3]
+        return lat_options.get(lat_code, None)
 
-    def set_prescription(self):
+    def set_prescription(self)->PlanElement:
         '''Sets the prescription dose in the default units to enable unit
-        conversion for other elements.
-        Calls get_value(source) method of PlanElement, Structure or
-        ReferencePoint.
+            conversion for other elements.
+        Returns:
+            PlanElement -- A 'prescription_dose' PlanElement in the plan
+                default dose units.
         '''
         dose = self.get_data_element(data_type='Plan Property',
                                      element_name='Prescribed dose')
@@ -670,17 +946,21 @@ class Plan():
                            element_value=dose_value,
                            unit=desired_units)
 
-    def __repr__(self):
+    def __repr__(self)->str:
         '''Describe a Plan.
+        Returns:
+            str -- Plan Summary String.
         '''
-        # Start with name and path to plan
-        attr_str = 'Plan name = {}\nPlan file = {}\n'.format(
-            self.name, self.data_source)
+        attrs = dict(name=self.name, file_name=self.dvh_data_source)
+        repr_string = '<Plan(name={name}, Plan file = {file_name})>'
+        repr_string += ' Contains:'
+        repr_string = repr_string.format(attrs)
         # Indicate the number of properties defined
         properties_str = ''
-        for (name, element_set) in self.data_elements.items():
+        template_str += '\n\t{count} of {type} elements.'
+        for (data_type, element_set) in self.data_elements.items():
             if element_set:
-                properties_str += 'Contains {} {} elements.\n'.format(
-                    len(element_set), name)
-        repr_string = '< Type Plan(' + attr_str + ')>' + properties_str
+                set_count = dict(type=data_type, count=len(element_set))
+                properties_str += template_str.format(set_count)
+        repr_string += properties_str
         return repr_string

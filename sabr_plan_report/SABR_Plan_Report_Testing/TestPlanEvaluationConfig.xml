@@ -5,6 +5,7 @@
 <PlanEvaluationConfig>
   <DefaultDirectories>
     <DVH>.\SABR_Plan_Report_Testing</DVH>
+    <DVH_File>plan.dvh</DVH_File>
     <ReportDefinitions>.\SABR_Plan_Report_Testing</ReportDefinitions>
     <ReportTemplates>.\SABR_Plan_Report_Testing</ReportTemplates>
     <Save>.\SABR Plan Report Testing\Output</Save>

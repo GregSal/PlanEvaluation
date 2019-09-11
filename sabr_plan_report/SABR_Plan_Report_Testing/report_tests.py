@@ -93,7 +93,6 @@ def save_comparison(original_sheet, test_sheet, test_files, save_range):
 
     sheet_name = original_sheet.name
     original_dvh_file = test_files['DVH File']
-    header_shift = save_test.shape[1]
     header_range = save_range.offset(row_offset=-1, column_offset=test_shift-2)
     header_range.value = [sheet_name, original_dvh_file, sheet_name,
                           'Test_results', 'Difference']
@@ -101,7 +100,7 @@ def save_comparison(original_sheet, test_sheet, test_files, save_range):
     dif_shift = test_data.shape[1]
     dif_range = save_test.offset(column_offset=dif_shift)
     dif_range = dif_range.resize(test_data.shape[0], 1)
-    dif_function =  '=IFERROR(R[0]C[-3]-R[0]C[-1],EXACT(R[0]C[-1],R[0]C[-3]))'
+    dif_function = '=IFERROR(R[0]C[-3]-R[0]C[-1],EXACT(R[0]C[-1],R[0]C[-3]))'
     dif_range.formula = dif_function
 
 
@@ -117,7 +116,7 @@ def run_tests(data_path, output_itter,
         report = deepcopy(report_definition[report_name])
         report.save_file = report_file
         dvh_path = data_path / dvh_file
-        plan = Plan('test', config, DvhFile(dvh_path))
+        plan = Plan(config, 'test', DvhFile(dvh_path))
         run_report(plan, report)
 
         test_sheet = xw.Book(str(report_file)).sheets[original_sheet.name]

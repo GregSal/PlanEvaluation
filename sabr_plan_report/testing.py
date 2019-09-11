@@ -2,36 +2,24 @@
 '''
 from pathlib import Path
 from build_sabr_plan_report import load_config, load_report_definitions
-from build_sabr_plan_report import run_report
-from SABR_Plan_Report_Testing.report_tests import *
+from SABR_Plan_Report_Testing.report_tests import load_items, save_to_excel
+from SABR_Plan_Report_Testing.report_tests import run_tests
 
-
-#%% Define Folder Paths
-base_path = Path.cwd()
-data_path = base_path / 'Data'
-test_path = base_path / 'SABR_Plan_Report_Testing'
-results_path = test_path / 'Output'
-report_file = results_path / 'Test Report.xls'
-comparison_file_name = results_path / 'Test results.xls'
-
-#%% Load Config file and Report definitions
-config_file = 'TestPlanEvaluationConfig.xml'
-config = load_config(test_path, config_file)
-report_definitions = load_report_definitions(config)
 
 #%% Get plan structures
+#import xlwings as xw
 #structure_file = results_path / 'structures.xlsx'
+#from plan_data import DvhFile, Plan
 
 #def plan_structures(data_path, config, test_list):
-#    '''iterate through the list of tests, load the data and
-#    generate a comparison.
+#    '''Create a spreadsheet with lists of the structures in each test plan.
 #    '''
 #    structure_sheet = xw.Book().sheets.add('Plan Structures')
 #    structure_column = structure_sheet.range('A1')
 #    for test_files in test_list:
 #        dvh_file = test_files['DVH File']
 #        dvh_path = test_path / dvh_file
-#        plan = Plan('test', config, DvhFile(dvh_path))
+#        plan = Plan(config, 'test', DvhFile(dvh_path))
 #        structures = [s.name for s in plan.data_elements['Structure'].values()]
 #        name = [dvh_file]
 #        structures = name + structures
@@ -40,14 +28,16 @@ report_definitions = load_report_definitions(config)
 
 
 #%% partial Tests
+## A variation of report_tests.run_tests() used to run selected tests
 #from copy import deepcopy
 #import xlwings as xw
 #from plan_data import DvhFile, Plan
+#from build_sabr_plan_report import run_report
 
 #def run_tests(data_path, output_itter,
 #             report_definition, config,
 #             report_file, test_list):
-#    '''iterate through the list of tests, load the data and
+#    '''run selected tests, load the data and
 #    generate a comparison.
 #    '''
 #    def run_test(test_files):
@@ -56,7 +46,7 @@ report_definitions = load_report_definitions(config)
 #        report = deepcopy(report_definition[report_name])
 #        report.save_file = report_file
 #        dvh_path = data_path / dvh_file
-#        plan = Plan('test', config, DvhFile(dvh_path))
+#        plan = Plan(config, 'test', DvhFile(dvh_path))
 #        #(match, not_matched) = report.match_elements(plan)
 #        run_report(plan, report)
 #        test_sheet = xw.Book(str(report_file)).sheets[original_sheet.name]
@@ -74,10 +64,32 @@ report_definitions = load_report_definitions(config)
 #    test_sheet.book.close()
 
 #%% Run Tests
-test_list = load_items(test_path / 'test data pairs.csv')
-output_itter = save_to_excel(comparison_file_name, starting_cell='A2',
-                             column_increment=9)
-run_tests(test_path, output_itter,
-          report_definitions, config,
-          report_file, test_list)
-pass
+def main():
+    ''' Load test data and run selected tests
+    '''
+    #%% Define Folder Paths
+    base_path = Path.cwd()
+    test_path = base_path / 'SABR_Plan_Report_Testing'
+    #data_path = base_path / 'Data'
+    data_path = test_path
+    results_path = test_path / 'Output'
+    report_file = results_path / 'Test Report.xls'
+    comparison_file_name = results_path / 'Test results.xls'
+
+    #%% Load Config file and Report definitions
+    config_file = 'TestPlanEvaluationConfig.xml'
+    config = load_config(data_path, config_file)
+    report_definitions = load_report_definitions(config)
+
+    #%% Load list of test files
+    test_list = load_items(test_path / 'test data pairs.csv')
+
+    #%% run all tests
+    output_itter = save_to_excel(comparison_file_name, starting_cell='A2',
+                                 column_increment=9)
+    run_tests(test_path, output_itter,
+              report_definitions, config,
+              report_file, test_list)
+
+if __name__ == '__main__':
+    main()

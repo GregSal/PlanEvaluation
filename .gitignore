@@ -12,6 +12,7 @@ CodeGraphData
 .mypy*
 __pycache__
 *.pyc
+.pytest_cache
 ## Ignore Visual Studio and Visual Studio Code Configuation files
 .vs
 .vscode
