@@ -257,7 +257,7 @@ class PlanElement():
             attr_str += ', unit={}'.format(self.unit)
         if self.element_value:
             attr_str += ', element_value={}'.format(self.element_value)
-        return 'PlanElement(' + attr_str + ')'
+        return 'PlanElement(' + attr_str + ')\n'
 
 
 class DVH():
@@ -494,8 +494,8 @@ class Structure():
             text_items['dvh'] = ' Contains DVH'
         else:
             text_items['dvh'] = ''
-        repr_string = '<Structure (name={name})\t{properties}\t{dvh}>'
-        return repr_string.format(text_items)
+        repr_string = '<Structure (name={name})\t{properties}\t{dvh}>\n'
+        return repr_string.format(**text_items)
 
 
 class DvhFile():
