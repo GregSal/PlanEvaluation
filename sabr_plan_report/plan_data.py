@@ -7,7 +7,7 @@ elements for analysis.
 '''
 
 
-from typing import Optional, Union, Any, Dict, Tuple, List, Set
+from typing import Union, Dict, Tuple, List
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import re
@@ -29,11 +29,6 @@ DvhConstructor = Tuple[str, float, str] # (y_type, x_value, x_unit)
 DvhIndex = Tuple[int, int, str]
 #x_column, y_column, desired_x_unit
 
-DvhSource = Union[DvhFile, Path, str, None]
-# Optional methods for specifying the dvh data
-
-Elements = Union[PlanElement, Structure]
-# Possible elements to add to a Plan
 LOGGER = logging.getLogger(__name__)
 
 
@@ -103,13 +98,21 @@ def convert_units(starting_value: Value, starting_units: str, target_units: str,
     # find_unit and get_default_units could also become part of Value
     # constructors.  Config could contain different text parsing definitions
     # that would extract name, value and units.
-    conversion_table = {'cGy': {'cGy': 1.0, '%': 100/dose, 'Gy': 0.01},
-                        'Gy':  {'Gy': 1.0, '%': 1.0/dose, 'cGy': 100},
-                        'cc':  {'cc': 1.0, '%': 100/volume},
+    conversion_table = {'cGy': {'cGy': 1.0,
+                                '%': 100/dose if dose else None,
+                                'Gy': 0.01
+                                },
+                        'Gy':  {'Gy': 1.0,
+                                '%': 1.0/dose if dose else None,
+                                'cGy': 100},
+                        'cc':  {'cc': 1.0,
+                                '%': 100/volume if volume else None
+                                },
                         '%':   {'%': 1.0,
-                                'cGy': dose/100.0,
-                                'Gy': dose,
-                                'cc': volume/100}
+                                'cGy': dose/100.0 if dose else None,
+                                'Gy': dose if dose else None,
+                                'cc': volume/100 if volume else None
+                                }
                        }
     try:
         conversion_factor = conversion_table[starting_units][target_units]
@@ -117,30 +120,6 @@ def convert_units(starting_value: Value, starting_units: str, target_units: str,
         raise ValueError('Unknown units') from err
     new_value = float(starting_value)*conversion_factor
     return new_value
-
-
-def get_dvh(self, config: ET.Element, dvh_file: DvhSource = None)->DvhFile:
-    '''Define the path to the file containing the plan DVH data and open the
-        file for reading.
-    Arguments:
-        config {ET.Element} -- An XML element containing default paths.
-        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file, or
-            the name of a .dvh file in the default DVH directory. If not given,
-            the default DVH file in config will be used.
-    Returns:
-        DvhFile -- The plan DVH object for reading.
-    '''
-    if isinstance(dvh_file, DvhFile):
-        dvh_data_source = dvh_file
-    elif isinstance(dvh_file, Path):
-        dvh_data_source = DvhFile(dvh_file)
-    else:
-        dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
-        dvh_file_name = config.findtext(r'./DefaultDirectories/DVH_File')
-        dvh_file = dvh_path / dvh_file_name
-        dvh_data_source = DvhFile(dvh_file)
-    return dvh_data_source
-
 
 # Question consider a Constructor class
 # constructor would take a plan element as argument and return a value.
@@ -237,14 +216,14 @@ class PlanElement():
                 self.unit = None
         return (self.element_value, self.unit)
 
-    def get_value(self, constructor: str = '', **conversion_parameters)->Value:
+    def get_value(self, constructor: str = '',
+                  **conversion: ConversionParameters)->Value:
         '''Returns the requested value in the desired units.
         Arguments:
             constructor {str} -- A string describing the method for generating
-            the requested value from this plan element.
-        conversion_parameters {ConversionParameters} -- A dictionary
-                containing the data used to perform any necessary unit
-                conversion.
+                the requested value from this plan element.
+            conversion {ConversionParameters} -- A dictionary containing the
+                data used to perform any necessary unit conversion.
         Returns:
             Value -- The requested value from the plan element.
         '''
@@ -256,7 +235,7 @@ class PlanElement():
         initial_unit = self.unit
         if initial_value and initial_unit:
             final_value = convert_units(initial_value, initial_unit,
-                                        **conversion_parameters)
+                                        **conversion)
         else:
             final_value = initial_value
         return final_value
@@ -404,6 +383,7 @@ class DVH():
                                 unit=dvh_unit)
         return dvh_point
 
+
 class Structure():
     '''Plan data associated with a particular structure.
     Keyword Arguments:
@@ -458,7 +438,7 @@ class Structure():
         return element
 
     def get_value(self, constructor: str = '',
-                  conversion: ConversionParameters = None)->Value:
+                  **conversion: ConversionParameters)->Value:
         '''Return the requested value in the desired units.
         Keyword Arguments:
             constructor {str} -- The structure property or a DVH point
@@ -790,8 +770,37 @@ class DvhFile():
         return (plan_parameters, plan_structures)
 
 
-# Done To Here
-# TODO update Plan class doc string
+Elements = Union[PlanElement, Structure]
+# Possible elements to add to a Plan
+
+
+DvhSource = Union[DvhFile, Path, str, None]
+# Optional methods for specifying the dvh data
+
+
+def get_dvh(config: ET.Element, dvh_file: DvhSource = None)->DvhFile:
+    '''Define the path to the file containing the plan DVH data and open the
+        file for reading.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file, or
+            the name of a .dvh file in the default DVH directory. If not given,
+            the default DVH file in config will be used.
+    Returns:
+        DvhFile -- The plan DVH object for reading.
+    '''
+    if isinstance(dvh_file, DvhFile):
+        dvh_data_source = dvh_file
+    elif isinstance(dvh_file, Path):
+        dvh_data_source = DvhFile(dvh_file)
+    else:
+        dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
+        dvh_file_name = config.findtext(r'./DefaultDirectories/DVH_File')
+        dvh_file = dvh_path / dvh_file_name
+        dvh_data_source = DvhFile(dvh_file)
+    return dvh_data_source
+
+
 class Plan():
     '''Contains all plan elements for a single plan.
     Class Attributes:
@@ -863,7 +872,7 @@ class Plan():
                               'Reference Point': dict()}
 
         # Set a .dvh file as the data source
-        dvh_data = self.get_dvh(dvh_file, config)
+        dvh_data = get_dvh(config, dvh_file)
         self.dvh_data_source = Path(dvh_data.file_name)
 
         # Load the dvh data
@@ -957,7 +966,7 @@ class Plan():
         repr_string = repr_string.format(attrs)
         # Indicate the number of properties defined
         properties_str = ''
-        template_str += '\n\t{count} of {type} elements.'
+        template_str = '\n\t{count} of {type} elements.'
         for (data_type, element_set) in self.data_elements.items():
             if element_set:
                 set_count = dict(type=data_type, count=len(element_set))

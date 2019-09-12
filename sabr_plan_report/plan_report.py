@@ -95,7 +95,7 @@ def match_alias(aliases: Alias, plan_elements: List[PlanElement],
         lat_param {Dict[str, Any]} --  may contain the following items:
             plan_laterality {str} -- The laterality of the plan.
                 (default: {None})
-            item_laterality {str} -- The laterality of the report item.
+            reference_laterality {str} -- The laterality of the report item.
                 (default: {None})
             lat_patterns {Alias} -- A list of default Reference Name laterality
                 modifiers (default: {None})
@@ -106,7 +106,7 @@ def match_alias(aliases: Alias, plan_elements: List[PlanElement],
         PlanElement -- The matching item from the plan.
     '''
     plan_laterality = lat_param['plan_laterality']
-    item_laterality = lat_param['item_laterality']
+    reference_laterality = lat_param['reference_laterality']
     laterality_lookup = lat_param['laterality_lookup']
     matched_element = None
     for (pattern, size) in aliases:
@@ -117,7 +117,7 @@ def match_alias(aliases: Alias, plan_elements: List[PlanElement],
             matched_element = match_laterality(pattern, plan_elements,
                                                **lat_param)
         else:
-            lat_index = (plan_laterality, item_laterality, size)
+            lat_index = (plan_laterality, reference_laterality, size)
             lat_indicator = laterality_lookup.get(lat_index)
             if lat_indicator:
                 lookup_name = pattern.format(LatIndicator=lat_indicator)
@@ -183,9 +183,9 @@ def load_laterality_table(laterality_root: ET.Element)->LateralityRef:
 
 
 def match_laterality(reference_name: str,
-                     plan_elements: List[PlanElement],
+                     plan_elements: Dict[str, PlanElement],
                      plan_laterality: str = None,
-                     item_laterality: str = None,
+                     reference_laterality: str = None,
                      lat_patterns: Alias = None,
                      laterality_lookup: LateralityRef = None)->PlanElement:
     '''Identify the plan element that matches this reference.
@@ -195,7 +195,7 @@ def match_laterality(reference_name: str,
     Keyword Arguments:
         plan_laterality {str} -- The laterality of the plan.
             (default: {None})
-        plan_laterality {str} -- The laterality of the report item.
+        reference_laterality {str} -- The laterality of the report item.
             (default: {None})
         lat_patterns {Alias} -- A list of default Reference Name laterality
             modifiers (default: {None})
@@ -206,9 +206,9 @@ def match_laterality(reference_name: str,
         PlanElement -- The matching item from the plan.
     '''
     matched_element = None
-    if item_laterality:
+    if reference_laterality:
         for (pattern, size) in lat_patterns:
-            lat_index = (plan_laterality, item_laterality, size)
+            lat_index = (plan_laterality, reference_laterality, size)
             lat_indicator = laterality_lookup[lat_index]
             lookup_name = pattern.format(Base=reference_name,
                                          LatIndicator=lat_indicator)
@@ -504,13 +504,13 @@ class ReportElement():
         if not self.reference['reference_name']:
             self.reference['reference_name'] = self.name
 
-    def get_value(self, conversion_parameters: ConversionParameters):
+    def get_value(self, conversion: ConversionParameters):
         '''Get the matching value from the plan data.  Perform any necessary
             unit conversions.
         Arguments:
-            conversion_parameters {ConversionParameters} -- A dictionary
-                containing the data used to perform any necessary unit
-                conversion.  Starts with only one item:
+            conversion {ConversionParameters} -- A dictionary containing the
+                data used to perform any necessary unit conversion.  Starts
+                with only one item:
                     'dose' {float} -- the plan prescription dose
                 Additional items are added before passing through to the
                 PlanElement.get_value method.
@@ -522,9 +522,9 @@ class ReportElement():
             target_units = None
         constructor = self.reference.get('constructor', '')
         if plan_element:
-            conversion_parameters['target_units'] = target_units
-            conversion_parameters['constructor'] = constructor
-            self.value = plan_element.get_value(**conversion_parameters)
+            conversion['target_units'] = target_units
+            conversion['constructor'] = constructor
+            self.value = plan_element.get_value(**conversion)
         return None
 
     def add_to_report(self, sheet: xw.Sheet):

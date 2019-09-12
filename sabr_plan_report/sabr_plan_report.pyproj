@@ -41,12 +41,14 @@
     <Content Include="Compile\compile.txt" />
     <Content Include="Compile\environment.yml" />
     <Content Include="Compile\requirements.txt" />
-    <Content Include="Data\ReportDefinitions.xml" />
-    <Content Include="Data\SABR Plan Evaluation Worksheet BLANK.xls" />
     <Content Include="Icons\DVH.ico" />
     <Content Include="Icons\DVH.png" />
     <Content Include="Icons\DVH2.ico" />
     <Content Include="Icons\DVH2.png" />
+    <Content Include="Icons\insert-table16.png" />
+    <Content Include="Icons\insert-table32.png" />
+    <Content Include="Icons\insert-table48.png" />
+    <Content Include="Icons\preflight-verifier.png" />
     <Content Include="SABR_Plan_Report_Testing\DVH Data Feb 14 2018.dvh" />
     <Content Include="SABR_Plan_Report_Testing\DVH Data Feb 27 2018.dvh" />
     <Content Include="SABR_Plan_Report_Testing\DVH Data Mar 05 2018.dvh" />
@@ -54,19 +56,12 @@
     <Content Include="SABR_Plan_Report_Testing\DVH Data Nov 22 2017.dvh" />
     <Content Include="SABR_Plan_Report_Testing\DVH_Data_Aug_29_2017.dvh" />
     <Content Include="SABR_Plan_Report_Testing\DVH_Data_Sept_29_2017.dvh" />
-    <Content Include="SABR_Plan_Report_Testing\FormatResults.bas" />
+    <Content Include="SABR_Plan_Report_Testing\Output\FormatResults.bas" />
     <Content Include="SABR_Plan_Report_Testing\Output\Test Report.xls" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test Results Aug 19.xlsx" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test results Aug 21.xlsx" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test results Aug 21b.xlsx" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test results Aug 21c.xlsx" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test results Aug 25.xlsx" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test results Aug 26.xlsx" />
-    <Content Include="SABR_Plan_Report_Testing\Output\Test results.xls" />
-    <Content Include="SABR_Plan_Report_Testing\Plan Structures.xlsx" />
+    <Content Include="SABR_Plan_Report_Testing\Output\Test results Sept 12.xlsx" />
+    <Content Include="SABR_Plan_Report_Testing\Output\Test results.xlsx" />
     <Content Include="SABR_Plan_Report_Testing\ReportDefinitions.xml" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Aug 29 2017.xls" />
-    <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet BLANK For testing.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet BLANK For testing.xlsx" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Feb 14 2018.xls" />
     <Content Include="SABR_Plan_Report_Testing\SABR Plan Evaluation Worksheet Feb 27 2018.xls" />
@@ -88,30 +83,12 @@
     <Content Include="SABR_Plan_Report_Testing\SABR6.dvh" />
     <Content Include="SABR_Plan_Report_Testing\TestPlanEvaluationConfig.xml" />
     <Content Include="SABR_Plan_Report_Testing\test data pairs.csv" />
-    <Content Include="Structure and plan info\48 in 4 cell fix.txt" />
-    <Content Include="Structure and plan info\54 in3 cell fix.txt" />
-    <Content Include="Structure and plan info\60 in 8 cell fix.txt" />
     <Content Include="Structure and plan info\CellCorrection.xlsx" />
-    <Content Include="Structure and plan info\CellMod_Log.txt" />
-    <Content Include="Structure and plan info\Format.xlsx" />
-    <Content Include="Structure and plan info\Laterality Code Exceptions.xlsx" />
-    <Content Include="Structure and plan info\Laterality Table.xml" />
     <Content Include="Structure and plan info\Laterality.xlsx" />
     <Content Include="Structure and plan info\laterality_functions.txt" />
-    <Content Include="Structure and plan info\Plan Matching.xlsx" />
-    <Content Include="Structure and plan info\PlanEvaluationConfig.xml" />
-    <Content Include="Structure and plan info\PlanItems.xlsx" />
     <Content Include="Structure and plan info\ReportDefinitions - no com.xml" />
-    <Content Include="Structure and plan info\ReportDefinitions.xml" />
     <Content Include="Structure and plan info\Report_tables.xlsx" />
-    <Content Include="Structure and plan info\Structure_base.xlsx" />
-    <Content Include="PlanEvaluationConfig.xml" />
-    <Content Include="Test Data\Output\SABR Plan Evaluation Worksheet filled.xls" />
-    <Content Include="Test Data\ReportDefinitions.xml" />
     <Content Include="Structure and plan info\ReportReference.xlsx" />
-    <Content Include="Test Data\SABR Plan Evaluation Worksheet BLANK.xls" />
-    <Content Include="Test Data\Test SABR Plan Evaluation Standard.xls" />
-    <Content Include="Test Data\test.dvh" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Compile\" />
@@ -120,8 +97,6 @@
     <Folder Include="SABR_Plan_Report_Testing\" />
     <Folder Include="SABR_Plan_Report_Testing\Output\" />
     <Folder Include="Structure and plan info\" />
-    <Folder Include="Test Data\" />
-    <Folder Include="Test Data\Output\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|SABR" />

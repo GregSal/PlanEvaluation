@@ -1,7 +1,7 @@
 '''Run a prepared set of tests and evaluate the results.
 '''
 from pathlib import Path
-from build_sabr_plan_report import load_config, load_report_definitions
+from build_sabr_plan_report import initialize, read_report_files
 from SABR_Plan_Report_Testing.report_tests import load_items, save_to_excel
 from SABR_Plan_Report_Testing.report_tests import run_tests
 
@@ -78,9 +78,9 @@ def main():
 
     #%% Load Config file and Report definitions
     config_file = 'TestPlanEvaluationConfig.xml'
-    config = load_config(data_path, config_file)
-    report_definitions = load_report_definitions(config)
-
+    (config, report_parameters) = initialize(data_path, config_file)
+    report_definitions = read_report_files(**report_parameters)
+    
     #%% Load list of test files
     test_list = load_items(test_path / 'test data pairs.csv')
 

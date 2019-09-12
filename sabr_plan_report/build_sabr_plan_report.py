@@ -1,11 +1,11 @@
 '''Fill an Excel SABR Spreadsheet with values from a DVH file.
 '''
-from typing import Optional, Union, Any, Dict, Tuple, List, Set
+from typing import Any, Dict, Tuple
 from copy import deepcopy
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-from plan_report import Report, Alias, AliasRef, LateralityRef
+from plan_report import Report
 from plan_report import load_default_laterality
 from plan_report import load_aliases, load_laterality_table
 from plan_data import DvhFile, Plan
@@ -82,7 +82,7 @@ def read_report_files(report_path: Path, **parameters)->Dict[str, Report]:
     report_definitions = dict()
     report_file = Path(report_path) / 'ReportDefinitions.xml'
     # TODO Add method to scan directory for report_definition
-    report_dict = load_report_definitions(report_file, **parameters)
+    report_dict = load_report_definitions(report_file, parameters)
     report_definitions.update(report_dict)
     return report_definitions
 
