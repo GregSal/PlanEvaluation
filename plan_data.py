@@ -125,7 +125,7 @@ def convert_units(starting_value: Value, starting_units: str, target_units: str,
 # constructor would take a plan element as argument and return a value.
 # This requires some thinking.  it is not straight forward.
 def parse_constructor(constructor: str)->DvhConstructor:
-    ''''Parse the element constructor for reference to a DVH point.
+    '''Parse the element constructor for reference to a DVH point.
     Arguments:
         constructor {str} -- A DVH point constructor with the form:
             One of D or V - representing Dose or Volume as the y-axis

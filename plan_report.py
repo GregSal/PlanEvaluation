@@ -1,6 +1,7 @@
 '''Report on Plan parameters based on defined Criteria'''
 
 from typing import Optional, Union, Any, Dict, Tuple, List, Set
+from typing import NamedTuple
 from pathlib import Path
 import logging
 import xml.etree.ElementTree as ET
@@ -19,6 +20,43 @@ MatchList = Dict[str, PlanElement]
 
 logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
+
+
+def optional_load(xml_element: ET.Element, element_name: str,
+                  default_value: str)->str:
+    '''Read an optional text value contained in a sub-element of the supplied
+        element.
+    Arguments:
+        xml_element {ET.Element} -- The top .xml element containing the desired
+            element.
+        element_name {str} -- The name (tag) of the element to search for.
+        default_value {str} -- The text value to return if the element is not
+            found.
+    Returns:
+        str -- the text value in the desired sub-element, or the default text
+            value if the sub-element is not found.
+    '''
+    text_value = xml_element.findtext(element_name)
+    if text_value is not None:
+        return text_value
+    return default_value
+
+
+class ReferenceGroup(NamedTuple):
+    '''Match Parameters for a PlanReference.
+        Report Item name, match status, plan item type, Plan Item name
+    Attributes:
+    reference_name {str} -- The name of the PlanReference
+    reference_type {str} -- The type of PlanElement.  Can be one of:
+        ('Plan Property', Structure', 'Reference Point', 'Ratio')
+    match_statu: {str} -- How a plan value was obtained.  One of:
+        One of Auto, Manual, Direct Entry, or None
+    plan_Item: {str} -- The name of the matched element from the Plan.
+    '''
+    reference_name: str
+    reference_type: str
+    match_status: str = None
+    plan_Item: str = None
 
 
 def load_alias_list(aliases: ET.Element)->Alias:
@@ -219,6 +257,7 @@ def match_laterality(reference_name: str,
 
 
 class PlanReference(dict):
+    #FIXME Moved Constructor
     '''Contains information used to reference an individual Plan value.
     Used to connect ReportElements and Plan data.
     The dictionary may contain the following items as applicable:
@@ -230,12 +269,18 @@ class PlanReference(dict):
         reference_laterality: {str} -- Indicates the laterality of a particular
             structure reference.  Can be one of:
                 ('Ipsilateral', 'Contralateral', 'Proximal', 'Both')
-        reference_constructor:
+        match_method: {str} -- How a plan value was obtained.  One of:
+            	One of Auto, Manual, Direct Entry, None
+
+        constructor:
             A string describing the method for extracting the required value.
             Includes:
                 ('Volume', 'Min Dose', 'Max Dose', 'Mean Dose', 'Ratio',
                 'V' # ['%', 'Gy', cGy],
                 'D' # ['%', 'cc'])
+        Aliases: {AliasRef} -- A dictionary for looking up Aliases for report
+            elements.
+        plan_element: {PlanElement} -- THe matched element from the Plan.
     Arguments:
         reference_def {ET.Element} -- .xml element containing information
             used to link a ReportElement to an individual Plan item and
@@ -263,10 +308,19 @@ class PlanReference(dict):
         self['reference_name'] = reference_def.findtext('Name')
         self['reference_type'] = reference_def.findtext('Type')
         self['reference_laterality'] = reference_def.findtext('Laterality')
-        self['constructor'] = reference_def.findtext('Constructor')
         aliases_def = reference_def.find('Aliases')
         self['Aliases'] = self.add_aliases(aliases_def, alias_reference)
         self['plan_element'] = None
+        self['match_method'] = None
+
+    def get_plan_item_name(self)->str:
+        '''Return the name of the matched PlanElement, or None if no match.
+        '''
+        if self['plan_element']:
+            return self['plan_element'].name
+        return None
+
+    matched_name = property(get_plan_item_name)
 
     def lookup_aliases(self, alias_reference: AliasRef)->Alias:
         '''Lookup possible aliases for the reference name.
@@ -342,7 +396,18 @@ class PlanReference(dict):
                                               **lat_param)
         if matched_element:
             self['plan_element'] = matched_element
+            self['match_method'] = 'Auto'
         return matched_element
+
+    def reference_group(self)->ReferenceGroup:
+        '''Return a tuple of match parameters
+        Report Item name, match status, plan item type, Plan Item name
+        '''
+        return ReferenceGroup(self['reference_name'],
+                              self['reference_type'],
+                              self['match_status'],
+                              self.matched_name)
+    match = property(reference_group)
 
     def __repr__(self)->str:
         '''Build an Target list string.
@@ -472,24 +537,17 @@ class ReportElement():
         '''Initialize the Report Item attributes.
         Arguments:
             report_item {ET.Element} -- .xml element containing parameters
-                defining a repprt item.
+                defining a report item.
             alias_reference {AliasRef} -- A dictionary for looking up Aliases
                 for report elements.
         '''
         self.name = report_item.attrib.get('name')
-        label = report_item.findtext('Label')
-        if label is not None:
-            self.label = label
-        else:
-            self.label = self.name
-
-        category = report_item.findtext('Category')
-        if category is not None:
-            self.category = category
-        else:
-            self.category = self.default_category
-
+        self.label = optional_load(report_item, 'Label', self.name)
+        self.label = optional_load(report_item, 'Category',
+                                   self.default_category)
+        self.constructor = optional_load(report_item, 'Constructor', '')
         self.value = None
+        # TODO Create a separate Reference dictionary that Plan elements can refer to.
         reference = report_item.find('PlanReference')
         if reference is not None:
             self.reference = PlanReference(reference, alias_reference)
@@ -516,16 +574,12 @@ class ReportElement():
                 PlanElement.get_value method.
         '''
         plan_element = self.reference['plan_element']
-        if self.target:
-            target_units = self.target.get('Unit')
-        else:
-            target_units = None
-        constructor = self.reference.get('constructor', '')
+        target_units = self.target.get('Unit')
         if plan_element:
             conversion['target_units'] = target_units
-            conversion['constructor'] = constructor
+            conversion['constructor'] = self.constructor
             self.value = plan_element.get_value(**conversion)
-        return None
+        return self.value
 
     def add_to_report(self, sheet: xw.Sheet):
         '''Enter the report item value into the spreadsheet.

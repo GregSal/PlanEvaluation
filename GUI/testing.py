@@ -19,7 +19,7 @@ import PySimpleGUI as sg
 
 import xlwings as xw
 
-from build_sabr_plan_report import initialize, read_report_files
+from build_plan_report import initialize, read_report_files
 from plan_report import Report
 from plan_data import DvhFile, Plan
 

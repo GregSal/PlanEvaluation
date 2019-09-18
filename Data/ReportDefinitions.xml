@@ -1,4 +1,4 @@
-﻿<!--Created with Liquid Studio 2019 (https://www.liquid-technologies.com)-->
+﻿<!-- Created with Liquid Studio 2019 (https://www.liquid-technologies.com) -->
 <!--SABR Report Definitions
 Last modified Sept 12 2019-->
 <ReportDefinitions>
@@ -63,10 +63,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="GTV_Volume">
         <Label>GTV Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>IGTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -76,10 +76,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ITV_Volume">
         <Label>ITV Volume (cc):</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>ITV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -89,10 +89,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_Volume">
         <Label>PTV Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -102,11 +102,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="TotalLungVolume">
         <Label>Total Lung Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -151,10 +151,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_Min">
         <Label>PTV- Minimum Dose (%)</Label>
+        <Constructor>Min Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>Min Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -164,10 +164,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_V100">
         <Label>PTV - V100(%)</Label>
+        <Constructor>V 4800 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>V 4800 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -177,10 +177,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_V90">
         <Label>PTV - V90 (%)</Label>
+        <Constructor>V 4320 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>V 4320 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -190,6 +190,7 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HighDoseSpillage">
         <Label>HIGH Dose Spillage Location</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose105[%]-PTV</Name>
@@ -198,7 +199,6 @@ Last modified Sept 12 2019-->
             <Alias>105-PTV</Alias>
             <Alias>Dose 105%-PTV</Alias>
           </Aliases>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -208,10 +208,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HighDoseSpillageVolume">
         <Label>HIGH Dose Spillage Volume</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose 100[%]</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -221,10 +221,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LowDoseSpillage">
         <Label>LOW Dose Spillage Location</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Body-PTV+20</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -234,10 +234,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LowDoseSpillageVolume">
         <Label>LOW Dose Spillage Volume</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose 50[%]</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -247,11 +247,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ContralateralLungMeanDose">
         <Label>Contralateral Lung Mean Dose</Label>
+        <Constructor>Mean Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Contralateral</Laterality>
-          <Constructor>Mean Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -261,11 +261,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungMeanDose">
         <Label>Total Lung Mean Dose</Label>
+        <Constructor>Mean Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>Mean Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -275,11 +275,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV20">
         <Label>Total Lung V20</Label>
+        <Constructor>V 2000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 2000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -289,11 +289,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV1160">
         <Label>Lung-Basic Function</Label>
+        <Constructor>V 1160 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 1160 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -303,11 +303,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV1240">
         <Label>Lung-Pneumonitis</Label>
+        <Constructor>V 1240 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 1240 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -317,10 +317,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="AortaMaxDose">
         <Label>Aorta  Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Aorta</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -330,10 +330,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="AortaV40">
         <Label>Aorta  V40Gy</Label>
+        <Constructor>V 4000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Aorta</Name>
-          <Constructor>V 4000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -343,10 +343,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PulmonaryArteryMaxDose">
         <Label>Artery-Pulmonary Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PulmonaryArtery</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -356,10 +356,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PulmonaryArteryV40">
         <Label>Artery-Pulmonary V40Gy</Label>
+        <Constructor>V 4000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PulmonaryArtery</Name>
-          <Constructor>V 4000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -369,10 +369,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpineMaxDose">
         <Label>Spinal Canal Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Spinal Canal</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -382,10 +382,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpineV2080">
         <Label>Spinal Canal V20.8Gy</Label>
+        <Constructor>V 2080 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Spinal Canal</Name>
-          <Constructor>V 2080 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -395,10 +395,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpineV1360">
         <Label>Spinal Canal V13.6Gy</Label>
+        <Constructor>V 1360 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Spinal Canal</Name>
-          <Constructor>V 1360 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -408,10 +408,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpinePRV5MaxDose">
         <Label>Spinal Canal-PRV 5mm Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PRV5 SpinalCanal</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -421,15 +421,14 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="IpsBrachPlexMaxDose">
         <Label>Ipsilat. Brach. Plex. Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
           <Aliases Join="Add">
             <Alias Size="1">BrachialPlexus {LatIndicator}</Alias>
           </Aliases>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -439,15 +438,14 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="IpsBrachPlexV2360">
         <Label>Ipsilat. Brach. Plex. V23.6Gy</Label>
+        <Constructor>V 2360 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
           <Aliases Join="Add">
             <Alias Size="2">BrachialPlexus {LatIndicator}</Alias>
           </Aliases>
-          <Constructor>V 2360 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -457,10 +455,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SkinV30">
         <Label>Skin V30Gy</Label>
+        <Constructor>V 3000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Skin</Name>
-          <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -470,10 +468,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HeartMaxDose">
         <Label>Heart Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Heart</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -483,10 +481,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HeartV28">
         <Label>Heart V28Gy</Label>
+        <Constructor>V 2800 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Heart</Name>
-          <Constructor>V 2800 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -496,10 +494,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="EsoMaxDose">
         <Label>Esophagus Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Esophagus</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -509,10 +507,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="EsoV1880">
         <Label>Esophagus V18.8Gy</Label>
+        <Constructor>V 1880 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Esophagus</Name>
-          <Constructor>V 1880 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -522,10 +520,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallMaxDose">
         <Label>Chestwall (rib) Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -535,10 +533,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallV40">
         <Label>Chestwall (rib) V40Gy</Label>
+        <Constructor>V 4000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>V 4000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -548,10 +546,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallV30">
         <Label>Chestwall (rib) V30Gy</Label>
+        <Constructor>V 3000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -561,10 +559,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxTrachMaxDose">
         <Label>Proximal Trachea Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -574,11 +572,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxBronchMaxDose">
         <Label>Proximal Bronchial Tree Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>BronchialTree</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -588,10 +586,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxTrachV1560">
         <Label>Proximal Trachea V15.6Gy</Label>
+        <Constructor>V 1560 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
-          <Constructor>V 1560 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -601,10 +599,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxBronchV1560">
         <Label>Proximal Bronchial Tree V15.6Gy</Label>
+        <Constructor>V 1560 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Prox Bronch Zone</Name>
-          <Constructor>V 1560 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -614,10 +612,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="StomachMaxDose">
         <Label>Stomach and Intestines Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Stomach</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -627,10 +625,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="StomachV21">
         <Label>Stomach and Intestines V21Gy</Label>
+        <Constructor>V 2100 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Stomach</Name>
-          <Constructor>V 2100 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -640,10 +638,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V105-PTV_ratio">
         <Label>V105% - PTV (cc) / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V105% - PTV (cc) / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H21</CellAddress>
@@ -652,10 +650,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V100_PTV_ratio">
         <Label>V100% (cc) / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V100% (cc) / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H22</CellAddress>
@@ -664,10 +662,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V50_PTV_ratio">
         <Label>V50% (cc)  / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V50% (cc)  / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H25</CellAddress>
@@ -757,10 +755,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="GTV_Volume">
         <Label>GTV Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>IGTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -770,10 +768,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ITV_Volume">
         <Label>ITV Volume (cc):</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>ITV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -783,10 +781,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_Volume">
         <Label>PTV Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -796,11 +794,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungVolume">
         <Label>Total Lung Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -845,10 +843,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_Min">
         <Label>PTV Minimum Dose (%)</Label>
+        <Constructor>Min Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>Min Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -870,10 +868,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_V100">
         <Label>PTV - V100(%)</Label>
+        <Constructor>V 100 %</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>V 100 %</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -883,10 +881,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_V90">
         <Label>PTV - V90 (%)</Label>
+        <Constructor>V 90 %</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>V 90 %</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -896,10 +894,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="High_Dose_Spillage">
         <Label>HIGH Dose Spillage Location</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose105[%]-PTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -909,10 +907,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="High_Dose_SpillageVolume">
         <Label>HIGH Dose Spillage Volume</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose 100[%]</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -922,10 +920,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LowDoseSpillage">
         <Label>LOW Dose Spillage Location</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Body-PTV+20</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -935,10 +933,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LowDoseSpillageVolume">
         <Label>LOW Dose Spillage Volume</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose 50[%]</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -948,11 +946,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ContralateralLungMeanDose">
         <Label>Contralateral Lung Mean Dose</Label>
+        <Constructor>Mean Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Contralateral</Laterality>
-          <Constructor>Mean Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -962,11 +960,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungMeanDose">
         <Label>Total Lung Mean Dose</Label>
+        <Constructor>Mean Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>Mean Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -976,11 +974,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV20">
         <Label>Total Lung V20</Label>
+        <Constructor>V 2000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 2000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -990,11 +988,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="AortaMaxDose">
         <Label>Aorta Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Aorta</Name>
           <Laterality />
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1004,10 +1002,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="AortaV60">
         <Label>Aorta V60Gy</Label>
+        <Constructor>V 6000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Aorta</Name>
-          <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1017,10 +1015,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PulmonaryArteryMaxDose">
         <Label>Artery-Pulmonary Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PulmonaryArtery</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1030,10 +1028,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PulmonaryArteryV60">
         <Label>Artery-Pulmonary V60Gy</Label>
+        <Constructor>V 6000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PulmonaryArtery</Name>
-          <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1043,10 +1041,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpineMaxDose">
         <Label>Spinal Canal Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Spinal Canal</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1056,11 +1054,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="IpsBrachPlexMaxDose">
         <Label>Ipsilat. Brach. Plex. Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1070,11 +1068,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="IpsBrachPlexV30">
         <Label>Ipsilat. Brach. Plex. V30Gy</Label>
+        <Constructor>V 3000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1084,10 +1082,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HeartMaxDose">
         <Label>Heart Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Heart</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1097,10 +1095,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HeartV60">
         <Label>Heart V60Gy</Label>
+        <Constructor>V 6000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Heart</Name>
-          <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1110,10 +1108,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="EsoMaxDose">
         <Label>Esophagus Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Esophagus</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1123,10 +1121,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallMaxDose">
         <Label>Chestwall (rib) Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1136,10 +1134,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallV50">
         <Label>Chestwall (rib) V50Gy</Label>
+        <Constructor>V 5000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>V 5000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1149,11 +1147,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxTrachMaxDose">
         <Label>Proximal Trachea Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
           <Laterality />
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1163,11 +1161,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxBronchMaxDose">
         <Label>Proximal Bronchial Tree Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>BronchialTree</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1177,11 +1175,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxTrachV60">
         <Label>Proximal Trachea V60Gy</Label>
+        <Constructor>V 6000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
           <Laterality />
-          <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1191,11 +1189,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxBronchV60">
         <Label>Proximal Bronchial Tree V60Gy</Label>
+        <Constructor>V 6000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Prox Bronch Zone</Name>
           <Laterality />
-          <Constructor>V 6000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1205,10 +1203,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="StomachMaxDose">
         <Label>Stomach and Intestines Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Stomach</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1218,10 +1216,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="StomachV36">
         <Label>Stomach and Intestines V36Gy</Label>
+        <Constructor>V 3600 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Stomach</Name>
-          <Constructor>V 3600 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1231,10 +1229,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V105- PTV_PTV_ratio">
         <Label>V105% - PTV (cc) / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V105% - PTV (cc) / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <Unit />
@@ -1244,10 +1242,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V100_PTV_ratio">
         <Label>V100% (cc) / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V100% (cc) / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H22</CellAddress>
@@ -1256,10 +1254,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V50_PTV_ratio">
         <Label>V50% (cc)  / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V50% (cc)  / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H22</CellAddress>
@@ -1346,10 +1344,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="GTV_Volume">
         <Label>GTV Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>IGTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1359,10 +1357,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ITV_Volume">
         <Label>ITV Volume (cc):</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>ITV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1372,10 +1370,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_Volume">
         <Label>PTV Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1385,11 +1383,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungVolume">
         <Label>Total Lung Volume (cc)</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1432,10 +1430,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_Min">
         <Label>PTV- Minimum Dose</Label>
+        <Constructor>Min Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>Min Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -1445,10 +1443,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_V100">
         <Label>PTV - V100(%)</Label>
+        <Constructor>V 100 %</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>V 100 %</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -1458,10 +1456,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PTV_V90">
         <Label>PTV - V90 (%)</Label>
+        <Constructor>V 90 %</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PTV</Name>
-          <Constructor>V 90 %</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -1471,10 +1469,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HighDoseSpillage">
         <Label>HIGH Dose Spillage Location</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose105[%]-PTV</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1484,10 +1482,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HighDoseSpillageVolume">
         <Label>HIGH Dose Spillage Volume</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose 100[%]</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1497,10 +1495,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LowDoseSpillage">
         <Label>LOW Dose Spillage Location</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Body-PTV+20</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -1510,10 +1508,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LowDoseSpillageVolume">
         <Label>LOW Dose Spillage Volume</Label>
+        <Constructor>Volume</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Dose 50[%]</Name>
-          <Constructor>Volume</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1523,11 +1521,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ContralateralLungMeanDose">
         <Label>Contralateral Lung Mean Dose</Label>
+        <Constructor>Mean Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Contralateral</Laterality>
-          <Constructor>Mean Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1537,11 +1535,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungMeanDose">
         <Label>Total Lung Mean Dose</Label>
+        <Constructor>Mean Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>Mean Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1551,11 +1549,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV20">
         <Label>Total Lung V20</Label>
+        <Constructor>V 2000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 2000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>%</Unit>
@@ -1565,11 +1563,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV1160">
         <Label>Lung-Basic Function</Label>
+        <Constructor>V 1160 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 1160 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1579,11 +1577,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="LungV1240">
         <Label>Lung-Pneumonitis</Label>
+        <Constructor>V 1240 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Lung</Name>
           <Laterality>Both</Laterality>
-          <Constructor>V 1240 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1593,10 +1591,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="AortaMaxDose">
         <Label>Aorta Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Aorta</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1606,10 +1604,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="PulmonaryArteryMaxDose">
         <Label>Artery-Pulmonary Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PulmonaryArtery</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1619,10 +1617,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpineMaxDose">
         <Label>Spinal Canal Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Spinal Canal</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1632,10 +1630,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SpinePRV5MaxDose">
         <Label>Spinal Canal-PRV 5mm</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>PRV5 SpinalCanal</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1645,15 +1643,14 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="IpsBrachPlexMaxDose">
         <Label>Ipsilat. Brach. Plex. Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Ipsilat. Brach. Plex.</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
           <Aliases Join="Add">
             <Alias Size="1">BrachialPlexus {LatIndicator}</Alias>
           </Aliases>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1663,10 +1660,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="SkinV30">
         <Label>Skin</Label>
+        <Constructor>V 3000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Skin</Name>
-          <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1676,10 +1673,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="HeartMaxDose">
         <Label>Heart Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Heart</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1689,10 +1686,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="EsoMaxDose">
         <Label>Esophagus Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Esophagus</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1702,10 +1699,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallMaxDose">
         <Label>Chestwall (rib) Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1715,10 +1712,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallV2820">
         <Label>Chestwall (rib) V28.2Gy</Label>
+        <Constructor>V 2820 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>V 2820 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1728,10 +1725,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ChestWallV30">
         <Label>Chestwall (rib) V30Gy</Label>
+        <Constructor>V 3000 cGy</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Chest Wall</Name>
-          <Constructor>V 3000 cGy</Constructor>
         </PlanReference>
         <Target>
           <Unit>cc</Unit>
@@ -1741,11 +1738,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxTrachMaxDose">
         <Label>Proximal Trachea Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>Trachea</Name>
           <Laterality />
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1755,11 +1752,11 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="ProxBronchMaxDose">
         <Label>Proximal Bronchial Tree Maximum Dose</Label>
+        <Constructor>Max Dose</Constructor>
         <PlanReference>
           <Type>Structure</Type>
           <Name>BronchialTree</Name>
           <Laterality>Ipsilateral</Laterality>
-          <Constructor>Max Dose</Constructor>
         </PlanReference>
         <Target>
           <Unit>cGy</Unit>
@@ -1769,10 +1766,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V105-PTV_PTVratio">
         <Label>V105% - PTV (cc) / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V105% - PTV (cc) / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H21</CellAddress>
@@ -1781,10 +1778,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V100_PTV_ratio">
         <Label>V100% (cc) / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V100% (cc) / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H22</CellAddress>
@@ -1793,10 +1790,10 @@ Last modified Sept 12 2019-->
       </ReportItem>
       <ReportItem name="V50_PTV_ratio">
         <Label>V50% (cc)  / PTV Volume (cc)</Label>
+        <Constructor>Ratio</Constructor>
         <PlanReference>
           <Type>Ratio</Type>
           <Name>V50% (cc)  / PTV Volume (cc)</Name>
-          <Constructor>Ratio</Constructor>
         </PlanReference>
         <Target>
           <CellAddress>H25</CellAddress>
