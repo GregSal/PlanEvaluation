@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''Run tests of the GUI interface
 '''
+#%% imports
 import sys
 import os
 
@@ -23,6 +24,7 @@ from build_plan_report import initialize, read_report_files
 from plan_report import Report
 from plan_data import DvhFile, Plan
 
+#%% setup
 def load_test_data(data_path: Path,
                    test_path: Path)->Tuple[ET.Element, Plan, Report]:
     ''' Load test data.
@@ -41,7 +43,76 @@ def load_test_data(data_path: Path,
     return(config, plan, report)
 
 
+#%% Define Folder Paths
+base_path = Path.cwd()
+test_path = base_path / 'GUI' / 'Testing'
 
+data_path = base_path / 'Data'
+results_path = base_path / 'GUI' / 'Output'
+icon_path = base_path / 'icons'
+
+#%% load data
+(config, plan, report) = load_test_data(data_path, test_path)
+(match, not_matched) = report.match_elements(plan)
+
+#%% load data
+plan_references = [report_item.reference for report_item in report.report_elements.values()]
+reference_data = [report_item.reference_group() for report_item in plan_references]
+reference_set = set(reference_data)
+# TODO Sort reference_set
+
+#%% plan elements
+element_names = list()
+for group in plan.data_elements.values():
+    plan_items = [item for item in group.keys()]
+    element_names.extend(plan_items)
+
+#%% icons
+match_icon = icon_path  /  'Checkmark.png'
+not_matched_icon = icon_path  /  'Error_Symbol.png'
+#Info_Light
+#Target
+#Chart_Graph_Ascending
+
+#%% Matching GUI
+
+treedata = sg.TreeData()
+treedata.Insert('','matched', 'Matched', [], icon=match_icon)
+treedata.Insert('','not_matched', 'Not Matched', [], icon=not_matched_icon)
+for reference in reference_set:
+    lat = reference.laterality + ' ' if reference.laterality else ''
+    match_name = lat + reference.reference_name
+    if reference.match_status:
+        treedata.Insert('matched',match_name, reference.reference_name, reference)
+    else:
+        treedata.Insert('not_matched',match_name, reference.reference_name, reference)
+# TODO Control which items are displayed
+# TODO add method to select plan item
+# TODO add method to manually enter value
+layout = [[ sg.Text('Report Item Matching') ],
+          [ sg.Tree(data=treedata,
+                    headings=['Name', 'Type', 'Laterality', 'Match', 'Matched Item'],
+                    auto_size_columns=True,
+                    num_rows=20,
+                    key='_TREE_',
+                    show_expanded=True,
+                    enable_events=True),
+            ],
+          [ sg.Button('Ok'), sg.Button('Cancel')]]
+
+#TODO Allow window to resize
+window = sg.Window('Match Items').Layout(layout)
+
+
+while True:     # Event Loop
+    event, values = window.Read()
+    if event in (None, 'Cancel'):
+        break
+    print(event, values)
+
+
+# %% __rep__ debug
+str(report)
 
 #%% Run Tests
 def main():
@@ -59,16 +130,7 @@ def main():
 #if __name__ == '__main__':
 #    main()
 
-#%% Define Folder Paths
-base_path = Path.cwd()
-test_path = base_path / 'Testing'
-data_path = base_path / 'Data'
-results_path = base_path / 'Output'
 
-(config, plan, report) = load_test_data(data_path, test_path)
-(match, not_matched) = report.match_elements(plan)
-
-print(match)
 #%% Demo GUI
 # Base64 versions of images of a folder and a file. PNG files (may not work with PySimpleGUI27, swap with GIFs)
 

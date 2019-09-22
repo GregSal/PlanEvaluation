@@ -16,7 +16,7 @@ AliasRef = Dict[AliasIndex, Alias]
 LateralityIndex = Tuple[str, str, Optional[int]]
 LateralityRef = Dict[LateralityIndex, str]
 
-MatchList = Dict[str, PlanElement]
+MatchList = List[PlanElement]
 
 logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
@@ -49,12 +49,13 @@ class ReferenceGroup(NamedTuple):
     reference_name {str} -- The name of the PlanReference
     reference_type {str} -- The type of PlanElement.  Can be one of:
         ('Plan Property', Structure', 'Reference Point', 'Ratio')
-    match_statu: {str} -- How a plan value was obtained.  One of:
+    match_status: {str} -- How a plan value was obtained.  One of:
         One of Auto, Manual, Direct Entry, or None
     plan_Item: {str} -- The name of the matched element from the Plan.
     '''
     reference_name: str
     reference_type: str
+    laterality: str
     match_status: str = None
     plan_Item: str = None
 
@@ -257,7 +258,6 @@ def match_laterality(reference_name: str,
 
 
 class PlanReference(dict):
-    #FIXME Moved Constructor
     '''Contains information used to reference an individual Plan value.
     Used to connect ReportElements and Plan data.
     The dictionary may contain the following items as applicable:
@@ -405,7 +405,8 @@ class PlanReference(dict):
         '''
         return ReferenceGroup(self['reference_name'],
                               self['reference_type'],
-                              self['match_status'],
+                              self['reference_laterality'],
+                              self['match_method'],
                               self.matched_name)
     match = property(reference_group)
 
@@ -543,8 +544,8 @@ class ReportElement():
         '''
         self.name = report_item.attrib.get('name')
         self.label = optional_load(report_item, 'Label', self.name)
-        self.label = optional_load(report_item, 'Category',
-                                   self.default_category)
+        self.category = optional_load(report_item, 'Category',
+                                      self.default_category)
         self.constructor = optional_load(report_item, 'Constructor', '')
         self.value = None
         # TODO Create a separate Reference dictionary that Plan elements can refer to.
@@ -738,8 +739,8 @@ class Report():
                 For matched, the value is the matching plan item.
                 For unmatched the value is None.
         '''
-        matched = dict()
-        not_matched = dict()
+        matched = list()
+        not_matched = list()
         lat_param = dict(plan_laterality=plan.laterality,
                          lat_patterns=self.lat_patterns,
                          laterality_lookup=self.laterality_lookup)
@@ -752,9 +753,9 @@ class Report():
                 matched_element = reference.match_element(plan_elements,
                                                           **lat_param)
             if matched_element:
-                matched[name] = matched_element
+                matched.append(matched_element)
             else:
-                not_matched[name] = (None, None)
+                not_matched.append(matched_element)
         return (matched, not_matched)
 
     def get_values(self, plan: Plan):
@@ -833,9 +834,9 @@ class Report():
         '''
         report_dict = dict(
             ReportName=self.name,
-            TemplateFile=self.template_file,
+            TemplateFile=str(self.template_file),
             TemplateWorksheet=self.worksheet,
-            SaveFile=self.save_file,
+            SaveFile=str(self.save_file),
             SaveWorksheet=self.save_worksheet
             )
         if add_items:
@@ -868,7 +869,8 @@ class Report():
         repr_str = 'Report:\t{ReportName}\n'
         repr_str += '\tTemplate: {TemplateFile}[{TemplateWorksheet}]\n'
         repr_str += '\tSaveAs: {SaveFile}[{SaveWorksheet}]\n'
-        repr_str = repr_str.format(report_data)
+        #FIXME __repr__ is not working
+        repr_str = repr_str.format(**report_data)
         # Add strings for each report item
         for element in self.report_elements.values():
             e_str = element.__repr__()
