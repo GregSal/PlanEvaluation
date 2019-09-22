@@ -497,7 +497,7 @@ class ReportElement():
     Defines the source, category, and constructor.
     Arguments:
         report_item {ET.Element} -- .xml element containing parameters
-            defining a repprt item.
+            defining a report item.
         alias_reference {AliasRef} -- A dictionary for looking up Aliases
             for report elements.
     Attributes:
