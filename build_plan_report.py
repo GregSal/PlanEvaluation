@@ -10,7 +10,7 @@ from plan_report import load_default_laterality
 from plan_report import load_aliases, load_laterality_table
 from plan_data import DvhFile, Plan
 
-
+# TODO use file utilities functions for path and filename checking/completion
 def load_config(base_path: Path, config_file_name: str)->ET.Element:
     '''Load the XML configuration file
     Arguments:
@@ -49,6 +49,39 @@ def load_report_definitions(report_file: Path,
     return report_dict
 
 
+def read_report_files(report_path: Path, **parameters)->Dict[str, Report]:
+    report_definitions = dict()
+    report_file = Path(report_path) / 'ReportDefinitions.xml'
+    # TODO Add method to scan directory for report_definition
+    report_dict = load_report_definitions(report_file, parameters)
+    report_definitions.update(report_dict)
+    return report_definitions
+
+
+def load_plan():
+    '''Load plan data from the specified file or folder.
+    '''
+    # TODO Add load plan method
+    pass
+
+def run_report(plan: Plan, report: Report):
+    report.match_elements(plan)
+    report.get_values(plan)
+    report.build()
+
+
+def build_report(config: ET.Element, report_definitions: Dict[str, Report],
+                 report_name: str, plan_file_name: Path,
+                 save_file=None, plan_name='plan'):
+    '''Load plan data and generate report.
+    '''
+    report = deepcopy(report_definitions[report_name])
+    if save_file:
+        report.save_file = save_file
+    plan = Plan(config, plan_name, DvhFile(plan_file_name))
+    run_report(plan, report)
+
+
 def initialize(base_path: Path,
                config_file: str)->Tuple[ET.Element, Dict[str, Any]]:
     '''Load the initial parameters and tables.
@@ -76,33 +109,6 @@ def initialize(base_path: Path,
         laterality_lookup=load_laterality_table(laterality_lookup_def),
         lat_patterns=load_default_laterality(default_patterns_def))
     return (config, report_parameters)
-
-
-def read_report_files(report_path: Path, **parameters)->Dict[str, Report]:
-    report_definitions = dict()
-    report_file = Path(report_path) / 'ReportDefinitions.xml'
-    # TODO Add method to scan directory for report_definition
-    report_dict = load_report_definitions(report_file, parameters)
-    report_definitions.update(report_dict)
-    return report_definitions
-
-
-def run_report(plan: Plan, report: Report):
-    report.match_elements(plan)
-    report.get_values(plan)
-    report.build()
-
-
-def build_report(config: ET.Element, report_definitions: Dict[str, Report],
-                 report_name: str, plan_file_name: Path,
-                 save_file=None, plan_name='plan'):
-    '''Load plan data and generate report.
-    '''
-    report = deepcopy(report_definitions[report_name])
-    if save_file:
-        report.save_file = save_file
-    plan = Plan(config, plan_name, DvhFile(plan_file_name))
-    run_report(plan, report)
 
 
 

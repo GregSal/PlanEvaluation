@@ -17,6 +17,8 @@ from scipy.interpolate import interp1d
 
 
 Value = Union[int, float, str]
+PlanItem = Union[PlanElement, Structure]
+PlanItemLookup = Dict[self, Tuple[str, PlanItem]]
 ConversionParameters = Dict[str, Union[str, float, None]]
 ColumnDef = Dict[str, str] # 2 items: 'Data Type','Unit'
 # TODO Make ColumnDef a named tuple
@@ -155,17 +157,18 @@ class PlanElement():
         Defines the name, value_type, unit and value attributes.
     Arguments:
         name {str} -- The name of the PlanElement.
+        element_type {str} -- The category of the element. One of:
+            'Plan Property', 'Structure', 'Reference Point'
         element_value {Value} -- The value of the PlanElement.
         unit {str} -- The units of the supplied value. (Only applies to
             numerical values).
     Attributes:
-        name: type str
-            The name of the PlanElement instance.
-        element_value:  type depends on value_type
-            The numeric or text value of the property
-        unit: type str
-            Defines the units of the PlanProperty value. Valid options depend
-            on value_type.  Possible values are:
+        name {str} -- The name of the PlanElement instance.
+        element_type {str} -- The category of the element. One of:
+            'Plan Property', 'Structure', 'Reference Point'
+        element_value {Any} -- The numeric or text value of the property.
+        unit {str} -- Defines the units of the PlanProperty value. Valid
+            options depend on value_type.  Possible values are:
                 ('%', 'Gy', 'cGy', 'cc', 'cm', 'N/A')
     Methods:
         define(element_value: Value, unit: str = None)->Tuple[Value, str]
@@ -179,18 +182,21 @@ class PlanElement():
         __bool__(self)->bool
             Returns True if the element is not empty.
     '''
-    def __init__(self, name: str = None, element_value: Value = None,
-                 unit: str = None):
+    def __init__(self, name: str = None, element_type: str = None,
+                 element_value: Value = None, unit: str = None):
         '''Initialize the base properties of a PlanElement.
             If name is not supplied, return an object with self.name = None
             as the only attribute.
         Keyword Arguments:
             name {str} -- The name of the PlanElement.
+            element_type {str} -- The category of the element. One of:
+                'Plan Property', 'Structure', 'Reference Point'
             element_value {Value} -- The value of the PlanElement.
             unit {str} -- The units of the supplied value. (Only applies to
                 numerical values).
         '''
         self.name = str(name)
+        self.element_type = str(element_type)
         self.unit = None
         self.value = None
         self.define(element_value, unit)
@@ -229,6 +235,9 @@ class PlanElement():
         '''
         # Question Consider constructor as a regular expression to derive custom string values
         # e.g. site from Plan Name
+        # Question can most of PlanElement become a generic Value type
+        # Question can PlanElement become an abstract base class that has Structure, PlanValue and ReferencePoint as sub-types
+        # Other plan items could then be added on for plan checking purposes as needed.
         if constructor:
             pass # not yet implemented
         initial_value = self.element_value
@@ -393,6 +402,8 @@ class Structure():
         dvh {DVH} -- The DVH curve for the structure. (default: {None})
     Attributes:
         name {str} -- The name of the structure.
+        element_type {str} -- The category of the element.
+            Default is'Structure'.
         structure_properties {Dict[str, PlanElement]} -- The dose and volume
             properties of the structure.
         dose_data {DVH} -- The DVH data associated with the structure.
@@ -407,17 +418,20 @@ class Structure():
         __bool__(self)->bool
             Returns True if the element is not empty.
     '''
-    def __init__(self, name: str = None,
+    def __init__(self, name: str = None, element_type='Structure',
                  properties: Dict[str, PlanElement] = None,
                  dvh: DVH = None):
         '''Initialize a structure.
         Keyword Arguments:
             name {str} -- The name of the structure. (default: {None})
+            element_type {str} -- The category of the element.
+                Default is'Structure'.
             properties {Dict[str, PlanElement]} -- The dose and volume
                 properties. (default: {None})
             dvh {DVH} -- The DVH curve for the structure. (default: {None})
         '''
         self.name = str(name)
+        self.element_type = str(element_type)
         self.structure_properties = properties
         self.dose_data = dvh
 
@@ -666,6 +680,7 @@ class DvhFile():
             line_element = text_line.split(':', 1)
             (item_name, item_unit) = find_unit(line_element[0].strip())
             parameters = {'name': item_name,
+                          'element_type': 'Plan Property',
                           'unit': item_unit,
                           'element_value': line_element[1].strip()}
             return PlanElement(**parameters)
@@ -954,6 +969,19 @@ class Plan():
         return PlanElement(name='prescription_dose',
                            element_value=dose_value,
                            unit=desired_units)
+
+    def items(self)->PlanItemLookup:
+        '''provide a lookup dictionary of plan items.
+        '''
+        for type, group in self.data_elements.items():
+            plan_items = {name: (type, item)
+                          for name, item in group.items()}
+        return plan_items
+
+    def types(self)->List[str]:
+        '''Return a list of the different plan item types.
+        '''
+        return list(self.data_elements.keys())
 
     def __repr__(self)->str:
         '''Describe a Plan.
