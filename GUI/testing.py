@@ -117,12 +117,13 @@ def enter_value(reference_name):
     '''
     title = 'Enter a value for {}.'.format(reference_name)
     layout = [[sg.InputText()], [sg.Ok(), sg.Cancel()]]
-    window = sg.Window(title, layout)
+    window = sg.Window(title, layout, keep_on_top=True)
     event, values = window.Read()
     window.Close()
     if 'Ok' in event:
         return values[0]
     return None
+
 
 def update_match(event: str, values: Values,
                  reference_data: Dict[str,ReferenceGroup],
@@ -130,17 +131,17 @@ def update_match(event: str, values: Values,
                  history: History)->Tuple[History, Union[ReferenceGroup, None]]:
     '''Update the reference lists
     '''
-    old_value = ReferenceGroup(*reference_data)
-    new_value = ReferenceGroup(*reference_data)
     selection = values.get('Match_tree')
     if not selection:
         return history
-    plan_item = selection[0]  #do I need this?
+    ref = reference_data.get(selection[0])
+    old_value = ReferenceGroup(*ref)
+    new_value = ReferenceGroup(*ref)
     if 'ENTER' in event:
-        new_value.plan_Item = enter_value(reference_data.reference_name)
+        item_name = enter_value(ref.reference_name)
     else:
-        plan_item_name = values['Match_tree'][0]
-        new_value.plan_Item = plan_item_name
+        item_name = event
+    new_value = ReferenceGroup(*new_value[0:-1], item_name)
     history.add(old_value, new_value)
     lookup = match_name(new_value)
     # Question use Icon to indicate modified value?
@@ -164,7 +165,7 @@ def run_gui(icon_path, plan, report):
     changed_icon = icon_path / 'emblem-new'
     column_names = ['Name', 'Type', 'Laterality', 'Match', 'Matched Item']
     show_column = [False, True, False, False, True]
-    column_widths = [25, 15, 15, 15, 25]
+    column_widths = [25, 5, 5, 5, 25]
     item_types = plan.types()
     tree_settings = dict(headings=column_names,
                          visible_column_map=show_column,
@@ -177,11 +178,12 @@ def run_gui(icon_path, plan, report):
                          select_mode='browse',
                          enable_events=False)
     # Report and Plan data
-    reference_data = report.plan_references()
     plan_elements = plan.items()
-
+    reference_data = report.get_matches()
     # Plan Items for selecting
-    element_list = sort_dict(plan_elements, ['element_type', 'name'])
+    element_list = [element.name
+                    for element in sort_dict(plan_elements,
+                                             ['element_type', 'name'])]
     menu = ['', ['&Match', [element_list],'&ENTER']]
     tree_settings['right_click_menu'] = menu
 
@@ -211,7 +213,7 @@ def run_gui(icon_path, plan, report):
     while not done:
         event, values = window.Read()
         if event in (None, 'Cancel', 'Ok'):
-            # FIXME run data update ore reset methods
+            # FIXME run data update or reset methods
             break
         else:
             history = update_match(event, values, reference_data,

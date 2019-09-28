@@ -721,7 +721,6 @@ class Report():
         worksheet = report_def.findtext(r'./FilePaths/Template/WorkSheet')
         self.template_file = template_path / template_file_name
         self.worksheet = worksheet
-        self.references = dict()
         self.laterality_lookup = laterality_lookup
         self.lat_patterns = lat_patterns
 
@@ -756,7 +755,7 @@ class Report():
             reference['reference_name'] = element_name
             reference_name = element_name
         self.references[reference_name] = reference
-        return element_name
+        return reference_name
 
     def match_elements(self, plan: Plan)->Tuple[MatchList, MatchList]:
         '''Find match in plan for report elements.
@@ -775,9 +774,12 @@ class Report():
                          laterality_lookup=self.laterality_lookup)
         for report_item in self.report_elements.values():
             reference_name = report_item.reference
-            reference = self.references[reference_name]
-            reference_type = reference['reference_type']
-            plan_elements = plan.data_elements.get(reference_type)
+            reference = self.references.get(reference_name)
+            if reference:
+                reference_type = reference['reference_type']
+                plan_elements = plan.data_elements.get(reference_type)
+            else:
+                plan_elements = None
             if plan_elements:
                 matched_element = reference.match_element(plan_elements,
                                                           **lat_param)
@@ -786,6 +788,12 @@ class Report():
             else:
                 not_matched.append(matched_element)
         return (matched, not_matched)
+
+    def get_matches(self)->List[ReferenceGroup]:
+        '''return a dictionary of reference matches
+        '''
+        match_data = {name: ref.match for name, ref in self.references.items()}
+        return match_data
 
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
@@ -841,14 +849,6 @@ class Report():
         '''
         # TODO Add save method
         pass
-
-    def plan_references(self)->Dict[str,ReferenceGroup]:
-        '''Provide a dictionary of plan reference info.
-         Returns:
-            Dict[str,ReferenceGroup] -- A summary of all report item
-                references.
-        '''
-        return self.plan_references
 
     def table_output(self, add_items=True, flat_table=False,
                      add_reference=True, add_target=True)->Dict[str, Any]:

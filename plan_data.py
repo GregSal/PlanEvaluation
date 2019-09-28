@@ -17,8 +17,6 @@ from scipy.interpolate import interp1d
 
 
 Value = Union[int, float, str]
-PlanItem = Union[PlanElement, Structure]
-PlanItemLookup = Dict[self, Tuple[str, PlanItem]]
 ConversionParameters = Dict[str, Union[str, float, None]]
 ColumnDef = Dict[str, str] # 2 items: 'Data Type','Unit'
 # TODO Make ColumnDef a named tuple
@@ -784,9 +782,9 @@ class DvhFile():
         plan_structures = self.load_structures()
         return (plan_parameters, plan_structures)
 
-
 Elements = Union[PlanElement, Structure]
 # Possible elements to add to a Plan
+PlanItemLookup = Dict[str, Tuple[str, Elements]]
 
 
 DvhSource = Union[DvhFile, Path, str, None]
@@ -973,9 +971,10 @@ class Plan():
     def items(self)->PlanItemLookup:
         '''provide a lookup dictionary of plan items.
         '''
-        for type, group in self.data_elements.items():
-            plan_items = {name: (type, item)
-                          for name, item in group.items()}
+        plan_items= dict()
+        for group in self.data_elements.values():
+            for name, element in group.items():
+                plan_items[name] = element
         return plan_items
 
     def types(self)->List[str]:

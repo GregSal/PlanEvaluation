@@ -1,0 +1,407 @@
+PatientLastName; SABR
+PatientFirstName; Test
+PatientMiddleName; 
+PatientId; GS SABR TEST
+PatientDateOfBirth; 
+PatientSex; QA
+PrimaryOncologist; -
+CurrentDateShort; 27/09/2019 14:26
+ApplicationName; External Beam Planning
+TaskName; External Beam Planning
+TaskVersion; 13.6.32
+Hospital; CCSEO at KGH, Kingston, ON
+UserId; gsal
+IsPlanModified; -
+IsAllMUperGyValid; All MU/Gy values are valid
+Invalid If condition: $PlanSumName
+CourseId; C1
+CourseIntent; 
+PlanId; LUNL
+PlanName; LUNL
+ApprovalStatus; 3rd Party Approval
+PlanCreationDate; Thursday, March 08, 2018 15:46:33
+PlanCreator; 
+PlanModificationDate; Tuesday, April 24, 2018 12:32:10
+PlanModifier; gsal
+ImageId; LUNL
+ImageName; 
+ImageSeriesId; Series
+ImageModality; CT
+ImagingDeviceId; Philips Big Bore
+ImagingDeviceModel; Brilliance Big Bore
+ImagingDeviceManufacturer; Philips
+ImagingDeviceSerialNumber; 
+PatientImagingOrientation; Head First-Supine
+PatientTreatmentOrientation; Head First-Supine
+            PlanningCoordinateSystemName; Standard
+            ImageUserOrigin; User origin DICOM offset = (0.00cm, 0.00cm, 0.00cm)
+            StructureId; CouchInterior
+            -1000.0 HU
+            StructureName; 
+            StructureId; CouchSurface
+            -300.0 HU
+            StructureName; 
+            StructureId; Dose 50[%]1
+            StructureName; 
+            StructureId; Dose 100[%]1
+            StructureName; 
+            StructureId; Dose 105[%]1
+            StructureName; 
+            StructureId; opt PTV
+            StructureName; 
+            StructureId; Normal Tissue
+            StructureName; 
+            StructureId; BronchialTree
+            StructureName; 
+            StructureId; Body-PTV+20
+            StructureName; 
+            StructureId; Aorta
+            StructureName; 
+            StructureId; GTV 4D20
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D30
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D40
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D50
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D60
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D70
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D80
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D90
+            StructureName; Gross Tumor Volume
+            StructureId; GTV AVE
+            StructureName; Gross Tumor Volume
+            StructureId; GTV MIP
+            StructureName; Gross Tumor Volume
+            StructureId; GTV PET
+            StructureName; Gross Tumor Volume
+            StructureId; Heart
+            StructureName; 
+            StructureId; IGTV
+            StructureName; Gross Tumor Volume
+            StructureId; ITV
+            StructureName; Clinical Target Volume
+            StructureId; Lung B
+            StructureName; 
+            StructureId; Lung L
+            StructureName; 
+            StructureId; Lung R
+            StructureName; 
+            StructureId; PRV20 Brl Tree
+            StructureName; 
+            StructureId; PRV5 SpinalCanal
+            StructureName; 
+            StructureId; PTV
+            StructureName; 
+            StructureId; PTV+20
+            StructureName; 
+            StructureId; Z1
+            StructureName; 
+            StructureId; Trachea
+            StructureName; 
+            StructureId; Spinal Canal
+            StructureName; 
+            StructureId; Skin
+            StructureName; 
+            StructureId; PulmonaryArtery
+            StructureName; 
+            StructureId; Chest Wall
+            StructureName; 
+            StructureId; Dose105[%]-PTV
+            StructureName; 
+            StructureId; Esophagus
+            StructureName; 
+            StructureId; GTV 4D0
+            StructureName; Gross Tumor Volume
+            StructureId; GTV 4D10
+            StructureName; Gross Tumor Volume
+            StructureId; DPV
+            StructureName; 
+            StructureId; BODY
+            StructureName; Body
+            PhotonAlg; 
+            -; -
+            TargetVolume; -
+            PlanNormValue; 100.0 %
+            PlanNormMethod; No plan normalization
+            PrescribedDosePercent; 100.0 %
+            PrimaryRefPointId; Beam Dose Point
+            RelativeDoseInPrimaryRefPoint; 100.0 %
+            Fractionations; 1
+            FractionationId; LUNL
+            PrescribedDose; 4800.0 cGy
+            PrescribedDosePerFraction; 1200.0 cGy
+            DoseInPrimaryRefPoint; 4800.0 cGy
+            DosePerFractionInPrimaryRefPoint; 1200.0 cGy
+            Fractions; 4
+            FieldId; • CCW •
+            FieldName; •  •
+            FieldMachineId; • TR1 •
+            FieldMachineModel; TDS
+            FieldMachineScale; Varian IEC
+            FieldEnergyMode; 6X
+            FieldDoseRate; 600 MU/min
+            FieldTechnique; ARC
+            FieldMonitorUnits; 1095 MU
+            FieldMonitorUnitsPerGy; 182.52 MU/Gy
+            FieldRefDose; -
+            FieldIMRT; 
+            FieldSAD; 100.0 cm
+            FieldSSD; 92.0 cm
+            FieldSSDAtStopAngle; 86.8 cm
+            FieldSSDAverage; 91.3 cm
+            FieldGantryRotationDir; CCW
+            FieldActualSSD; 92.0 cm
+            X1: +2.6 cm
+            X2: +3.1 cm
+            Y1: +2.5 cm
+            Y2: +2.3 cm
+            FieldSymmetry; Asymmetric X&Y
+            FieldGantryAngle; 179.0 deg
+            FieldGantryStopAngle; 340.0 deg
+            FieldGantryRotationDir; CCW
+            FieldCollimatorAngle; 330.0 deg
+            FieldTableAngle; 0.0 deg
+            FieldIsocentreX; 9.46 cm
+            FieldIsocentreY; 11.15 cm
+            FieldIsocentreZ; -2.40 cm
+            FieldNormFactor; 100.0 %
+            FieldWeightFactor; 1.000
+            MLCId; NDS120
+            MLCManufacturer; Varian Medical Systems
+            MLCModel; Millennium 120
+            MLCRotation; 0.0 deg
+            MLCMaterialName; Millenium 120
+            MLCMaterialId; MLC
+            MLCTransmissionFactor; 1.5 %
+            MLCPlanType; VMAT
+            MLCPlanSegments; 114
+            FractionationId LUNL
+            FieldMonitorUnits; 1095 MU
+            FieldMonitorUnitsPerGy; 182.52 MU/Gy
+            FieldRefDose; -
+            RefPoints; 3
+            RefPointId; Beam Dose Point
+            FieldDose; 600.0 cGy
+            RefPointType; [PRIMARY]
+            FieldRefPointSSD; -
+            FieldRefPointPointDepth; -
+            FieldRefPointEffectiveDepth; -
+            RefPointId; COM-PTV1
+            FieldDose; 746.8 cGy
+            RefPointType; 
+            FieldRefPointSSD; 91.3 cm
+            FieldRefPointPointDepth; 8.7 cm
+            FieldRefPointEffectiveDepth; 7.1 cm
+            RefPointId; LUNL
+            FieldDose; 600.0 cGy
+            RefPointType; 
+            FieldRefPointSSD; -
+            FieldRefPointPointDepth; -
+            FieldRefPointEffectiveDepth; -
+            FieldId; • CW •
+            FieldName; •  •
+            FieldMachineId; • TR1 •
+            FieldMachineModel; TDS
+            FieldMachineScale; Varian IEC
+            FieldEnergyMode; 6X
+            FieldDoseRate; 600 MU/min
+            FieldTechnique; ARC
+            FieldMonitorUnits; 1095 MU
+            FieldMonitorUnitsPerGy; 182.52 MU/Gy
+            FieldRefDose; -
+            FieldIMRT; 
+            FieldSAD; 100.0 cm
+            FieldSSD; 86.8 cm
+            FieldSSDAtStopAngle; 92.0 cm
+            FieldSSDAverage; 91.3 cm
+            FieldGantryRotationDir; CW
+            FieldActualSSD; 86.8 cm
+            X1: +2.7 cm
+            X2: +2.8 cm
+            Y1: +2.8 cm
+            Y2: +2.3 cm
+            FieldSymmetry; Asymmetric X&Y
+            FieldGantryAngle; 340.0 deg
+            FieldGantryStopAngle; 179.0 deg
+            FieldGantryRotationDir; CW
+            FieldCollimatorAngle; 30.0 deg
+            FieldTableAngle; 0.0 deg
+            FieldIsocentreX; 9.46 cm
+            FieldIsocentreY; 11.15 cm
+            FieldIsocentreZ; -2.40 cm
+            FieldNormFactor; 100.0 %
+            FieldWeightFactor; 1.000
+            MLCId; NDS120
+            MLCManufacturer; Varian Medical Systems
+            MLCModel; Millennium 120
+            MLCRotation; 0.0 deg
+            MLCMaterialName; Millenium 120
+            MLCMaterialId; MLC
+            MLCTransmissionFactor; 1.5 %
+            MLCPlanType; VMAT
+            MLCPlanSegments; 114
+            FractionationId LUNL
+            FieldMonitorUnits; 1095 MU
+            FieldMonitorUnitsPerGy; 182.52 MU/Gy
+            FieldRefDose; -
+            RefPoints; 3
+            RefPointId; Beam Dose Point
+            FieldDose; 600.0 cGy
+            RefPointType; [PRIMARY]
+            FieldRefPointSSD; -
+            FieldRefPointPointDepth; -
+            FieldRefPointEffectiveDepth; -
+            RefPointId; COM-PTV1
+            FieldDose; 765.9 cGy
+            RefPointType; 
+            FieldRefPointSSD; 91.3 cm
+            FieldRefPointPointDepth; 8.7 cm
+            FieldRefPointEffectiveDepth; 7.1 cm
+            RefPointId; LUNL
+            FieldDose; 600.0 cGy
+            RefPointType; 
+            FieldRefPointSSD; -
+            FieldRefPointPointDepth; -
+            FieldRefPointEffectiveDepth; -
+            FieldId; • KV ANT •
+            FieldName; •  •
+            FieldMachineId; • TR1 •
+            FieldMachineModel; TDS
+            FieldMachineScale; Varian IEC
+            FieldEnergyMode; 6X
+            FieldDoseRate; 600 MU/min
+            FieldTechnique; STATIC
+            FieldMonitorUnits; Setup field
+            FieldMonitorUnitsPerGy; -
+            FieldRefDose; -
+            FieldIMRT; 
+            FieldSAD; 100.0 cm
+            FieldSSD; 88.7 cm
+            FieldActualSSD; 88.7 cm
+            X1: +5.0 cm
+            X2: +5.0 cm
+            Y1: +5.0 cm
+            Y2: +5.0 cm
+            FieldSymmetry; Asymmetric X&Y
+            FieldGantryAngle; 0.0 deg
+            FieldCollimatorAngle; 0.0 deg
+            FieldTableAngle; 0.0 deg
+            FieldIsocentreX; 9.46 cm
+            FieldIsocentreY; 11.15 cm
+            FieldIsocentreZ; -2.40 cm
+            FieldNormFactor; 100.0 %
+            FieldWeightFactor; 0.000
+            FieldId; • KV RT LAT •
+            FieldName; •  •
+            FieldMachineId; • TR1 •
+            FieldMachineModel; TDS
+            FieldMachineScale; Varian IEC
+            FieldEnergyMode; 6X
+            FieldDoseRate; 600 MU/min
+            FieldTechnique; STATIC
+            FieldMonitorUnits; Setup field
+            FieldMonitorUnitsPerGy; -
+            FieldRefDose; -
+            FieldIMRT; 
+            FieldSAD; 100.0 cm
+            FieldSSD; 71.4 cm
+            FieldActualSSD; 71.4 cm
+            X1: +5.0 cm
+            X2: +5.0 cm
+            Y1: +5.0 cm
+            Y2: +5.0 cm
+            FieldSymmetry; Asymmetric X&Y
+            FieldGantryAngle; 270.0 deg
+            FieldCollimatorAngle; 0.0 deg
+            FieldTableAngle; 0.0 deg
+            FieldIsocentreX; 9.46 cm
+            FieldIsocentreY; 11.15 cm
+            FieldIsocentreZ; -2.40 cm
+            FieldNormFactor; 100.0 %
+            FieldWeightFactor; 0.000
+            FieldId; • KV LT LAT •
+            FieldName; •  •
+            FieldMachineId; • TR1 •
+            FieldMachineModel; TDS
+            FieldMachineScale; Varian IEC
+            FieldEnergyMode; 6X
+            FieldDoseRate; 600 MU/min
+            FieldTechnique; STATIC
+            FieldMonitorUnits; Setup field
+            FieldMonitorUnitsPerGy; -
+            FieldRefDose; -
+            FieldIMRT; 
+            FieldSAD; 100.0 cm
+            FieldSSD; 91.0 cm
+            FieldActualSSD; 91.0 cm
+            X1: +5.0 cm
+            X2: +5.0 cm
+            Y1: +5.0 cm
+            Y2: +5.0 cm
+            FieldSymmetry; Asymmetric X&Y
+            FieldGantryAngle; 90.0 deg
+            FieldCollimatorAngle; 0.0 deg
+            FieldTableAngle; 0.0 deg
+            FieldIsocentreX; 9.46 cm
+            FieldIsocentreY; 11.15 cm
+            FieldIsocentreZ; -2.40 cm
+            FieldNormFactor; 100.0 %
+            FieldWeightFactor; 0.000
+            FieldId; • CBCT •
+            FieldName; •  •
+            FieldMachineId; • TR1 •
+            FieldMachineModel; TDS
+            FieldMachineScale; Varian IEC
+            FieldEnergyMode; 6X
+            FieldDoseRate; 600 MU/min
+            FieldTechnique; STATIC
+            FieldMonitorUnits; Setup field
+            FieldMonitorUnitsPerGy; -
+            FieldRefDose; -
+            FieldIMRT; 
+            FieldSAD; 100.0 cm
+            FieldSSD; 88.7 cm
+            FieldActualSSD; 88.7 cm
+            X1: +5.0 cm
+            X2: +5.0 cm
+            Y1: +5.0 cm
+            Y2: +5.0 cm
+            FieldSymmetry; Asymmetric X&Y
+            FieldGantryAngle; 0.0 deg
+            FieldCollimatorAngle; 0.0 deg
+            FieldTableAngle; 0.0 deg
+            FieldIsocentreX; 9.46 cm
+            FieldIsocentreY; 11.15 cm
+            FieldIsocentreZ; -2.40 cm
+            FieldNormFactor; 100.0 %
+            FieldWeightFactor; 0.000
+            FractionationId; LUNL
+            RefPointId; Beam Dose Point
+            RefPointX; -
+            RefPointY; -
+            RefPointZ; -
+            RefPointTotalDosePerFraction; 1200.0 cGy
+            RefPointTotalDose; 4800.0 cGy
+            IsPrimaryRefPoint; [PRIMARY]
+            RefPointPatientVolumeId; Beam Dose Point
+            RefPointId; COM-PTV1
+            RefPointX; 9.46 cm
+            RefPointY; 11.15 cm
+            RefPointZ; -2.40 cm
+            RefPointTotalDosePerFraction; 1512.6 cGy
+            RefPointTotalDose; 6050.6 cGy
+            IsPrimaryRefPoint; 
+            RefPointPatientVolumeId; COM-PTV1
+            RefPointId; LUNL
+            RefPointX; -
+            RefPointY; -
+            RefPointZ; -
+            RefPointTotalDosePerFraction; 1200.0 cGy
+            RefPointTotalDose; 4800.0 cGy
+            IsPrimaryRefPoint; 
+            RefPointPatientVolumeId; LUNL
