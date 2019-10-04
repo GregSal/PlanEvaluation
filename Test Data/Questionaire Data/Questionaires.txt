@@ -1,0 +1,36 @@
+   <Row>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">3)</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">TREATMENT  INTENT *</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Adjuvant</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="DateTime">2019-08-16T13:56:35.000</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">4)</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">PACEMAKER / ICD *</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">No</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="DateTime">2019-08-16T13:56:35.000</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">9.1</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">LATERALITY *</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Right</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="DateTime">2019-08-16T13:56:35.000</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">9.2</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">SITE(S) *</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Breast</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="DateTime">2019-08-16T13:56:35.000</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">13)</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">TREATMENT  PRESCRIPTION *</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">4250 cGy / 16 Frs</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="DateTime">2019-08-16T13:56:35.000</Data></Cell>
+    <Cell ss:StyleID="s63"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   

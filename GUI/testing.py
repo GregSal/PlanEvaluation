@@ -2,7 +2,7 @@
 '''Run tests of the GUI interface
 '''
 
-#%% imports
+#%% imports etc.
 import sys
 import os
 from pathlib import Path
@@ -25,74 +25,7 @@ import xlwings as xw
 
 from build_plan_report import initialize, read_report_files
 from plan_report import Report, ReferenceGroup, MatchList
-from plan_data import DvhFile, Plan, PlanItemLookup
-
-Values = Dict[str, List[str]]
-
-
-class HistoryItem(NamedTuple):
-    '''Record of a change made to a reference match.
-    Attributes:
-        old_value {ReferenceGroup} -- The value before the change
-        new_value {ReferenceGroup} -- The value after the change
-    '''
-    old_value: ReferenceGroup
-    new_value: ReferenceGroup = None
-
-class History(list):
-    '''A record of the changes made to the reference matching.
-    Attributes:
-        reference_name {str} -- The name of the PlanReference
-    '''
-    old_value: ReferenceGroup
-    new_value: ReferenceGroup = None
-
-    def __init__(self):
-        '''Create an empty list
-        '''
-        super().__init__()
-
-    def add(self, old_value: ReferenceGroup, new_value: ReferenceGroup = None):
-        '''Record a new match change.
-        Arguments:
-            old_value {ReferenceGroup} -- The value before the change
-            new_value {ReferenceGroup} -- The value after the change
-        '''
-        self.append(HistoryItem(old_value, new_value))
-
-    def undo(self)->HistoryItem:
-        return self.pop()
-
-
-#%% setup functions
-def match_name(reference: ReferenceGroup)->str:
-    '''Form a match name from a reference name and laterality.
-    Arguments:
-            reference {ReferenceGroup} -- The reference to label.
-    Returns:
-        str -- A unique name for the reference that includes laterality.
-    '''
-    if reference.laterality:
-        lat = reference.laterality + ' '
-    else:
-        lat = ''
-    name = lat + reference.reference_name
-    return name
-
-
-def sort_dict(dict_data: Dict[str, Any],
-              sort_list: List[str] = None
-              )->List[ReferenceGroup]:
-    '''Generate a sorted list of from dictionary values. sort_list contains
-    attributes of the dictionary values.
-    '''
-    # TODO Add sort_dict to data utilities
-    data_list = list(dict_data.values())
-    if sort_list:
-        data_set = sorted(data_list, key=attrgetter(*sort_list))
-    else:
-        data_set = data_list
-    return data_set
+from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements
 
 
 def load_test_data(data_path: Path,
@@ -112,6 +45,107 @@ def load_test_data(data_path: Path,
     return(config, plan, report)
 
 
+Values = Dict[str, List[str]]
+
+
+#%% Match GUI functions
+class IconPaths(dict):
+    '''Match Parameters for a PlanReference.
+        Report Item name, match status, plan item type, Plan Item name
+    Attributes:
+        match_icon {Path} -- Green Check mark
+        not_matched_icon {str} -- The type of PlanElement.  Can be one of:
+            ('Plan Property', Structure', 'Reference Point', 'Ratio')
+        match_status: {str} -- How a plan value was obtained.  One of:
+            One of Auto, Manual, Direct Entry, or None
+        plan_Item: {str} -- The name of the matched element from the Plan.
+    '''
+    def __init__(self, icon_path):
+        '''Initialize the icon paths.
+        Attributes:
+            icon_path {Path} -- The path to the Icon Directory
+        Contains the following Icon references:
+            match_icon {Path} -- Green Check mark
+            not_matched_icon {Path} -- Red X
+            changed_icon {Path} -- Yellow Sun
+        '''
+        super().__init__()
+        # Icons
+        self['match_icon'] = icon_path / 'Checkmark.png'
+        self['not_matched_icon'] = icon_path / 'Error_Symbol.png'
+        self['changed_icon'] = icon_path / 'emblem-new'
+
+    def path(self, icon_name):
+        '''Return a string path to the icon.
+        Attributes:
+            icon_name {str} -- The name of an icon in the dictionary
+        '''
+        icon_path = self.get(icon_name)
+        if icon_path:
+            return str(icon_path)
+        return None
+
+class MatchHistoryItem(NamedTuple):
+    '''Record of a change made to a reference match.
+    Attributes:
+        old_value {ReferenceGroup} -- The value before the change
+        new_value {ReferenceGroup} -- The value after the change
+    '''
+    old_value: ReferenceGroup
+    new_value: ReferenceGroup = None
+
+class MatchHistory(list):
+    '''A record of the changes made to the reference matching.
+    Attributes:
+        reference_name {str} -- The name of the PlanReference
+    '''
+    old_value: ReferenceGroup
+    new_value: ReferenceGroup = None
+
+    def __init__(self):
+        '''Create an empty list
+        '''
+        super().__init__()
+
+    def add(self, old_value: ReferenceGroup, new_value: ReferenceGroup = None):
+        '''Record a new match change.
+        Arguments:
+            old_value {ReferenceGroup} -- The value before the change
+            new_value {ReferenceGroup} -- The value after the change
+        '''
+        self.append(MatchHistoryItem(old_value, new_value))
+
+    def undo(self)->MatchHistoryItem:
+        return self.pop()
+
+
+def plan_item_menu(plan_elements: PlanItemLookup,
+                   select_type: str = None)->List[PlanElements]:
+    '''Generate a PlanItem Selection menu from a particular type of PlanItem.
+    '''
+    element_list = sorted(plan_elements.values(), key=attrgetter('name'))
+    if select_type:
+        element_list = [elmt.name for elmt in element_list
+                        if elmt.element_type in select_type]
+    else:
+        element_list = [elmt.name for elmt in element_list]
+    menu = ['', ['&Match', [element_list],'&ENTER']]
+    return menu
+
+
+def make_reference_list(reference_data: Dict[str, ReferenceGroup],
+              sort_list: List[str] = ['reference_type', 'reference_name']
+              )->List[ReferenceGroup]:
+    '''Generate a sorted list of Reference matches.
+    '''
+    reference_list = list(reference_data.values())
+    if sort_list:
+        reference_set = sorted(reference_list, key=attrgetter(*sort_list))
+    else:
+        reference_set = reference_list
+    return reference_set
+
+
 def enter_value(reference_name):
     '''Simple pop-up window to enter a text value.
     '''
@@ -125,10 +159,26 @@ def enter_value(reference_name):
     return None
 
 
-def update_match(event: str, values: Values,
-                 reference_data: Dict[str,ReferenceGroup],
-                 tree: sg.Tree,
-                 history: History)->Tuple[History, Union[ReferenceGroup, None]]:
+def update_menu(values: Values, item_menu, item_list: List[str],
+                reference_data: Dict[str, ReferenceGroup],
+                element_types: Dict[str, str]):
+    '''Update the plan item selection
+    '''
+    selected_item = values['Match_tree'][0]
+    ref = reference_data[selected_item]
+    selected_type = ref.reference_type
+    for index, item_name in enumerate(item_list):
+        item_type = element_types[item_name]
+        if item_type == selected_type:
+            item_menu.entryconfig(index, state='normal')
+        else:
+            item_menu.entryconfig(index, state='disabled')
+    return selected_type
+
+
+def update_match(event: str, values: Values, tree: sg.Tree,
+                 reference_data: Dict[str, ReferenceGroup],
+                 history: MatchHistory)->MatchHistory:
     '''Update the reference lists
     '''
     selection = values.get('Match_tree')
@@ -143,7 +193,7 @@ def update_match(event: str, values: Values,
         item_name = event
     new_value = ReferenceGroup(*new_value[0:-1], item_name)
     history.add(old_value, new_value)
-    lookup = match_name(new_value)
+    lookup = new_value.match_name
     # Question use Icon to indicate modified value?
     tree.Update(key=lookup, value=new_value)
     return history
@@ -158,47 +208,39 @@ def rerun_match(report: Report, plan: Plan)->Tuple[MatchList, MatchList]:
 
 
 #%% GUI settings
-def run_gui(icon_path, plan, report):
+def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
+                 reference_data: List[ReferenceGroup])->sg.Window:
     # Constants
-    match_icon = icon_path / 'Checkmark.png'
-    not_matched_icon = icon_path / 'Error_Symbol.png'
-    changed_icon = icon_path / 'emblem-new'
     column_names = ['Name', 'Type', 'Laterality', 'Match', 'Matched Item']
     show_column = [False, True, False, False, True]
-    column_widths = [25, 5, 5, 5, 25]
-    item_types = plan.types()
+    column_widths = [30,15,15,15,30]
+    menu = plan_item_menu(plan_elements)
     tree_settings = dict(headings=column_names,
                          visible_column_map=show_column,
                          col0_width=30,
                          col_widths=column_widths,
-                         auto_size_columns=True,
+                         auto_size_columns=False,
+                         justification='left',
                          num_rows=20,
                          key='Match_tree',
                          show_expanded=True,
                          select_mode='browse',
-                         enable_events=False)
-    # Report and Plan data
-    plan_elements = plan.items()
-    reference_data = report.get_matches()
+                         enable_events=True,
+                         right_click_menu=menu)
+    # Tree data
+    reference_set = make_reference_list(reference_data)
     # Plan Items for selecting
-    element_list = [element.name
-                    for element in sort_dict(plan_elements,
-                                             ['element_type', 'name'])]
-    menu = ['', ['&Match', [element_list],'&ENTER']]
-    tree_settings['right_click_menu'] = menu
-
-    # references for tree
-    reference_set = sort_dict(reference_data,
-                              ['reference_type', 'reference_name'])
     treedata = sg.TreeData()
-    treedata.Insert('','matched', 'Matched', [], icon=match_icon)
-    treedata.Insert('','not_matched', 'Not Matched', [], icon=not_matched_icon)
+    treedata.Insert('','matched', 'Matched', [], icon=icons.path('match_icon'))
+    treedata.Insert('','not_matched', 'Not Matched', [],
+                    icon=icons.path('not_matched_icon'))
     for ref in reference_set:
-        name = match_name(ref)
+        name = ref.match_name
         if ref.match_status:
-            treedata.Insert('matched', name, ref.reference_name, ref)
+            treedata.Insert('matched', name, name, ref)
         else:
-            treedata.Insert('not_matched', name, ref.reference_name, ref)
+            treedata.Insert('not_matched', name, name, ref)
+
     # Build window
     layout = [[sg.Text('Report Item Matching')],
               [sg.Tree(data=treedata, **tree_settings)],
@@ -207,23 +249,55 @@ def run_gui(icon_path, plan, report):
     window = sg.Window('Match Items', layout=layout,
                        keep_on_top=True, resizable=True,
                        return_keyboard_events=False,  finalize=True)
+    return window
 
-    history = History()
-    done = False
-    while not done:
-        event, values = window.Read()
-        if event in (None, 'Cancel', 'Ok'):
-            # FIXME run data update or reset methods
-            break
-        else:
-            history = update_match(event, values, reference_data,
-                                   window['Match_tree'], history)
-    window.Close()
+#%% Test
+base_path = Path.cwd()
+test_path = base_path / 'GUI' / 'Testing'
+data_path = base_path / 'Data'
+results_path = base_path / 'GUI' / 'Output'
+icon_path = base_path / 'icons'
+icons = IconPaths(icon_path)
+
+(config, plan, report) = load_test_data(data_path, test_path)
+report.match_elements(plan)
+
+reference_data = report.get_matches()
+plan_elements = plan.items()
+element_types = {name: elmt.element_type
+                 for name, elmt in plan_elements.items()}
+# %% Match Window
+window = match_window(icons, plan_elements, reference_data)
+tree = window['Match_tree']
+tkmenu = tree.TKRightClickMenu # The top-level right-click menu
+menu_id = tkmenu.entrycget('Match','menu').split('.')[-1] # The sub-menu name
+item_menu = tkmenu.children[menu_id] # The sub-menu
+
+menu_def_list = tree.RightClickMenu
+item_list = menu_def_list[1][tkmenu.index('Match')+1][0] # List of sub-menu items
+
+history = MatchHistory()
+done = False
+event, values = window.Read()
+while not done:
+    event, values = window.Read(timeout=200)
+    if event is None:
+        break
+    if event in 'Cancel':
+        break
+    elif event == sg.TIMEOUT_KEY:
+        continue
+    elif event in 'Match_tree':
+        update_menu(values, item_menu, item_list, reference_data, element_types)
+    elif event in ('Ok',):
+        # FIXME run data update method
+        break
+    else:
+        history = update_match(event, values, tree, reference_data, history)
+window.Close()
 
 
-# %% __rep__ debug
-def print_report(report):
-    str(report)
+
 
 #%% Run Tests
 def main():
