@@ -6,7 +6,7 @@ from pathlib import Path
 import logging
 import xml.etree.ElementTree as ET
 import xlwings as xw
-from plan_data import Plan, PlanElement, ConversionParameters
+from plan_data import Plan, PlanDataItem, ConversionParameters
 
 
 Alias = Union[List[Tuple[str, Optional[int]]],
@@ -16,7 +16,7 @@ AliasRef = Dict[AliasIndex, Alias]
 LateralityIndex = Tuple[str, str, Optional[int]]
 LateralityRef = Dict[LateralityIndex, str]
 
-MatchList = List[PlanElement]
+MatchList = List[PlanDataItem]
 
 logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
@@ -55,10 +55,22 @@ class ReferenceGroup(NamedTuple):
     '''
     reference_name: str
     reference_type: str
-    laterality: str
+    laterality: str = None
     match_status: str = None
     plan_Item: str = None
 
+    def get_match_name(self)->str:
+        '''Form a match name from a reference name and laterality.
+        Returns:
+            str -- A unique name for the reference that includes laterality.
+        '''
+        lat = self.laterality
+        if not lat:
+            lat = ''
+        name = lat + self.reference_name
+        return name
+
+    match_name = property(get_match_name)
 
 def load_alias_list(aliases: ET.Element)->Alias:
     '''Read in a list of alias patterns.
@@ -124,8 +136,8 @@ def load_aliases(alias_root: ET.Element)->AliasRef:
     return alias_reference
 
 
-def match_alias(aliases: Alias, plan_elements: List[PlanElement],
-                **lat_param)->PlanElement:
+def match_alias(aliases: Alias, plan_elements: List[PlanDataItem],
+                **lat_param)->PlanDataItem:
     '''Try to find a matching plan element using the reference aliases.
     Arguments:
         aliases {Aliases} -- A list of An alternate name patterns for the
@@ -222,11 +234,11 @@ def load_laterality_table(laterality_root: ET.Element)->LateralityRef:
 
 
 def match_laterality(reference_name: str,
-                     plan_elements: Dict[str, PlanElement],
+                     plan_elements: Dict[str, PlanDataItem],
                      plan_laterality: str = None,
                      reference_laterality: str = None,
                      lat_patterns: Alias = None,
-                     laterality_lookup: LateralityRef = None)->PlanElement:
+                     laterality_lookup: LateralityRef = None)->PlanDataItem:
     '''Identify the plan element that matches this reference.
     Arguments:
         reference_name: {str} -- The base name to use for matching.
@@ -313,20 +325,6 @@ class PlanReference(dict):
         self['plan_element'] = None
         self['match_method'] = None
 
-    def match_name(self)->str:
-        '''Form a match name from a reference name and laterality.
-        Arguments:
-                reference {ReferenceGroup} -- The reference to label.
-        Returns:
-            str -- A unique name for the reference that includes laterality.
-        '''
-        if self['reference_laterality']:
-            lat = self['reference_laterality'] + ' '
-        else:
-           lat = ''
-        name = lat + self['reference_name']
-        return name
-
     def get_plan_item_name(self)->str:
         '''Return the name of the matched PlanElement, or None if no match.
         '''
@@ -378,8 +376,8 @@ class PlanReference(dict):
             alias_list.extend(self.lookup_aliases(alias_reference))
         return set(alias_list)
 
-    def match_element(self, plan_elements: List[PlanElement],
-                      **lat_param)->PlanElement:
+    def match_element(self, plan_elements: List[PlanDataItem],
+                      **lat_param)->PlanDataItem:
         '''Try to find a matching plan element.
         Arguments:
             plan_elements {List[PlanElement]} -- All imported plan elements.
@@ -621,30 +619,34 @@ class ReportElement():
         item_dict['ItemValue'] = self.value
         reference = references.get(self.reference)
         if reference:
-            item_dict.update(self.reference)
+            item_dict['Reference'] = reference
         if add_target and self.target:
             item_dict.update(self.target)
         return item_dict
 
-    def __repr__(self)->str:
+    def __repr__(self, references: Dict[str, PlanReference],
+                 add_references: bool, add_target: bool)->str:
         '''Provide a formatted string describing this ReportElement.
         Returns:
             str -- A formatted string describing this ReportElement.
         '''
-        item_dict = self.table_output()
-        repr_str = 'ReportElement(name={ItemName}\n'
+        item_dict = self.table_output(references, add_target)
+        repr_str = '\nReportElement(\n'
+        repr_str = '\tName={ItemName}\n'
         repr_str += '\tLabel: {ItemLabel}\n'
         repr_str += '\tCategory: {ItemCategory}\n'
+        formatted_string = repr_str.format(**item_dict)
         if self.value:
             repr_str += '\tValue = {ItemValue}\n'
-        ref_str = self.reference.__repr__()
-        repr_str += ['\t' + line + '\n' for line in ref_str.splitlines()]
-        repr_str += '\n'
-        if self.target:
-            tgt_str = self.target.__repr__()
-            repr_str += ['\t' + line + '\n' for line in tgt_str.splitlines()]
+        if add_references:
+            reference = references.get(self.reference)
+            ref_str = reference.__repr__()
+            repr_str += '\n'.join('\t' + line for line in ref_str.splitlines())
             repr_str += '\n'
-        formatted_string = repr_str.format(**item_dict)
+        if add_target and self.target:
+            tgt_str = self.target.__repr__()
+            repr_str += '\n'.join('\t' + line for line in tgt_str.splitlines())
+            repr_str += '\n'
         return formatted_string
 
 
@@ -789,7 +791,7 @@ class Report():
                 not_matched.append(matched_element)
         return (matched, not_matched)
 
-    def get_matches(self)->List[ReferenceGroup]:
+    def get_matches(self)->Dict[str, ReferenceGroup]:
         '''return a dictionary of reference matches
         '''
         match_data = {name: ref.match for name, ref in self.references.items()}
@@ -906,7 +908,7 @@ class Report():
             table = report_dict
         return table
 
-    def __repr__(self, add_items=True)->str:
+    def __repr__(self, add_references=True, add_target=True)->str:
         '''Provide a formatted string describing this Report.
         Keyword Arguments:
             add_items {bool} -- Include a list of report items in the
@@ -922,8 +924,9 @@ class Report():
         #FIXME __repr__ is not working
         repr_str = repr_str.format(**report_data)
         # Add strings for each report item
+        repr_str += '\n'
         for element in self.report_elements.values():
-            e_str = element.__repr__()
-            repr_str += ['\t' + line + '\n' for line in e_str.splitlines()]
+            e_str = element.__repr__(self.references, add_references, add_target)
+            repr_str += '\n'.join('\t' + line for line in e_str.splitlines())
         repr_str += '\n'
         return repr_str

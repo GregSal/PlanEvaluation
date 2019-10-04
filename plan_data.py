@@ -150,7 +150,7 @@ def parse_constructor(constructor: str)->DvhConstructor:
     return dvh_constructor
 
 
-class PlanElement():
+class PlanDataItem():
     '''A single value item for the plan.  e.g.: 'Normalization'.
         Defines the name, value_type, unit and value attributes.
     Arguments:
@@ -364,7 +364,7 @@ class DVH():
         return target_value
 
     def get_value(self, dvh_constructor: DvhConstructor,
-                  **conversion_parameters)->PlanElement:
+                  **conversion_parameters)->PlanDataItem:
         '''Return the value in the requested units.
         Keyword Arguments:
             dvh_constructor {DvhConstructor} -- The parameters required to
@@ -385,7 +385,7 @@ class DVH():
         dvh_value = self.get_dvh_point(x_column, y_column, x_value)
         dvh_unit = self.dvh_columns[y_column]['Unit']
         dvh_name = ''.join(dvh_constructor)
-        dvh_point = PlanElement(name=dvh_name,
+        dvh_point = PlanDataItem(name=dvh_name,
                                 element_value=dvh_value,
                                 unit=dvh_unit)
         return dvh_point
@@ -416,9 +416,9 @@ class Structure():
         __bool__(self)->bool
             Returns True if the element is not empty.
     '''
-    def __init__(self, name: str = None, element_type='Structure',
-                 properties: Dict[str, PlanElement] = None,
-                 dvh: DVH = None):
+    def __init__(self, name: str = None,
+                 properties: Dict[str, PlanDataItem] = None,
+                 dvh: DVH = None, element_type='Structure'):
         '''Initialize a structure.
         Keyword Arguments:
             name {str} -- The name of the structure. (default: {None})
@@ -433,7 +433,7 @@ class Structure():
         self.structure_properties = properties
         self.dose_data = dvh
 
-    def add_element(self, properties: Dict[str, Value])->PlanElement:
+    def add_element(self, properties: Dict[str, Value])->PlanDataItem:
         '''Add or update a structure element.
         Arguments:
             properties {Dict[str, Value]} -- parameters defining an element:
@@ -445,7 +445,7 @@ class Structure():
         Returns:
             PlanElement -- The element added or updated
         '''
-        element = PlanElement(**properties)
+        element = PlanDataItem(**properties)
         self.structure_properties[element.name] = element
         return element
 
@@ -635,7 +635,7 @@ class DvhFile():
         # Move back one line in file
         self.backstep()
 
-    def read_elements(self, break_cond: str = None)->Dict[str, PlanElement]:
+    def read_elements(self, break_cond: str = None)->Dict[str, PlanDataItem]:
         '''Iterate through lines of text data and returning the resulting
         element parameters extracted from each line.
         Arguments:
@@ -668,7 +668,7 @@ class DvhFile():
                     name = text[:marker1-1].strip()
             return name, unit
 
-        def parse_element(text_line: str)->PlanElement:
+        def parse_element(text_line: str)->PlanDataItem:
             '''convert a line of text into PlanElement parameters.
             Arguments:
                 text_line {str} -- A line of text from the .dvh file.
@@ -681,7 +681,7 @@ class DvhFile():
                           'element_type': 'Plan Property',
                           'unit': item_unit,
                           'element_value': line_element[1].strip()}
-            return PlanElement(**parameters)
+            return PlanDataItem(**parameters)
 
         element_set = dict()
         for text_line in self.read_lines(break_cond):
@@ -771,7 +771,7 @@ class DvhFile():
             text_line = self.readline()
         return structure_set
 
-    def load_data(self)->Tuple[Dict[str, PlanElement], Dict[str, Structure]]:
+    def load_data(self)->Tuple[Dict[str, PlanDataItem], Dict[str, Structure]]:
         '''Load data from the .dvh file.
         Returns:
             Tuple[Dict[str, PlanElement], Dict[str, Structure]] -- The plan
@@ -782,9 +782,9 @@ class DvhFile():
         plan_structures = self.load_structures()
         return (plan_parameters, plan_structures)
 
-Elements = Union[PlanElement, Structure]
+PlanElements = Union[PlanDataItem, Structure]
 # Possible elements to add to a Plan
-PlanItemLookup = Dict[str, Tuple[str, Elements]]
+PlanItemLookup = Dict[str, PlanElements]
 
 
 DvhSource = Union[DvhFile, Path, str, None]
@@ -897,7 +897,7 @@ class Plan():
         self.laterality = self.get_laterality(laterality_exceptions)
         self.prescription_dose = self.set_prescription()
 
-    def add_data_item(self, element_category: str, element: Elements):
+    def add_data_item(self, element_category: str, element: PlanElements):
         '''Add a PlanElement as a new plan property.
         Arguments:
             element_category {str} -- The element type.  One of:
@@ -910,7 +910,7 @@ class Plan():
         self.data_elements[element_category].update(element_entry)
         LOGGER.debug('Created %s: %s', element_category, element.name)
 
-    def get_data_element(self, data_type: str, element_name: str)->Elements:
+    def get_data_element(self, data_type: str, element_name: str)->PlanElements:
         '''Return the PlanElement of type property_type with property_name.
         Arguments:
             data_type {str} -- The element type.  One of:
@@ -950,7 +950,7 @@ class Plan():
         lat_code = plan_name.element_value[3]
         return lat_options.get(lat_code, None)
 
-    def set_prescription(self)->PlanElement:
+    def set_prescription(self)->PlanDataItem:
         '''Sets the prescription dose in the default units to enable unit
             conversion for other elements.
         Returns:
@@ -964,7 +964,7 @@ class Plan():
         if dose.unit != desired_units:
             dose_value = convert_units(dose_value, dose.unit,
                                        desired_units)
-        return PlanElement(name='prescription_dose',
+        return PlanDataItem(name='prescription_dose',
                            element_value=dose_value,
                            unit=desired_units)
 
@@ -987,16 +987,16 @@ class Plan():
         Returns:
             str -- Plan Summary String.
         '''
-        attrs = dict(name=self.name, file_name=self.dvh_data_source)
-        repr_string = '<Plan(name={name}, Plan file = {file_name})>'
+        attrs = dict(name=self.name, file_name=str(self.dvh_data_source))
+        repr_string = '<Plan(Name={name}, DVH File = {file_name})>'
         repr_string += ' Contains:'
-        repr_string = repr_string.format(attrs)
+        repr_string = repr_string.format(**attrs)
         # Indicate the number of properties defined
         properties_str = ''
         template_str = '\n\t{count} of {type} elements.'
         for (data_type, element_set) in self.data_elements.items():
             if element_set:
                 set_count = dict(type=data_type, count=len(element_set))
-                properties_str += template_str.format(set_count)
+                properties_str += template_str.format(**set_count)
         repr_string += properties_str
         return repr_string

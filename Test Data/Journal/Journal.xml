@@ -1,0 +1,150 @@
+﻿<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Version>14.00</Version>
+ </DocumentProperties>
+ <OfficeDocumentSettings xmlns="urn:schemas-microsoft-com:office:office">
+  <Colors>
+   <Color>
+    <Index>1</Index>
+    <RGB>#3B5E82</RGB>
+   </Color>
+   <Color>
+    <Index>2</Index>
+    <RGB>#BBCED6</RGB>
+   </Color>
+   <Color>
+    <Index>3</Index>
+    <RGB>#000000</RGB>
+   </Color>
+   <Color>
+    <Index>4</Index>
+    <RGB>#EBF0F4</RGB>
+   </Color>
+   <Color>
+    <Index>5</Index>
+    <RGB>#F5FAFE</RGB>
+   </Color>
+  </Colors>
+ </OfficeDocumentSettings>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>10005</WindowHeight>
+  <WindowWidth>10005</WindowWidth>
+  <WindowTopX>120</WindowTopX>
+  <WindowTopY>135</WindowTopY>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s62">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Segoe UI" x:Family="Swiss" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#BBCED6" ss:Pattern="Solid"/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s63">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Segoe UI" x:Family="Swiss" ss:Color="#000000"/>
+   <Interior ss:Color="#EBF0F4" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="Short Date"/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s64">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Segoe UI" x:Family="Swiss" ss:Color="#000000"/>
+   <Interior ss:Color="#EBF0F4" ss:Pattern="Solid"/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s65">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Segoe UI" x:Family="Swiss" ss:Color="#000000"/>
+   <Interior ss:Color="#F5FAFE" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="Short Date"/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s66">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Segoe UI" x:Family="Swiss" ss:Color="#000000"/>
+   <Interior ss:Color="#F5FAFE" ss:Pattern="Solid"/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Sheet1">
+  <Table ss:ExpandedColumnCount="5" ss:ExpandedRowCount="5" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultRowHeight="15">
+   <Column ss:Width="210.75" ss:AutoFit="0"/>
+   <Column ss:Width="238.5" ss:AutoFit="0"/>
+   <Column ss:Width="745.5" ss:AutoFit="0"/>
+   <Column ss:Width="128.25" ss:AutoFit="0"/>
+   <Column ss:Width="78.75" ss:AutoFit="0"/>
+   <Row>
+    <Cell ss:StyleID="s62"><Data ss:Type="String">Modified Date</Data></Cell>
+    <Cell ss:StyleID="s62"><Data ss:Type="String">Type</Data></Cell>
+    <Cell ss:StyleID="s62"><Data ss:Type="String">Journal Entry</Data></Cell>
+    <Cell ss:StyleID="s62"><Data ss:Type="String">Authored By</Data></Cell>
+    <Cell ss:StyleID="s62"><Data ss:Type="String">Status</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s63"><Data ss:Type="DateTime">2019-09-25T09:56:00.000</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String"></Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">.DIAGNOSIS:  Cancer of the right breast. IDC (invasive ductal carcinoma) T1cNxMx, grade-2, clear margins. Partial mastectomy only. No sentinel lymph node biopsy.   Dear Dr. Engel,  RT PLANNING SUMMARY:  Adjuvant radiation treatment to the right breast. DOSE: 4250 cGy/16 fractions.   She will be reviewed during the treatment and 10 weeks thereafter.  Yours sincerely, S. Kishore Thain, MB, FRCPC, FFRRCS, DIMCRCS (UK) Radiation Oncologist Assistant Professor Department of Oncology</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">THAI MD</Data></Cell>
+    <Cell ss:StyleID="s64"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s65"><Data ss:Type="DateTime">2019-09-25T09:56:00.000</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Radiotherapy Instructions and Physician Orders</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Approved: RT PLANNING SUMMARY:  Adjuvant radiation treatment to the right breast. DOSE: 4250 cGy/16 fractions.  She will be reviewed during the treatment and 10 weeks thereafter.</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">THAI MD</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s65"><Data ss:Type="DateTime">2019-09-24T09:39:00.000</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Radiotherapy Technical Note</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Rescan due to seroma done as per original CTsim worksheet. scar wired. # images = 182, scan # 25812. Jgarcia mrtt</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">JGARCIA MRT(T)</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s65"><Data ss:Type="DateTime">2019-09-09T11:05:00.000</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Radiotherapy Instructions and Physician Orders</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Still has a large seroma. Please re-book for Sim on 24 September for hematoma to settle. (Journal note done) Thanks, ST</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">THAI MD</Data></Cell>
+    <Cell ss:StyleID="s66"><Data ss:Type="String">Approved</Data></Cell>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <Selected/>
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+     <ActiveRow>5</ActiveRow>
+     <RangeSelection>R6</RangeSelection>
+    </Pane>
+   </Panes>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+</Workbook>
