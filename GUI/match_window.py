@@ -99,9 +99,6 @@ class MatchHistory(list):
     Attributes:
         reference_name {str} -- The name of the PlanReference
     '''
-    old_value: ReferenceGroup
-    new_value: ReferenceGroup = None
-
     def __init__(self):
         '''Create an empty list
         '''
@@ -118,6 +115,13 @@ class MatchHistory(list):
     def undo(self)->MatchHistoryItem:
         return self.pop()
 
+    def changed(self)->List[ReferenceGroup]:
+        change_list = list()
+        for hist_item in self:
+            if hist_item.new_value:
+                change_list.append(hist_item.new_value)
+        return changed_list
+
 
 def plan_item_menu(plan_elements: PlanItemLookup,
                    select_type: str = None)->List[PlanElements]:
@@ -129,7 +133,7 @@ def plan_item_menu(plan_elements: PlanItemLookup,
                         if elmt.element_type in select_type]
     else:
         element_list = [elmt.name for elmt in element_list]
-    menu = ['', ['&Match', [element_list],'&ENTER']]
+    menu = ['', ['&Match', [element_list], 'Enter &Value', '&Clear']]
     return menu
 
 
@@ -187,24 +191,30 @@ def update_match(event: str, values: Values, tree: sg.Tree,
     ref = reference_data.get(selection[0])
     old_value = ReferenceGroup(*ref)
     new_value = ReferenceGroup(*ref)
-    if 'ENTER' in event:
+    if 'Enter Value' in event:
         item_name = enter_value(ref.reference_name)
+        status = 'Direct Entry'
+    elif 'Clear' in event:
+        item_name = None
+        status = None
     else:
         item_name = event
-    new_value = ReferenceGroup(*new_value[0:-1], item_name)
+        status = 'Manual'
+    new_value = ReferenceGroup(*new_value[0:-2], status, item_name)
     history.add(old_value, new_value)
     lookup = new_value.match_name
-    # Question use Icon to indicate modified value?
     tree.Update(key=lookup, value=new_value)
     return history
 
 
-def rerun_match(report: Report, plan: Plan)->Tuple[MatchList, MatchList]:
+def rerun_match(report: Report, plan: Plan,
+                history: MatchHistory)->Tuple[MatchList, MatchList]:
     '''Re-run the match with updated plan data and then apply stored manual
         matching and entries.
     '''
-    # TODO add update match method
-    pass
+    report.match_elements(plan)
+    report.update_references(history.changed(), plan)
+
 
 
 #%% GUI settings
@@ -244,7 +254,7 @@ def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
     # Build window
     layout = [[sg.Text('Report Item Matching')],
               [sg.Tree(data=treedata, **tree_settings)],
-              [sg.Button('Ok'), sg.Button('Cancel')]
+              [sg.Button('Approve'), sg.Button('Cancel')]
              ]
     window = sg.Window('Match Items', layout=layout,
                        keep_on_top=True, resizable=True,
@@ -267,6 +277,7 @@ def manual_match(report: Report, plan: Plan, icons: IconPaths)->Tuple[Report, Pl
     item_list = menu_def_list[1][tkmenu.index('Match')+1][0] # List of sub-menu items
 
     history = MatchHistory()
+    num_updates = None
     done = False
     event, values = window.Read()
     while not done:
@@ -279,13 +290,13 @@ def manual_match(report: Report, plan: Plan, icons: IconPaths)->Tuple[Report, Pl
             continue
         elif event in 'Match_tree':
             update_menu(values, item_menu, item_list, reference_data, element_types)
-        elif event in ('Ok',):
-            # FIXME run data update method
+        elif event in 'Approve':
+            num_updates = report.update_references(history.changed(), plan)
             break
         else:
             history = update_match(event, values, tree, reference_data, history)
     window.Close()
-    return report, plan
+    return report, plan, num_updates
 
 
 #%% Run Tests
@@ -302,7 +313,7 @@ def main():
 
     (config, plan, report) = load_test_data(data_path, test_path)
     report.match_elements(plan)
-    (report, plan) = manual_match(report, plan, icons)
+    (report, plan, num_updates) = manual_match(report, plan, icons)
 
 
 if __name__ == '__main__':

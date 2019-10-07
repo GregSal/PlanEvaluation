@@ -6,7 +6,7 @@ from pathlib import Path
 import logging
 import xml.etree.ElementTree as ET
 import xlwings as xw
-from plan_data import Plan, PlanDataItem, ConversionParameters
+from plan_data import Plan, PlanDataItem, ConversionParameters, Structure
 
 
 Alias = Union[List[Tuple[str, Optional[int]]],
@@ -328,7 +328,8 @@ class PlanReference(dict):
     def get_plan_item_name(self)->str:
         '''Return the name of the matched PlanElement, or None if no match.
         '''
-        if self['plan_element']:
+        plan_item = self.get('plan_element')
+        if isinstance(plan_item, (PlanDataItem, Structure)):
             return self['plan_element'].name
         return None
 
@@ -420,7 +421,24 @@ class PlanReference(dict):
                               self['reference_laterality'],
                               self['match_method'],
                               self.matched_name)
+
     match = property(reference_group)
+
+    def update_ref(new_ref: ReferenceGroup, plan: Plan)->bool:
+        updated = False
+        self['match_method'] = ref.match_status
+        if not ref.match_status:
+            self['plan_element'] = None
+            updated = True
+        elif ref.match_status is 'Direct Entry':
+            self['plan_element'] = ref.plan_Item
+            updated = True
+        elif ref.match_status is 'Manual':
+            matched_element = plan.get_data_element(ref.reference_type,
+                                                    ref.plan_Item)
+            self['plan_element'] = matched_element
+            updated = True
+        return updated
 
     def __repr__(self)->str:
         '''Build an Target list string.
@@ -750,6 +768,8 @@ class Report():
         '''
         if reference_def is None:
             return None
+        # TODO Check whether reference points to another Report Element
+        # TODO Ratio etc. should not generate new references, but should point to existing report items.
         reference = PlanReference(reference_def, alias_reference)
         # If a reference name is not given use the report element name.
         reference_name = reference['reference_name']
@@ -797,6 +817,14 @@ class Report():
         match_data = {name: ref.match for name, ref in self.references.items()}
         return match_data
 
+    def update_references(new_refs: List[ReferenceGroup], plan: Plan)->int:
+        update_count = 0
+        for new_ref in new_refs:
+            ref_def = self.references[new_ref.reference_name]
+            success = ref_def.update_ref(new_ref, plan)
+            if success:
+                update_count += 1
+        return update_count
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
         Arguments:
@@ -921,7 +949,6 @@ class Report():
         repr_str = 'Report:\t{ReportName}\n'
         repr_str += '\tTemplate: {TemplateFile}[{TemplateWorksheet}]\n'
         repr_str += '\tSaveAs: {SaveFile}[{SaveWorksheet}]\n'
-        #FIXME __repr__ is not working
         repr_str = repr_str.format(**report_data)
         # Add strings for each report item
         repr_str += '\n'

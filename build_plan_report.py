@@ -53,16 +53,23 @@ def read_report_files(report_path: Path, **parameters)->Dict[str, Report]:
     report_definitions = dict()
     report_file = Path(report_path) / 'ReportDefinitions.xml'
     # TODO Add method to scan directory for report_definition
+    # use glob to find xml files
+    #check root tag to identify report xml files
+    # Question is there an easy way to read the root xml tag without loading the entire file?
+    # After loading reports save all definitions in a pickle file
     report_dict = load_report_definitions(report_file, parameters)
     report_definitions.update(report_dict)
     return report_definitions
 
 
-def load_plan():
+def load_plan(config, plan_path, name='Plan', type='DVH',
+              starting_data: Plan = None)->Plan:
     '''Load plan data from the specified file or folder.
     '''
-    # TODO Add load plan method
-    pass
+    if type in 'DVH':
+        plan = Plan(config, name, DvhFile(plan_path))
+    # starting_data currently ignored
+    return plan
 
 def run_report(plan: Plan, report: Report):
     report.match_elements(plan)

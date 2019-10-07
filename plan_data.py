@@ -875,6 +875,8 @@ class Plan():
                 given, the default DVH file in config will be used.
                 (default: {None})
         '''
+        # TODO add ability to combine initial plan with new plan data
+        # Need to make a plan to deal with data collisions
         self.name = str(name)
         # initialize class structure
         self.default_units = get_default_units(config)
