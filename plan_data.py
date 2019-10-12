@@ -782,35 +782,72 @@ class DvhFile():
         plan_structures = self.load_structures()
         return (plan_parameters, plan_structures)
 
+    def read_header(self)->Dict[str, PlanDataItem]:
+        '''Read the header data for a .dvh file.
+        Returns:
+            Dict[str, PlanElement] -- The plan elements from the .dvh file.
+        '''
+        plan_info = self.read_elements(break_cond='Structure')
+
+        return (plan_parameters, plan_structures)
+
 PlanElements = Union[PlanDataItem, Structure]
 # Possible elements to add to a Plan
 PlanItemLookup = Dict[str, PlanElements]
 
 
 DvhSource = Union[DvhFile, Path, str, None]
+DvhReference = Union[DvhFile, List[Dict[str,Any]]]
 # Optional methods for specifying the dvh data
 
 
-def get_dvh(config: ET.Element, dvh_file: DvhSource = None)->DvhFile:
-    '''Define the path to the file containing the plan DVH data and open the
-        file for reading.
+def scan_for_dvh(plan_path: Path)->List[Dict[str,Any]]:
+    '''Load DVH file headers for all .dvh files in a directory.
+    Arguments:
+        plan_path {Path} -- A directory containing .dvh files.
+    Returns:
+        List[Dict[str,Any]] -- A list containing dictionaries that describe
+        the .dvh files.
+    '''
+    dvh_list = list()
+    assert(plan_path.is_dir())
+    for dvh_file in plan_path.glob('*.dvh'):
+        dvh = DvhFile(plan_path)
+        header = DvhFile(plan_path).read_header()
+        header['dvh'] = dvh
+        header['file_name'] = dvh_file
+    dvh_list.append(header)
+    return dvh_list
+
+
+def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhReference:
+    '''Load DVH file headers for all .dvh files in a directory.
     Arguments:
         config {ET.Element} -- An XML element containing default paths.
-        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file, or
-            the name of a .dvh file in the default DVH directory. If not given,
-            the default DVH file in config will be used.
+        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+            the name of a .dvh file in the default DVH directory, or a
+            directory containing .dvh files. If not given,
+            the default DVH directory in config will be used.
     Returns:
         DvhFile -- The plan DVH object for reading.
     '''
-    if isinstance(dvh_file, DvhFile):
-        dvh_data_source = dvh_file
-    elif isinstance(dvh_file, Path):
-        dvh_data_source = DvhFile(dvh_file)
-    else:
-        dvh_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
-        dvh_file_name = config.findtext(r'./DefaultDirectories/DVH_File')
+    if isinstance(dvh_loc, DvhFile):
+        dvh_data_source = dvh_loc
+    elif isinstance(dvh_loc, Path):
+        if dvh_loc.is_file():
+            dvh_data_source = DvhFile(dvh_loc)
+        elif dvh_loc.is_dir():
+            dvh_data_source = scan_for_dvh(dvh_loc)
+        else:
+            return None
+    elif isinstance(dvh_loc, str):
+        dvh_dir = Path(config.findtext(r'./DefaultDirectories/DVH'))
+        dvh_file_name = Path(config.findtext(r'./DefaultDirectories/DVH_File'))
         dvh_file = dvh_path / dvh_file_name
         dvh_data_source = DvhFile(dvh_file)
+    else:
+        dvh_dir = Path(config.findtext(r'./DefaultDirectories/DVH'))
+        dvh_data_source = scan_for_dvh(dvh_dir)
     return dvh_data_source
 
 
@@ -862,143 +899,153 @@ class Plan():
         fractions
             returns the number of fractions in the prescription.
     '''
-    def __init__(self, config: ET.Element, name: str = 'Plan',
-                 dvh_file: DvhSource = None):
-        '''Load  the plan data.
-        Arguments:
-            config {ET.Element} -- An XML element containing default paths,
-                settings and tables.
-        Keyword Arguments:
-            name {str} -- The name of the plan. Default is 'Plan'
-            dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file,
-                or the name of a .dvh file in the default DVH directory. If not
-                given, the default DVH file in config will be used.
-                (default: {None})
-        '''
-        # TODO add ability to combine initial plan with new plan data
-        # Need to make a plan to deal with data collisions
-        self.name = str(name)
-        # initialize class structure
-        self.default_units = get_default_units(config)
-        code_exceptions_def = config.find('LateralityCodeExceptions')
-        laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
-        self.data_elements = {'Plan Property': dict(),
-                              'Structure': dict(),
-                              'Reference Point': dict()}
+def __init__(self, config: ET.Element, name: str = 'Plan',
+                dvh_file: DvhSource = None):
+    '''Load  the plan data.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths,
+            settings and tables.
+    Keyword Arguments:
+        name {str} -- The name of the plan. Default is 'Plan'
+        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+            or the name of a .dvh file in the default DVH directory. If not
+            given, the default DVH file in config will be used.
+            (default: {None})
+    '''
+    # TODO add ability to combine initial plan with new plan data
+    # Need to make a plan to deal with data collisions
+    self.name = str(name)
+    # initialize class structure
+    self.default_units = get_default_units(config)
+    code_exceptions_def = config.find('LateralityCodeExceptions')
+    laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
+    self.data_elements = {'Plan Property': dict(),
+                            'Structure': dict(),
+                            'Reference Point': dict()}
 
-        # Set a .dvh file as the data source
-        dvh_data = get_dvh(config, dvh_file)
-        self.dvh_data_source = Path(dvh_data.file_name)
+    # Set a .dvh file as the data source
+    dvh_data = get_dvh(config, dvh_file)
+    self.dvh_data_source = Path(dvh_data.file_name)
 
-        # Load the dvh data
-        (plan_parameters, plan_structures) = dvh_data.load_data()
-        self.data_elements['Plan Property'].update(plan_parameters)
-        self.data_elements['Structure'].update(plan_structures)
+    # Load the dvh data
+    (plan_parameters, plan_structures) = dvh_data.load_data()
+    self.data_elements['Plan Property'].update(plan_parameters)
+    self.data_elements['Structure'].update(plan_structures)
 
-        # Derive laterality and dose
-        self.laterality = self.get_laterality(laterality_exceptions)
-        self.prescription_dose = self.set_prescription()
+    # Derive laterality and dose
+    self.laterality = self.get_laterality(laterality_exceptions)
+    self.prescription_dose = self.set_prescription()
 
-    def add_data_item(self, element_category: str, element: PlanElements):
-        '''Add a PlanElement as a new plan property.
-        Arguments:
-            element_category {str} -- The element type.  One of:
-                'Plan Property'
-                'Structure'
-                'Reference Point'
-            element {Elements} -- The element data to be added.
-        '''
-        element_entry = {element.name: element}
-        self.data_elements[element_category].update(element_entry)
-        LOGGER.debug('Created %s: %s', element_category, element.name)
+def add_data_item(self, element_category: str, element: PlanElements):
+    '''Add a PlanElement as a new plan property.
+    Arguments:
+        element_category {str} -- The element type.  One of:
+            'Plan Property'
+            'Structure'
+            'Reference Point'
+        element {Elements} -- The element data to be added.
+    '''
+    element_entry = {element.name: element}
+    self.data_elements[element_category].update(element_entry)
+    LOGGER.debug('Created %s: %s', element_category, element.name)
 
-    def get_data_element(self, data_type: str, element_name: str)->PlanElements:
-        '''Return the PlanElement of type property_type with property_name.
-        Arguments:
-            data_type {str} -- The element type.  One of:
-                'Plan Property'
-                'Structure'
-                'Reference Point'The element data to be added.
-            element_name {str} -- The name of the requested element.
-        Returns:
-            Elements -- The requested plan data item.
-        '''
-        data_group = self.data_elements.get(data_type)
-        element = data_group.get(element_name) if data_group else None
-        return element
+def get_data_element(self, data_type: str, element_name: str)->PlanElements:
+    '''Return the PlanElement of type property_type with property_name.
+    Arguments:
+        data_type {str} -- The element type.  One of:
+            'Plan Property'
+            'Structure'
+            'Reference Point'The element data to be added.
+        element_name {str} -- The name of the requested element.
+    Returns:
+        Elements -- The requested plan data item.
+    '''
+    data_group = self.data_elements.get(data_type)
+    element = data_group.get(element_name) if data_group else None
+    return element
 
-    def get_laterality(self, lat_exceptions: List[str])->Union[str, None]:
-        '''Look for laterality indicator in plan name and use to set plan
-            laterality.
-        List[str] --
+def get_laterality(self, lat_exceptions: List[str])->Union[str, None]:
+    '''Look for laterality indicator in plan name and use to set plan
+        laterality.
+    List[str] --
 
-        Arguments:
-            lat_exceptions {List[str]} -- A list of 4-letter body region codes
-                which should not be treated as indicating laterality in the
-                plan.
-        Returns:
-            Union[str, None] -- The plan laterality.  One of:
-                'Right', 'Left', 'Both'
-                or None if no laterality.
-        '''
-        # TODO need to deal with BOOS plan names
-        lat_options = {'R': 'Right', 'L': 'Left', 'B': 'Both'}
-        plan_name = self.get_data_element(
-            data_type='Plan Property',
-            element_name='Plan')
-        body_region = plan_name.element_value[0:3]
-        if body_region in lat_exceptions:
-            return None
-        lat_code = plan_name.element_value[3]
-        return lat_options.get(lat_code, None)
+    Arguments:
+        lat_exceptions {List[str]} -- A list of 4-letter body region codes
+            which should not be treated as indicating laterality in the
+            plan.
+    Returns:
+        Union[str, None] -- The plan laterality.  One of:
+            'Right', 'Left', 'Both'
+            or None if no laterality.
+    '''
+    # TODO need to deal with BOOS plan names
+    lat_options = {'R': 'Right', 'L': 'Left', 'B': 'Both'}
+    plan_name = self.get_data_element(
+        data_type='Plan Property',
+        element_name='Plan')
+    body_region = plan_name.element_value[0:3]
+    if body_region in lat_exceptions:
+        return None
+    lat_code = plan_name.element_value[3]
+    return lat_options.get(lat_code, None)
 
-    def set_prescription(self)->PlanDataItem:
-        '''Sets the prescription dose in the default units to enable unit
-            conversion for other elements.
-        Returns:
-            PlanElement -- A 'prescription_dose' PlanElement in the plan
-                default dose units.
-        '''
-        dose = self.get_data_element(data_type='Plan Property',
-                                     element_name='Prescribed dose')
-        dose_value = dose.element_value
-        desired_units = self.default_units['DoseUnit']
-        if dose.unit != desired_units:
-            dose_value = convert_units(dose_value, dose.unit,
-                                       desired_units)
-        return PlanDataItem(name='prescription_dose',
-                           element_value=dose_value,
-                           unit=desired_units)
+def set_prescription(self)->PlanDataItem:
+    '''Sets the prescription dose in the default units to enable unit
+        conversion for other elements.
+    Returns:
+        PlanElement -- A 'prescription_dose' PlanElement in the plan
+            default dose units.
+    '''
+    dose = self.get_data_element(data_type='Plan Property',
+                                    element_name='Prescribed dose')
+    dose_value = dose.element_value
+    desired_units = self.default_units['DoseUnit']
+    if dose.unit != desired_units:
+        dose_value = convert_units(dose_value, dose.unit,
+                                    desired_units)
+    return PlanDataItem(name='prescription_dose',
+                        element_value=dose_value,
+                        unit=desired_units)
 
-    def items(self)->PlanItemLookup:
-        '''provide a lookup dictionary of plan items.
-        '''
-        plan_items= dict()
-        for group in self.data_elements.values():
-            for name, element in group.items():
-                plan_items[name] = element
-        return plan_items
+def items(self)->PlanItemLookup:
+    '''provide a lookup dictionary of plan items.
+    '''
+    plan_items= dict()
+    for group in self.data_elements.values():
+        for name, element in group.items():
+            plan_items[name] = element
+    return plan_items
 
-    def types(self)->List[str]:
-        '''Return a list of the different plan item types.
-        '''
-        return list(self.data_elements.keys())
+def types(self)->List[str]:
+    '''Return a list of the different plan item types.
+    '''
+    return list(self.data_elements.keys())
 
-    def __repr__(self)->str:
-        '''Describe a Plan.
-        Returns:
-            str -- Plan Summary String.
-        '''
-        attrs = dict(name=self.name, file_name=str(self.dvh_data_source))
-        repr_string = '<Plan(Name={name}, DVH File = {file_name})>'
-        repr_string += ' Contains:'
-        repr_string = repr_string.format(**attrs)
-        # Indicate the number of properties defined
-        properties_str = ''
-        template_str = '\n\t{count} of {type} elements.'
-        for (data_type, element_set) in self.data_elements.items():
-            if element_set:
-                set_count = dict(type=data_type, count=len(element_set))
-                properties_str += template_str.format(**set_count)
-        repr_string += properties_str
-        return repr_string
+def __repr__(self)->str:
+    '''Describe a Plan.
+    Returns:
+        str -- Plan Summary String.
+    '''
+    attrs = dict(name=self.name, file_name=str(self.dvh_data_source))
+    repr_string = '<Plan(Name={name}, DVH File = {file_name})>'
+    repr_string += ' Contains:'
+    repr_string = repr_string.format(**attrs)
+    # Indicate the number of properties defined
+    properties_str = ''
+    template_str = '\n\t{count} of {type} elements.'
+    for (data_type, element_set) in self.data_elements.items():
+        if element_set:
+            set_count = dict(type=data_type, count=len(element_set))
+            properties_str += template_str.format(**set_count)
+    repr_string += properties_str
+    return repr_string
+
+def load_plan(config, plan_path, name='Plan', type='DVH',
+              starting_data: Plan = None)->Plan:
+    '''Load plan data from the specified file or folder.
+    '''
+    if type in 'DVH':
+        plan = Plan(config, name, DvhFile(plan_path))
+    # starting_data currently ignored
+    return plan
+

@@ -62,6 +62,19 @@ def read_report_files(report_path: Path, **parameters)->Dict[str, Report]:
     return report_definitions
 
 
+def find_dvh_files(config, plan_path: Path = None)->List[Dict[str,Any]:
+    '''Load DVH file headers for all .dvh files in a directory.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        plan_path {Path} -- A directory containing .dvh files.
+    Returns:
+        List[Dict[str,Any]] -- A list containing dictionaries that describe
+        the .dvh files.
+    '''
+    dvh_list = get_dvh(config, plan_path)
+    return dvh_list
+
+
 def load_plan(config, plan_path, name='Plan', type='DVH',
               starting_data: Plan = None)->Plan:
     '''Load plan data from the specified file or folder.
