@@ -4,6 +4,9 @@ Last modified Sept 12 2019-->
 <ReportDefinitions>
   <Report>
     <Name>SABR 54 in 3</Name>
+    <Description>
+      SABR Plan Evaluation Sheet for 18Gy/fr Schedules (54Gy/3F)
+    </Description>
     <FilePaths>
       <Template>
         <File>./SABR Plan Evaluation Worksheet BLANK For testing.xlsx</File>

@@ -7,7 +7,7 @@ elements for analysis.
 '''
 
 
-from typing import Union, Dict, Tuple, List
+from typing import Union, NamedTuple, Tuple, Dict, List, Any
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import re
@@ -221,7 +221,7 @@ class PlanDataItem():
         self.name = str(name)
         self.element_type = str(element_type)
         self.unit = None
-        self.value = None
+        self.element_value = None
         self.define(element_value, unit)
 
     def define(self, element_value: Value = None,
@@ -593,7 +593,7 @@ class DvhFile():
         '''Close the file and then remove the instance.
         '''
         self.file.close()
-        super().__del__()
+        #super().__del__()
 
     def catch_special_char(self, raw_line: str)->str:
         '''Convert line to ASCII.
@@ -841,9 +841,9 @@ def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
     dvh_list = list()
     assert(plan_path.is_dir())
     for dvh_file in plan_path.glob('*.dvh'):
-        dvh = DvhFile(plan_path)
+        dvh = DvhFile(dvh_file)
         try:
-            header = DvhFile(plan_path).read_header()
+            header = dvh.read_header()
         except (EOFError, OSError, TypeError):
             continue # Ignore files that fail to read properly
         else:
@@ -854,7 +854,7 @@ def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
                 patient_id = header['Patient ID'],
                 plan_name = header['Plan'],
                 course = header['Course'],
-                dose = float(header['Prescribed dose [cGy]']),
+                dose = header['Prescribed dose'],
                 export_date = header['Date']
                 )
             dvh_list.append(plan_info)

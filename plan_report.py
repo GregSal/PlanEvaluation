@@ -738,6 +738,7 @@ class Report():
                 laterality modifiers (default: {None})
         '''
         self.name = report_def.findtext('Name')
+        self.description = report_def.findtext('Description').strip()
         template_file_name = report_def.findtext(r'./FilePaths/Template/File')
         worksheet = report_def.findtext(r'./FilePaths/Template/WorkSheet')
         self.template_file = template_path / template_file_name
@@ -826,7 +827,7 @@ class Report():
             if success:
                 update_count += 1
         return update_count
-    
+
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
         Arguments:

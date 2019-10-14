@@ -4,8 +4,10 @@ Last modified Sept 12 2019-->
 <ReportDefinitions>
   <Report>
     <Name>SABR 48 in 4</Name>
-    <Description />
-    <FilePaths>
+    <Description>
+      SABR Plan Evaluation Sheet for 12Gy/fr Schedules (48 Gy in 4F) or (60Gy/5F)
+    </Description>
+      <FilePaths>
       <Template>
         <File>./SABR Plan Evaluation Worksheet BLANK For testing.xlsx</File>
         <WorkSheet>EvaluationSheet 48Gy4F 60Gy5F</WorkSheet>
