@@ -32,6 +32,31 @@ DvhIndex = Tuple[int, int, str]
 LOGGER = logging.getLogger(__name__)
 
 
+class PlanDescription(NamedTuple):
+    '''Summary info for a Plan file.
+    Attributes:
+        plan_file {Path} -- The full path to the plan file.
+        file_type {str} -- The type of plan file. Currently only "DVH".
+        patient_name {str} -- The full name of the patient.
+        patient_id {str} -- The ID assigned to the patient (CR#).
+        plan_name {str} -- The plan ID, or name.
+        course {optional, str} -- The course ID.
+        dose {optional, float} -- The prescribed dose in cGy.
+        fractions {optional, int} -- The number of fractions.
+        export_date {optional, str} -- The date, as a string, when the plan
+            file was exported.
+    '''
+    plan_file: Path
+    file_type: str
+    patient_name: str
+    patient_id: str
+    plan_name: str
+    course: str = None
+    dose: float = None
+    fractions: int = None
+    export_date: str = None
+
+
 def get_laterality_exceptions(region_code_root: ET.Element)->List[str]:
     '''Load list of body region codes that appear to have a laterality,
         but do not.
@@ -564,6 +589,12 @@ class DvhFile():
         self._last_line = None
         self.do_previous = False
 
+    def __del__(self):
+        '''Close the file and then remove the instance.
+        '''
+        self.file.close()
+        super().__del__()
+
     def catch_special_char(self, raw_line: str)->str:
         '''Convert line to ASCII.
             Look for special character strings in the line and replace with
@@ -788,8 +819,7 @@ class DvhFile():
             Dict[str, PlanElement] -- The plan elements from the .dvh file.
         '''
         plan_info = self.read_elements(break_cond='Structure')
-
-        return (plan_parameters, plan_structures)
+        return plan_info
 
 PlanElements = Union[PlanDataItem, Structure]
 # Possible elements to add to a Plan
@@ -801,35 +831,50 @@ DvhReference = Union[DvhFile, List[Dict[str,Any]]]
 # Optional methods for specifying the dvh data
 
 
-def scan_for_dvh(plan_path: Path)->List[Dict[str,Any]]:
+def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
     '''Load DVH file headers for all .dvh files in a directory.
     Arguments:
         plan_path {Path} -- A directory containing .dvh files.
     Returns:
-        List[Dict[str,Any]] -- A list containing dictionaries that describe
-        the .dvh files.
+        List[PlanDescription] -- A list containing descriptions of .dvh files.
     '''
     dvh_list = list()
     assert(plan_path.is_dir())
     for dvh_file in plan_path.glob('*.dvh'):
         dvh = DvhFile(plan_path)
-        header = DvhFile(plan_path).read_header()
-        header['dvh'] = dvh
-        header['file_name'] = dvh_file
-    dvh_list.append(header)
+        try:
+            header = DvhFile(plan_path).read_header()
+        except (EOFError, OSError, TypeError):
+            continue # Ignore files that fail to read properly
+        else:
+            plan_info = PlanDescription(
+                plan_file=dvh_file,
+                file_type='DVH',
+                patient_name = header['Patient Name'],
+                patient_id = header['Patient ID'],
+                plan_name = header['Plan'],
+                course = header['Course'],
+                dose = float(header['Prescribed dose [cGy]']),
+                export_date = header['Date']
+                )
+            dvh_list.append(plan_info)
+        finally:
+            del dvh  # Close the dvh file
+            # Question keep the .dvh file open after scanning its header?
     return dvh_list
 
 
-def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhReference:
+def get_dvh_list(config: ET.Element,
+                 dvh_loc: DvhSource = None)->List[PlanDescription]:
     '''Load DVH file headers for all .dvh files in a directory.
     Arguments:
         config {ET.Element} -- An XML element containing default paths.
-        dvh_file {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+        dvh_loc {DvhSource} -- A DvhFile object, the path, to a .dvh file,
             the name of a .dvh file in the default DVH directory, or a
             directory containing .dvh files. If not given,
             the default DVH directory in config will be used.
     Returns:
-        DvhFile -- The plan DVH object for reading.
+        List[PlanDescription] -- A list containing descriptions of .dvh files.
     '''
     if isinstance(dvh_loc, DvhFile):
         dvh_data_source = dvh_loc

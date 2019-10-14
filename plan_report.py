@@ -72,6 +72,7 @@ class ReferenceGroup(NamedTuple):
 
     match_name = property(get_match_name)
 
+
 def load_alias_list(aliases: ET.Element)->Alias:
     '''Read in a list of alias patterns.
     Arguments:
@@ -825,6 +826,7 @@ class Report():
             if success:
                 update_count += 1
         return update_count
+    
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
         Arguments:

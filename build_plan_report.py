@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from plan_report import Report
 from plan_report import load_default_laterality
 from plan_report import load_aliases, load_laterality_table
-from plan_data import DvhFile, Plan
+from plan_data import DvhFile, Plan, PlanDescription
 
 # TODO use file utilities functions for path and filename checking/completion
 def load_config(base_path: Path, config_file_name: str)->ET.Element:
@@ -51,28 +51,31 @@ def load_report_definitions(report_file: Path,
 
 def read_report_files(report_path: Path, **parameters)->Dict[str, Report]:
     report_definitions = dict()
-    report_file = Path(report_path) / 'ReportDefinitions.xml'
-    # TODO Add method to scan directory for report_definition
-    # use glob to find xml files
-    #check root tag to identify report xml files
-    # Question is there an easy way to read the root xml tag without loading the entire file?
-    # After loading reports save all definitions in a pickle file
-    report_dict = load_report_definitions(report_file, parameters)
-    report_definitions.update(report_dict)
+    report_path = Path(r"C:\Users\Greg\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation\GUI\Testing")
+    for file in report_path.glob('*.xml'):
+        file_iter = ET.iterparse(str(file), events=['start'])
+        (event, elm) = file_iter.__next__()
+        if 'ReportDefinitions' in elm.tag:
+            report_dict = load_report_definitions(report_file, parameters)
+            report_definitions.update(report_dict)
     return report_definitions
 
 
-def find_dvh_files(config, plan_path: Path = None)->List[Dict[str,Any]:
+def find_plan_files(config, plan_path: Path = None)->List[PlanDescription]:
     '''Load DVH file headers for all .dvh files in a directory.
+    If plan_path is not given, the default directory in the config file is used.
     Arguments:
         config {ET.Element} -- An XML element containing default paths.
         plan_path {Path} -- A directory containing .dvh files.
     Returns:
-        List[Dict[str,Any]] -- A list containing dictionaries that describe
-        the .dvh files.
+        List[PlanDescription] -- A sorted list containing descriptions of all
+            .dvh files identified in plan_path.
     '''
-    dvh_list = get_dvh(config, plan_path)
-    return dvh_list
+    sort_list = ('patient_name', 'course', 'plan_name', 'export_date')
+    plan_list = get_dvh_list(config, plan_path)
+    if plan_list:
+        plan_set = sorted(plan_list, key=attrgetter(*sort_list))
+    return plan_set
 
 
 def load_plan(config, plan_path, name='Plan', type='DVH',

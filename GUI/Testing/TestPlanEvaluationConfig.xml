@@ -1,14 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!--Created with Liquid Studio 2019 (https://www.liquid-technologies.com)-->
-<!-- Test Version located in SABR_Plan_Report_Testing
--->
+<!--Last Modified Sept 12 2019-->
 <PlanEvaluationConfig>
   <DefaultDirectories>
-    <DVH>.\SABR_Plan_Report_Testing</DVH>
+    <DVH>.\GUI\Testing</DVH>
     <DVH_File>plan.dvh</DVH_File>
-    <ReportDefinitions>.\SABR_Plan_Report_Testing</ReportDefinitions>
-    <ReportTemplates>.\SABR_Plan_Report_Testing</ReportTemplates>
-    <Save>.\SABR Plan Report Testing\Output</Save>
+    <ReportDefinitions>.\GUI\Testing</ReportDefinitions>
+    <ReportTemplates>.\GUI\Testing</ReportTemplates>
+    <Save>.\GUI\Testing\Output</Save>
   </DefaultDirectories>
   <LateralityCodeExceptions>
     <BodyRegion Name="ABLB">lower abdomen</BodyRegion>
