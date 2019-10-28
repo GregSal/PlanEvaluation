@@ -7,6 +7,7 @@ import sys
 import os
 from pathlib import Path
 from operator import attrgetter
+import textwrap as tw
 
 from typing import Optional, Union, Any, Dict, Tuple, List, Set
 from typing import NamedTuple
@@ -15,272 +16,220 @@ from functools import partial
 
 import xml.etree.ElementTree as ET
 
-import tkinter.filedialog as tkf
-import tkinter as tk
-from tkinter import messagebox
+#import tkinter.filedialog as tkf
+#import tkinter as tk
+#from tkinter import messagebox
 
 import PySimpleGUI as sg
 
 import xlwings as xw
 
-from build_plan_report import initialize, read_report_files
+from build_plan_report import initialize, read_report_files, load_config, find_plan_files
 from plan_report import Report, ReferenceGroup, MatchList
-from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements
+from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, get_dvh_list, PlanDescription
 
 
 Values = Dict[str, List[str]]
+ConversionParameters = Dict[str, Union[str, float, None]]
 
 
-#%% Match GUI functions
-class IconPaths(dict):
-    '''Match Parameters for a PlanReference.
-        Report Item name, match status, plan item type, Plan Item name
-    Attributes:
-        match_icon {Path} -- Green Check mark
-        not_matched_icon {str} -- The type of PlanElement.  Can be one of:
-            ('Plan Property', Structure', 'Reference Point', 'Ratio')
-        match_status: {str} -- How a plan value was obtained.  One of:
-            One of Auto, Manual, Direct Entry, or None
-        plan_Item: {str} -- The name of the matched element from the Plan.
-    '''
-    def __init__(self, icon_path):
-        '''Initialize the icon paths.
-        Attributes:
-            icon_path {Path} -- The path to the Icon Directory
-        Contains the following Icon references:
-            match_icon {Path} -- Green Check mark
-            not_matched_icon {Path} -- Red X
-            changed_icon {Path} -- Yellow Sun
-        '''
-        super().__init__()
-        # Icons
-        self['match_icon'] = icon_path / 'Checkmark.png'
-        self['not_matched_icon'] = icon_path / 'Error_Symbol.png'
-        self['changed_icon'] = icon_path / 'emblem-new'
 
-    def path(self, icon_name):
-        '''Return a string path to the icon.
-        Attributes:
-            icon_name {str} -- The name of an icon in the dictionary
-        '''
-        icon_path = self.get(icon_name)
-        if icon_path:
-            return str(icon_path)
-        return None
-
-
-class MatchHistoryItem(NamedTuple):
-    '''Record of a change made to a reference match.
-    Attributes:
-        old_value {ReferenceGroup} -- The value before the change
-        new_value {ReferenceGroup} -- The value after the change
-    '''
-    old_value: ReferenceGroup
-    new_value: ReferenceGroup = None
-
-
-class MatchHistory(list):
-    '''A record of the changes made to the reference matching.
-    Attributes:
-        reference_name {str} -- The name of the PlanReference
-    '''
-    def __init__(self):
-        '''Create an empty list
-        '''
-        super().__init__()
-
-    def add(self, old_value: ReferenceGroup, new_value: ReferenceGroup = None):
-        '''Record a new match change.
+def create_plan_header(desc: PlanDescription)->sp.Frame:
+    def format_plan_text(desc: PlanDescription)->sp.Text:
+        '''Create a text GUI element containing plan info.
         Arguments:
-            old_value {ReferenceGroup} -- The value before the change
-            new_value {ReferenceGroup} -- The value after the change
+            desc {PlanDescription} -- Summary data for the plan.
+        Returns:
+            sp.Text -- A text GUI element with Dose, Course and export date for
+                the plan.
         '''
-        self.append(MatchHistoryItem(old_value, new_value))
+        plan_pattern = 'Dose:\t{dose:>4.1f} in {fractions:>2d}\n'
+        plan_pattern += 'Course:\t{course}\n'
+        plan_pattern += 'Exported:\t{exp_date}'
+        plan_text = plan_pattern.format(dose=desc.dose,
+                                        fractions=desc.fractions,
+                                        course=desc.course,
+                                        exp_date=desc.export_date)
+        plan_desc = sp.Text(text=plan_text,
+                            key='plan_desc',
+                            visible=True)
+        return plan_desc
 
-    def undo(self)->MatchHistoryItem:
-        return self.pop()
+    def format_patient_text(desc: PlanDescription)->sp.Frame:
+        '''Create a Frame GUI element containing patient info for the given plan.
+        Arguments:
+            desc {PlanDescription} -- Summary data for the plan.
+        Returns:
+            sp.Frame -- A text GUI element with patient name and ID for the plan.
+        '''
+        patient_pattern = 'Name:\t{patient_name}\n'
+        patient_pattern += 'ID:\t{id:0>8n}'
+        patient_text = patient_pattern.format(patient_name=desc.patient_name,
+                                              id=desc.patient_id)
+        patient_desc = sp.Text(text=patient_text,
+                               key='patient_desc',
+                               visible=True)
+        patient_header = sp.Frame('Patient:', [[patient_desc]],
+                                  key='patient_header',
+                                  title_location=sp.TITLE_LOCATION_TOP_LEFT,
+                                  font=('Calibri', 12),
+                                  element_justification='left')
+        return patient_header
 
-    def changed(self)->List[ReferenceGroup]:
-        change_list = list()
-        for hist_item in self:
-            if hist_item.new_value:
-                change_list.append(hist_item.new_value)
-        return changed_list
+    plan_title = sp.Text(text=desc.plan_name,
+                         key='plan_title',
+                         font=('Calibri', 14, 'bold'),
+                         justification='center', visible=True)
+    plan_desc = format_plan_text(desc)
+    patient_header = format_patient_text(desc)
+    plan_header = sp.Frame('Plan', [[plan_title], [plan_desc], [patient_header]],
+                           key='plan_header',
+                           title_location=sp.TITLE_LOCATION_TOP,
+                           font=('Calibri', 14, 'bold'),
+                           element_justification='center',
+                           relief=sp.RELIEF_GROOVE, border_width=5)
+    return plan_header
 
 
-def plan_item_menu(plan_elements: PlanItemLookup,
-                   select_type: str = None)->List[PlanElements]:
-    '''Generate a PlanItem Selection menu from a particular type of PlanItem.
+def create_report_header(report: Report)->sp.Frame:
+
+    def create_template_header(report: Report)->sp.Frame:
+        def wrapped_descriptor(desc_text, header_text,
+                               spacer='\t    ', text_width=30):
+            lines = tw.wrap(desc_text, width=text_width)
+            wrapped_text = header + lines[0] + '\n'
+            for line in lines[1:]:
+                wrapped_text += spacer + line +'\n'
+            wrapped_text = wrapped_text[0:-1] # remove final newlines
+            return wrapped_text
+
+        wrapped_file = wrapped_descriptor(report.template_file.name,
+                                          'File:\t    ')
+        wrapped_sheet = wrapped_descriptor(report.worksheet, 'WorkSheet:  ')
+        template_str = wrapped_file + '\n' + wrapped_sheet
+        template_desc = sp.Text(text=template_str,
+                                key='template_desc',
+                                visible=True)
+        template_header = sp.Frame('Template:', [[template_desc]],
+                                   key='template_header',
+                                   title_location=sp.TITLE_LOCATION_TOP_LEFT,
+                                   font=('Calibri', 12),
+                                   element_justification='left')
+        return template_header
+
+    template_header = create_template_header(report)
+    wrapped_desc = tw.fill(report.description, width=40)
+    report_title = sp.Text(text=report.name,
+                           key='report_title',
+                           font=('Calibri', 14, 'bold'),
+                           justification='center',
+                           visible=True)
+    report_desc = sp.Text(text=wrapped_desc,
+                          key='report_desc',
+                          visible=True)
+    report_header = sp.Frame('Report', [[report_title],
+                                        [report_desc],
+                                        [template_header]],
+                             key='report_header',
+                             title_location=sp.TITLE_LOCATION_TOP,
+                             font=('Calibri', 14, 'bold'),
+                             element_justification='center',
+                             relief=sp.RELIEF_GROOVE, border_width=5)
+    return report_header
+
+
+def plan_selector(plan_list: List[PlanDescription]):
+    '''Summary info for a Plan file.
+    Attributes:
+        plan_file {Path} -- The full path to the plan file.
+        file_type {str} -- The type of plan file. Currently only "DVH".
+        patient_name {str} -- The full name of the patient.
+        patient_id {str} -- The ID assigned to the patient (CR#).
+        plan_name {str} -- The plan ID, or name.
+        course {optional, str} -- The course ID.
+        dose {optional, float} -- The prescribed dose in cGy.
+        fractions {optional, int} -- The number of fractions.
+        export_date {optional, str} -- The date, as a string, when the plan
+            file was exported.
     '''
-    element_list = sorted(plan_elements.values(), key=attrgetter('name'))
-    if select_type:
-        element_list = [elmt.name for elmt in element_list
-                        if elmt.element_type in select_type]
-    else:
-        element_list = [elmt.name for elmt in element_list]
-    menu = ['', ['&Match', [element_list], 'Enter &Value', '&Clear']]
-    return menu
-
-
-def make_reference_list(reference_data: Dict[str, ReferenceGroup],
-              sort_list: List[str] = ['reference_type', 'reference_name']
-              )->List[ReferenceGroup]:
-    '''Generate a sorted list of Reference matches.
-    '''
-    reference_list = list(reference_data.values())
-    if sort_list:
-        reference_set = sorted(reference_list, key=attrgetter(*sort_list))
-    else:
-        reference_set = reference_list
-    return reference_set
-
-
-def enter_value(reference_name):
-    '''Simple pop-up window to enter a text value.
-    '''
-    title = 'Enter a value for {}.'.format(reference_name)
-    layout = [[sg.InputText()], [sg.Ok(), sg.Cancel()]]
-    window = sg.Window(title, layout, keep_on_top=True)
-    event, values = window.Read()
-    window.Close()
-    if 'Ok' in event:
-        return values[0]
-    return None
-
-
-def update_menu(values: Values, item_menu, item_list: List[str],
-                reference_data: Dict[str, ReferenceGroup],
-                element_types: Dict[str, str]):
-    '''Update the plan item selection
-    '''
-    selected_item = values['Match_tree'][0]
-    ref = reference_data[selected_item]
-    selected_type = ref.reference_type
-    for index, item_name in enumerate(item_list):
-        item_type = element_types[item_name]
-        if item_type == selected_type:
-            item_menu.entryconfig(index, state='normal')
-        else:
-            item_menu.entryconfig(index, state='disabled')
-    return selected_type
-
-
-def update_match(event: str, values: Values, tree: sg.Tree,
-                 reference_data: Dict[str, ReferenceGroup],
-                 history: MatchHistory)->MatchHistory:
-    '''Update the reference lists
-    '''
-    selection = values.get('Match_tree')
-    if not selection:
-        return history
-    ref = reference_data.get(selection[0])
-    old_value = ReferenceGroup(*ref)
-    new_value = ReferenceGroup(*ref)
-    if 'Enter Value' in event:
-        item_name = enter_value(ref.reference_name)
-        status = 'Direct Entry'
-    elif 'Clear' in event:
-        item_name = None
-        status = None
-    else:
-        item_name = event
-        status = 'Manual'
-    new_value = ReferenceGroup(*new_value[0:-2], status, item_name)
-    history.add(old_value, new_value)
-    lookup = new_value.match_name
-    tree.Update(key=lookup, value=new_value)
-    return history
-
-
-def rerun_match(report: Report, plan: Plan,
-                history: MatchHistory)->Tuple[MatchList, MatchList]:
-    '''Re-run the match with updated plan data and then apply stored manual
-        matching and entries.
-    '''
-    report.match_elements(plan)
-    report.update_references(history.changed(), plan)
-
-
-#%% GUI settings
-def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
-                 reference_data: List[ReferenceGroup])->sg.Window:
+    patients = {plan.name_str() for plan in plan_list}
+    patient_list = sorted(patients)
+    #print(plan_list)
+    #print(patient_list)
     # Constants
-    column_names = ['Name', 'Type', 'Laterality', 'Match', 'Matched Item']
-    show_column = [False, True, False, False, True]
-    column_widths = [30,15,15,15,30]
-    menu = plan_item_menu(plan_elements)
+    column_names = ['Patient', 'Plan Info', 'Course', 'Dose', 'Fractions', 'File', 'Type']
+    show_column = [False, True, False, True, False]
+    column_widths = [30, 30, 5, 5, 30, 10]
     tree_settings = dict(headings=column_names,
                          visible_column_map=show_column,
                          col0_width=30,
                          col_widths=column_widths,
                          auto_size_columns=False,
                          justification='left',
-                         num_rows=20,
-                         key='Match_tree',
+                         num_rows=5,
+                         key='Plan_tree',
                          show_expanded=True,
                          select_mode='browse',
-                         enable_events=True,
-                         right_click_menu=menu)
+                         enable_events=True)
     # Tree data
-    reference_set = make_reference_list(reference_data)
-    # Plan Items for selecting
-    treedata = sg.TreeData()
-    treedata.Insert('','matched', 'Matched', [], icon=icons.path('match_icon'))
-    treedata.Insert('','not_matched', 'Not Matched', [],
-                    icon=icons.path('not_matched_icon'))
-    for ref in reference_set:
-        name = ref.match_name
-        if ref.match_status:
-            treedata.Insert('matched', name, name, ref)
-        else:
-            treedata.Insert('not_matched', name, name, ref)
+    # Plan Files for selecting
+    treedata = sp.TreeData()
+    for patient in patient_list:
+        treedata.Insert('', patient, patient, [])
+    for plan in plan_list:
+        patient = plan.name_str()
+        plan_info = plan.plan_str()
+        values_list = [patient, plan_info, plan.course, plan.dose, plan.fractions, plan.file.name, plan.file_type]
+        treedata.Insert(patient, plan_info, plan_info, values_list)
+    return sp.Tree(data=treedata, **tree_settings)
 
-    # Build window
-    layout = [[sg.Text('Report Item Matching')],
-              [sg.Tree(data=treedata, **tree_settings)],
-              [sg.Button('Approve'), sg.Button('Cancel')]
-             ]
-    window = sg.Window('Match Items', layout=layout,
-                       keep_on_top=True, resizable=True,
-                       return_keyboard_events=False,  finalize=True)
+
+
+
+#%% GUI settings
+def main_window(icons: IconPaths, plan_elements: PlanItemLookup,
+                 reference_data: List[ReferenceGroup])->sg.Window:
+    plan_header = create_plan_header(desc)
+    report_header = create_report_header(report)
+    w = sp.Window('Plan Evaluation',
+        layout=[[plan_header, report_header]],
+        default_element_size=(45, 1),
+        default_button_element_size=(None, None),
+        auto_size_text=None,
+        auto_size_buttons=None,
+        location=(None, None),
+        size=(None, None),
+        element_padding=None,
+        margins=(None, None),
+        button_color=None,
+        font=None,
+        progress_bar_color=(None, None),
+        background_color=None,
+        border_depth=None,
+        auto_close=False,
+        auto_close_duration=3,
+        icon=None,
+        force_toplevel=False,
+        alpha_channel=1,
+        return_keyboard_events=False,
+        use_default_focus=True,
+        text_justification=None,
+        no_titlebar=False,
+        grab_anywhere=False,
+        keep_on_top=False,
+        resizable=False,
+        disable_close=False,
+        disable_minimize=False,
+        right_click_menu=None,
+        transparent_color=None,
+        debugger_enabled=False,
+        finalize=True,
+        element_justification="left")
+
+
+
     return window
 
-def manual_match(report: Report, plan: Plan, icons: IconPaths)->Tuple[Report, Plan]:
-    reference_data = report.get_matches()
-    plan_elements = plan.items()
-    element_types = {name: elmt.element_type
-                     for name, elmt in plan_elements.items()}
-    # %% Match Window
-    window = match_window(icons, plan_elements, reference_data)
-    tree = window['Match_tree']
-    tkmenu = tree.TKRightClickMenu # The top-level right-click menu
-    menu_id = tkmenu.entrycget('Match','menu').split('.')[-1] # The sub-menu name
-    item_menu = tkmenu.children[menu_id] # The sub-menu
-
-    menu_def_list = tree.RightClickMenu
-    item_list = menu_def_list[1][tkmenu.index('Match')+1][0] # List of sub-menu items
-
-    history = MatchHistory()
-    num_updates = None
-    done = False
-    event, values = window.Read()
-    while not done:
-        event, values = window.Read(timeout=200)
-        if event is None:
-            break
-        if event in 'Cancel':
-            break
-        elif event == sg.TIMEOUT_KEY:
-            continue
-        elif event in 'Match_tree':
-            update_menu(values, item_menu, item_list, reference_data, element_types)
-        elif event in 'Approve':
-            num_updates = report.update_references(history.changed(), plan)
-            break
-        else:
-            history = update_match(event, values, tree, reference_data, history)
-    window.Close()
-    return report, plan, num_updates
 
 
 #%% Run Tests
@@ -312,6 +261,8 @@ def main():
     icons = IconPaths(icon_path)
 
     (config, plan, report) = load_test_data(data_path, test_path)
+    w.Read()
+
     report.match_elements(plan)
     (report, plan, num_updates) = manual_match(report, plan, icons)
 

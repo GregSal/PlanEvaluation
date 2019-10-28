@@ -71,12 +71,7 @@ def find_plan_files(config, plan_path: Path = None)->List[PlanDescription]:
         List[PlanDescription] -- A sorted list containing descriptions of all
             .dvh files identified in plan_path.
     '''
-    sort_list = (
-        'patient_name.element_value',
-        'course.element_value',
-        'plan_name.element_value',
-        'export_date.element_value'
-        )
+    sort_list = ('patient_name', 'course', 'plan_name', 'export_date')
     plan_list = get_dvh_list(config, plan_path)
     if plan_list:
         plan_set = sorted(plan_list, key=attrgetter(*sort_list))

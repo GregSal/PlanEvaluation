@@ -56,6 +56,47 @@ class PlanDescription(NamedTuple):
     fractions: int = None
     export_date: str = None
 
+    def parse_name(self):
+        '''Patient Name         : AA, BB
+        '''
+        name = self.patient_name.strip()
+        if ',' in name:
+            last, first = name.split(',',1)
+        elif ' ' in name:
+            first, last = name.split(' ',1)
+        else:
+            last = name
+            first = ' '
+        return first.strip(), last.strip()
+
+
+    def name_str(self):
+        pattern = '{last}, {first_ltr} ({ID:0>8n})'
+        first, last = self.parse_name()
+        if first:
+            fl = first[0]
+        else:
+            fl = ''
+        text = pattern.format(last=last, first_ltr=fl, ID=self.patient_id)
+        return text
+
+    def plan_str(self):
+        pattern = 'Plan: {plan:<12} [{exp_date}]'
+        text = pattern.format(plan=self.plan_name, exp_date=self.export_date)
+        return text
+
+    def __str__(self):
+        '''Make a summary string of the plan info.
+        '''
+        pattern = '{last:>20}, {first_ltr} ({ID:0>8n}) Plan: {plan:<12} [{exp_date}]'
+        first, last = self.parse_name()
+        if first:
+            fl = first[0]
+        else:
+            fl = ''
+        text = pattern.format(last=last, first_ltr=fl, ID=self.patient_id, plan=self.plan_name, exp_date=self.export_date)
+        return text
+
 
 def get_laterality_exceptions(region_code_root: ET.Element)->List[str]:
     '''Load list of body region codes that appear to have a laterality,
@@ -850,12 +891,12 @@ def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
             plan_info = PlanDescription(
                 plan_file=dvh_file,
                 file_type='DVH',
-                patient_name = header['Patient Name'],
-                patient_id = header['Patient ID'],
-                plan_name = header['Plan'],
-                course = header['Course'],
-                dose = header['Prescribed dose'],
-                export_date = header['Date']
+                patient_name = header['Patient Name'].element_value,
+                patient_id = header['Patient ID'].element_value,
+                plan_name = header['Plan'].element_value,
+                course = header['Course'].element_value,
+                dose = header['Prescribed dose'].element_value,
+                export_date = header['Date'].element_value
                 )
             dvh_list.append(plan_info)
         finally:
@@ -959,6 +1000,7 @@ def __init__(self, config: ET.Element, name: str = 'Plan',
     '''
     # TODO add ability to combine initial plan with new plan data
     # Need to make a plan to deal with data collisions
+    # Use an Update method giving priority to Plan instance in the arguments
     self.name = str(name)
     # initialize class structure
     self.default_units = get_default_units(config)
