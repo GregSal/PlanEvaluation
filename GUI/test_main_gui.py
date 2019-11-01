@@ -13,7 +13,7 @@ import textwrap as tw
 from operator import attrgetter
 import xml.etree.ElementTree as ET
 import tkinter as tk
-import PySimpleGUI as sp
+import PySimpleGUI as sg
 
 from plan_data2 import get_dvh_list, PlanDescription
 from build_plan_report import load_config, find_plan_files
@@ -56,7 +56,7 @@ def plan_selector(plan_list: List[PlanDescription]):
                          enable_events=True)
     # Tree data
     # Plan Files for selecting
-    treedata = sp.TreeData()
+    treedata = sg.TreeData()
     for patient in patient_list:
         treedata.Insert('', patient, patient, [])
     for plan in plan_list:
@@ -64,7 +64,7 @@ def plan_selector(plan_list: List[PlanDescription]):
         plan_info = plan.plan_str()
         values_list = [patient, plan_info, plan.course, plan.dose, plan.fractions, plan.file.name, plan.file_type]
         treedata.Insert(patient, plan_info, plan_info, values_list)
-    return sp.Tree(data=treedata, **tree_settings)
+    return sg.Tree(data=treedata, **tree_settings)
 
 #%% Load list of Plan Files
 base_path = Path.cwd()
@@ -82,13 +82,13 @@ worksheet = 'EvaluationSheet 48Gy4F 60Gy5F'
 data_path = Path.cwd()
 file_path = data_path / 'SABR Plan Evaluation Worksheet BLANK For testing.xlsx'
 
-def create_plan_header(desc: PlanDescription)->sp.Frame:
-    def format_plan_text(desc: PlanDescription)->sp.Text:
+def create_plan_header(desc: PlanDescription)->sg.Frame:
+    def format_plan_text(desc: PlanDescription)->sg.Text:
         '''Create a text GUI element containing plan info.
         Arguments:
             desc {PlanDescription} -- Summary data for the plan.
         Returns:
-            sp.Text -- A text GUI element with Dose, Course and export date for
+            sg.Text -- A text GUI element with Dose, Course and export date for
                 the plan.
         '''
         plan_pattern = 'Dose:\t{dose:>4.1f} in {fractions:>2d}\n'
@@ -98,12 +98,12 @@ def create_plan_header(desc: PlanDescription)->sp.Frame:
                                         fractions=desc.fractions,
                                         course=desc.course,
                                         exp_date=desc.export_date)
-        plan_desc = sp.Text(text=plan_text,
+        plan_desc = sg.Text(text=plan_text,
                             key='plan_desc',
                             visible=True)
         return plan_desc
 
-    def format_patient_text(desc: PlanDescription)->sp.Frame:
+    def format_patient_text(desc: PlanDescription)->sg.Frame:
         '''Create a Frame GUI element containing patient info for the given plan.
         Arguments:
             desc {PlanDescription} -- Summary data for the plan.
@@ -114,37 +114,37 @@ def create_plan_header(desc: PlanDescription)->sp.Frame:
         patient_pattern += 'ID:\t{id:0>8n}'
         patient_text = patient_pattern.format(patient_name=desc.patient_name,
                                               id=desc.patient_id)
-        patient_desc = sp.Text(text=patient_text,
+        patient_desc = sg.Text(text=patient_text,
                                key='patient_desc',
                                visible=True)
-        patient_header = sp.Frame('Patient:', [[patient_desc]],
+        patient_header = sg.Frame('Patient:', [[patient_desc]],
                                   key='patient_header',
-                                  title_location=sp.TITLE_LOCATION_TOP_LEFT,
+                                  title_location=sg.TITLE_LOCATION_TOP_LEFT,
                                   font=('Calibri', 12),
                                   element_justification='left')
         return patient_header
 
 
 
-    plan_title = sp.Text(text=desc.plan_name,
+    plan_title = sg.Text(text=desc.plan_name,
                          key='plan_title',
                          font=('Calibri', 14, 'bold'),
                          justification='center', visible=True)
     plan_desc = format_plan_text(desc)
     patient_header = format_patient_text(desc)
-    plan_header = sp.Frame('Plan', [[plan_title], [plan_desc], [patient_header]],
+    plan_header = sg.Frame('Plan', [[plan_title], [plan_desc], [patient_header]],
                            key='plan_header',
-                           title_location=sp.TITLE_LOCATION_TOP,
+                           title_location=sg.TITLE_LOCATION_TOP,
                            font=('Calibri', 14, 'bold'),
                            element_justification='center',
-                           relief=sp.RELIEF_GROOVE, border_width=5)
+                           relief=sg.RELIEF_GROOVE, border_width=5)
     return plan_header
 
 plan_header = create_plan_header(desc)
 
-def create_report_header(report: Report)->sp.Frame:
+def create_report_header(report: Report)->sg.Frame:
 
-    def create_template_header(report: Report)->sp.Frame:
+    def create_template_header(report: Report)->sg.Frame:
         def wrapped_descriptor(desc_text, header_text,
                                spacer='\t    ', text_width=30):
             lines = tw.wrap(desc_text, width=text_width)
@@ -158,39 +158,39 @@ def create_report_header(report: Report)->sp.Frame:
                                           'File:\t    ')
         wrapped_sheet = wrapped_descriptor(report.worksheet, 'WorkSheet:  ')
         template_str = wrapped_file + '\n' + wrapped_sheet
-        template_desc = sp.Text(text=template_str,
+        template_desc = sg.Text(text=template_str,
                                 key='template_desc',
                                 visible=True)
-        template_header = sp.Frame('Template:', [[template_desc]],
+        template_header = sg.Frame('Template:', [[template_desc]],
                                    key='template_header',
-                                   title_location=sp.TITLE_LOCATION_TOP_LEFT,
+                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
                                    font=('Calibri', 12),
                                    element_justification='left')
         return template_header
 
     template_header = create_template_header(report)
     wrapped_desc = tw.fill(report.description, width=40)
-    report_title = sp.Text(text=report.name,
+    report_title = sg.Text(text=report.name,
                            key='report_title',
                            font=('Calibri', 14, 'bold'),
                            justification='center',
                            visible=True)
-    report_desc = sp.Text(text=wrapped_desc,
+    report_desc = sg.Text(text=wrapped_desc,
                           key='report_desc',
                           visible=True)
-    report_header = sp.Frame('Report', [[report_title],
+    report_header = sg.Frame('Report', [[report_title],
                                         [report_desc],
                                         [template_header]],
                              key='report_header',
-                             title_location=sp.TITLE_LOCATION_TOP,
+                             title_location=sg.TITLE_LOCATION_TOP,
                              font=('Calibri', 14, 'bold'),
                              element_justification='center',
-                             relief=sp.RELIEF_GROOVE, border_width=5)
+                             relief=sg.RELIEF_GROOVE, border_width=5)
     return report_header
 
 report_header = create_report_header(file_path, report_description, worksheet, report_name)
 
-w = sp.Window('Plan Evaluation',
+w = sg.Window('Plan Evaluation',
     layout=[[plan_header, report_header]],
     default_element_size=(45, 1),
     default_button_element_size=(None, None),

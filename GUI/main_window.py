@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 '''Run tests of the GUI interface
 '''
 
@@ -32,72 +31,136 @@ from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, get_dvh_list,
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
 
+class IconPaths(dict):
+    '''Match Parameters for a PlanReference.
+        Report Item name, match status, plan item type, Plan Item name
+    Attributes:
+        match_icon {Path} -- Green Check mark
+        not_matched_icon {str} -- The type of PlanElement.  Can be one of:
+            ('Plan Property', Structure', 'Reference Point', 'Ratio')
+        match_status: {str} -- How a plan value was obtained.  One of:
+            One of Auto, Manual, Direct Entry, or None
+        plan_Item: {str} -- The name of the matched element from the Plan.
+    '''
+    def __init__(self, icon_path):
+        '''Initialize the icon paths.
+        Attributes:
+            icon_path {Path} -- The path to the Icon Directory
+        Contains the following Icon references:
+            match_icon {Path} -- Green Check mark
+            not_matched_icon {Path} -- Red X
+            changed_icon {Path} -- Yellow Sun
+        '''
+        super().__init__()
+        # Icons
+        self['match_icon'] = icon_path / 'Checkmark.png'
+        self['not_matched_icon'] = icon_path / 'Error_Symbol.png'
+        self['changed_icon'] = icon_path / 'emblem-new'
+
+    def path(self, icon_name):
+        '''Return a string path to the icon.
+        Attributes:
+            icon_name {str} -- The name of an icon in the dictionary
+        '''
+        icon_path = self.get(icon_name)
+        if icon_path:
+            return str(icon_path)
+        return None
 
 
-def create_plan_header(desc: PlanDescription)->sp.Frame:
-    def format_plan_text(desc: PlanDescription)->sp.Text:
+
+
+#%% Plan Header
+
+def create_plan_header(desc: PlanDescription)->sg.Frame:
+    def format_plan_text(desc: PlanDescription)->sg.Text:
         '''Create a text GUI element containing plan info.
         Arguments:
             desc {PlanDescription} -- Summary data for the plan.
         Returns:
-            sp.Text -- A text GUI element with Dose, Course and export date for
-                the plan.
+            sg.Column -- A group of text GUI s with Dose, Course and
+            export date for the plan.
         '''
-        plan_pattern = 'Dose:\t{dose:>4.1f} in {fractions:>2d}\n'
-        plan_pattern += 'Course:\t{course}\n'
-        plan_pattern += 'Exported:\t{exp_date}'
-        plan_text = plan_pattern.format(dose=desc.dose,
-                                        fractions=desc.fractions,
-                                        course=desc.course,
-                                        exp_date=desc.export_date)
-        plan_desc = sp.Text(text=plan_text,
-                            key='plan_desc',
-                            visible=True)
+        dose_value=desc.dose
+        fractions_value=desc.fractions
+        if dose_value:
+            if fractions_value:
+                dose_pattern =  '{dose:>4.1f}cGy in {fractions:>2d} fractions'
+                dose_text = dose_pattern.format(dose=dose_value,
+                                                fractions=fractions_value)
+            else:
+                dose_pattern =  '{dose:>4.1f}cGy'
+                dose_text = dose_pattern.format(dose=dose_value)
+        else:
+            dose_text = ''
+        plan_labels = [[sg.Text('Dose:', size=(8,1), pad=(0,0))],
+                       [sg.Text('Course:', size=(8,1), pad=(0,0))],
+                       [sg.Text('Exported:', size=(8,1), pad=(0,0))]
+                        ]
+        plan_values = [[sg.Text(dose_text, key='dose_text', size=(20,1), pad=(0,0))],
+                       [sg.Text(desc.course, key='course_text', size=(20,1), pad=(0,0))],
+                       [sg.Text(desc.export_date, key='exported_text', size=(20,1), pad=(0,0))]
+                       ]
+        layout = [[sg.Column(plan_labels, pad=(0,0)), sg.Column(plan_values, pad=(0,0))]]
+        plan_desc = sg.Column(layout, key='plan_desc', visible=True, pad=(0,0))
         return plan_desc
 
-    def format_patient_text(desc: PlanDescription)->sp.Frame:
+    def format_patient_text(desc: PlanDescription)->sg.Frame:
         '''Create a Frame GUI element containing patient info for the given plan.
         Arguments:
             desc {PlanDescription} -- Summary data for the plan.
         Returns:
-            sp.Frame -- A text GUI element with patient name and ID for the plan.
+            sg.Frame -- A text GUI element with patient name and ID for the plan.
         '''
-        patient_pattern = 'Name:\t{patient_name}\n'
-        patient_pattern += 'ID:\t{id:0>8n}'
-        patient_text = patient_pattern.format(patient_name=desc.patient_name,
-                                              id=desc.patient_id)
-        patient_desc = sp.Text(text=patient_text,
-                               key='patient_desc',
-                               visible=True)
-        patient_header = sp.Frame('Patient:', [[patient_desc]],
+        name_value = desc.patient_name
+        id = desc.patient_id
+        try:
+            id_value = int(id)
+        except (ValueError, TypeError):
+            id_value = str(id)
+            id_pattern = '{id:>8s}'
+        else:
+            id_pattern = '{id:0>8n}'
+        finally:
+            id_text = id_pattern.format(id=id_value)
+        patient_labels = [[sg.Text('Name:', size=(6,1), pad=(0,0))],
+                          [sg.Text('ID:', size=(6,1), pad=(0,0))]
+                          ]
+        patient_values = [[sg.Text(desc.patient_name, key='pt_name_text', pad=(0,0))],
+                          [sg.Text(id_text, key='id_text', pad=(0,0))]
+                          ]
+        layout = [[sg.Column(patient_labels, pad=(0,0)), sg.Column(patient_values, pad=(0,0))]]
+        patient_desc = sg.Column(layout, key='plan_desc', visible=True, pad=(0,0))
+        patient_header = sg.Frame('Patient:', [[patient_desc]],
                                   key='patient_header',
-                                  title_location=sp.TITLE_LOCATION_TOP_LEFT,
+                                  title_location=sg.TITLE_LOCATION_TOP_LEFT,
                                   font=('Calibri', 12),
                                   element_justification='left')
         return patient_header
 
-    plan_title = sp.Text(text=desc.plan_name,
+    plan_title = sg.Text(text=desc.plan_name,
                          key='plan_title',
                          font=('Calibri', 14, 'bold'),
                          justification='center', visible=True)
     plan_desc = format_plan_text(desc)
     patient_header = format_patient_text(desc)
-    plan_header = sp.Frame('Plan', [[plan_title], [plan_desc], [patient_header]],
+    plan_header = sg.Frame('Plan', [[plan_title], [plan_desc], [patient_header]],
                            key='plan_header',
-                           title_location=sp.TITLE_LOCATION_TOP,
+                           title_location=sg.TITLE_LOCATION_TOP,
                            font=('Calibri', 14, 'bold'),
                            element_justification='center',
-                           relief=sp.RELIEF_GROOVE, border_width=5)
+                           relief=sg.RELIEF_GROOVE, border_width=5)
     return plan_header
 
+#%% Report Header
 
-def create_report_header(report: Report)->sp.Frame:
+def create_report_header(report: Report)->sg.Frame:
 
-    def create_template_header(report: Report)->sp.Frame:
+    def create_template_header(report: Report)->sg.Frame:
         def wrapped_descriptor(desc_text, header_text,
                                spacer='\t    ', text_width=30):
             lines = tw.wrap(desc_text, width=text_width)
-            wrapped_text = header + lines[0] + '\n'
+            wrapped_text = header_text + lines[0] + '\n'
             for line in lines[1:]:
                 wrapped_text += spacer + line +'\n'
             wrapped_text = wrapped_text[0:-1] # remove final newlines
@@ -107,36 +170,37 @@ def create_report_header(report: Report)->sp.Frame:
                                           'File:\t    ')
         wrapped_sheet = wrapped_descriptor(report.worksheet, 'WorkSheet:  ')
         template_str = wrapped_file + '\n' + wrapped_sheet
-        template_desc = sp.Text(text=template_str,
+        template_desc = sg.Text(text=template_str,
                                 key='template_desc',
                                 visible=True)
-        template_header = sp.Frame('Template:', [[template_desc]],
+        template_header = sg.Frame('Template:', [[template_desc]],
                                    key='template_header',
-                                   title_location=sp.TITLE_LOCATION_TOP_LEFT,
+                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
                                    font=('Calibri', 12),
                                    element_justification='left')
         return template_header
 
     template_header = create_template_header(report)
     wrapped_desc = tw.fill(report.description, width=40)
-    report_title = sp.Text(text=report.name,
+    report_title = sg.Text(text=report.name,
                            key='report_title',
                            font=('Calibri', 14, 'bold'),
                            justification='center',
                            visible=True)
-    report_desc = sp.Text(text=wrapped_desc,
+    report_desc = sg.Text(text=wrapped_desc,
                           key='report_desc',
                           visible=True)
-    report_header = sp.Frame('Report', [[report_title],
+    report_header = sg.Frame('Report', [[report_title],
                                         [report_desc],
                                         [template_header]],
                              key='report_header',
-                             title_location=sp.TITLE_LOCATION_TOP,
+                             title_location=sg.TITLE_LOCATION_TOP,
                              font=('Calibri', 14, 'bold'),
                              element_justification='center',
-                             relief=sp.RELIEF_GROOVE, border_width=5)
+                             relief=sg.RELIEF_GROOVE, border_width=5)
     return report_header
 
+#%% Plan Selector
 
 def plan_selector(plan_list: List[PlanDescription]):
     '''Summary info for a Plan file.
@@ -158,7 +222,7 @@ def plan_selector(plan_list: List[PlanDescription]):
     #print(patient_list)
     # Constants
     column_names = ['Patient', 'Plan Info', 'Course', 'Dose', 'Fractions', 'File', 'Type']
-    show_column = [False, True, False, True, False]
+    show_column = [False, False, False, True, False]
     column_widths = [30, 30, 5, 5, 30, 10]
     tree_settings = dict(headings=column_names,
                          visible_column_map=show_column,
@@ -173,15 +237,15 @@ def plan_selector(plan_list: List[PlanDescription]):
                          enable_events=True)
     # Tree data
     # Plan Files for selecting
-    treedata = sp.TreeData()
+    treedata = sg.TreeData()
     for patient in patient_list:
-        treedata.Insert('', patient, patient, [])
+        treedata.Insert('', patient, patient, [patient])
     for plan in plan_list:
         patient = plan.name_str()
         plan_info = plan.plan_str()
-        values_list = [patient, plan_info, plan.course, plan.dose, plan.fractions, plan.file.name, plan.file_type]
+        values_list = [patient, plan_info, plan.course, plan.dose, plan.fractions, plan.plan_file.name, plan.file_type]
         treedata.Insert(patient, plan_info, plan_info, values_list)
-    return sp.Tree(data=treedata, **tree_settings)
+    return sg.Tree(data=treedata, **tree_settings)
 
 
 
@@ -191,7 +255,7 @@ def main_window(icons: IconPaths, plan_elements: PlanItemLookup,
                  reference_data: List[ReferenceGroup])->sg.Window:
     plan_header = create_plan_header(desc)
     report_header = create_report_header(report)
-    w = sp.Window('Plan Evaluation',
+    w = sg.Window('Plan Evaluation',
         layout=[[plan_header, report_header]],
         default_element_size=(45, 1),
         default_button_element_size=(None, None),
@@ -225,47 +289,89 @@ def main_window(icons: IconPaths, plan_elements: PlanItemLookup,
         debugger_enabled=False,
         finalize=True,
         element_justification="left")
-
-
-
     return window
 
 
-
-#%% Run Tests
-def load_test_data(data_path: Path,
-                   test_path: Path)->Tuple[ET.Element, Plan, Report]:
-    ''' Load test data.
-    '''
-    # Define Folder Paths
-    dvh_file = 'SABR1.dvh'
-    report_name = 'SABR 54 in 3'
-    config_file = 'PlanEvaluationConfig.xml'
-    dvh_path = test_path / dvh_file
-    # Load Config file and Report definitions
-    (config, report_parameters) = initialize(data_path, config_file)
-    report_definitions = read_report_files(**report_parameters)
-    report = deepcopy(report_definitions[report_name])
-    plan = Plan(config, 'test', DvhFile(dvh_path))
-    return(config, plan, report)
-
-
+#%% Main
 def main():
     '''Define Folder Paths, load report and plan data.
     '''
-    base_path = Path.cwd()
+    base_path = Path.cwd() / '..'
     test_path = base_path / 'GUI' / 'Testing'
-    data_path = base_path / 'Data'
+    data_path = test_path
     results_path = base_path / 'GUI' / 'Output'
-    icon_path = base_path / 'icons'
+    icon_path = base_path / 'GUI' / 'icons'
     icons = IconPaths(icon_path)
 
-    (config, plan, report) = load_test_data(data_path, test_path)
+    #%% Initial Plan and Report Settings
+    config_file = 'TestPlanEvaluationConfig.xml'
+    desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
+                           4800, 4,  'Tuesday, August 29, 2017 16:19:54')
+    report_name = 'SABR 54 in 3'
+    report_description = 'SABR Plan Evaluation Sheet for 12Gy/fr Schedules '
+    report_description += '(48 Gy in 4F) or (60Gy/5F)'
+
+    #%% Load Config file and Report definitions
+    (config, report_parameters) = initialize(data_path, config_file)
+    report_definitions = read_report_files(**report_parameters)
+    report = deepcopy(report_definitions[report_name])
+
+    #%% Load list of Plan Files
+    plan_list = find_plan_files(config, test_path)
+
+    plan_header = create_plan_header(desc)
+    report_header = create_report_header(report)
+
+
+
     w.Read()
 
     report.match_elements(plan)
     (report, plan, num_updates) = manual_match(report, plan, icons)
 
 
-if __name__ == '__main__':
-    main()
+#%% Run Tests
+
+#if __name__ == '__main__':
+#    main()
+
+base_path = Path.cwd()
+test_path = base_path / 'GUI' / 'Testing'
+data_path = test_path
+results_path = base_path / 'GUI' / 'Output'
+icon_path = base_path / 'GUI' / 'icons'
+icons = IconPaths(icon_path)
+
+#%% Initial Plan Settings
+config_file = 'TestPlanEvaluationConfig.xml'
+desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
+                        4800, 4,  'Tuesday, August 29, 2017 16:19:54')
+report_name = 'SABR 54 in 3'
+
+#%% Load Config file and Report definitions
+(config, report_definitions) = initialize(data_path, config_file)
+report = deepcopy(report_definitions[report_name])
+
+#%% Load list of Plan Files
+plan_list = find_plan_files(config, test_path)
+sg.SetOptions(element_padding=(0,0))
+plan_header = create_plan_header(desc)
+report_header = create_report_header(report)
+plan_selection = plan_selector(plan_list)
+layout = [[plan_header, report_header],
+          [plan_selection]
+          ]
+
+w = sg.Window('Plan Evaluation',
+    layout=layout,
+    resizable=True,
+    debugger_enabled=True,
+    finalize=True,
+    element_justification="left")
+
+while True:
+    event, values = w.Read(timeout=200)
+    if event is None:
+        break
+    elif event == sg.TIMEOUT_KEY:
+        continue
