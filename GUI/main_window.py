@@ -104,11 +104,12 @@ def create_plan_header(desc: PlanDescription)->sg.Frame:
     finally:
         id_text = id_pattern.format(id=id_value)
     patient_desc = [
-        [sg.Text('Name:', size=(6,1)), sg.Text(desc.patient_name, key='pt_name_text')],
-        [sg.Text('ID:', size=(6,1)), sg.Text(id_text, key='id_text')]
+        [sg.Text('Name:', size=(8,1)), sg.Text(desc.patient_name, key='pt_name_text')],
+        [sg.Text('ID:', size=(8,1)), sg.Text(id_text, key='id_text', size=(43,1))]
         ]
     patient_header = sg.Frame('Patient:', patient_desc,
                               key='patient_header',
+                              size=(47,12),
                               title_location=sg.TITLE_LOCATION_TOP_LEFT,
                               font=('Calibri', 12),
                               element_justification='left')
@@ -126,6 +127,7 @@ def create_plan_header(desc: PlanDescription)->sg.Frame:
         [patient_header]
         ]
     plan_header = sg.Frame('Plan', header_layout, key='plan_header',
+                           size=(48,12),
                            title_location=sg.TITLE_LOCATION_TOP,
                            font=('Arial Black', 14, 'bold'),
                            element_justification='center',
@@ -146,10 +148,12 @@ def create_report_header(report: Report)->sg.Frame:
     report_title = sg.Text(text=report.name,
                            key='report_title',
                            font=('Calibri', 14, 'bold'),
+                           pad=((5, 0), (0, 10)),
                            justification='center',
                            visible=True)
     report_desc = sg.Text(text=wrapped_desc,
                           key='report_desc',
+                          pad=(10, 3),
                           visible=True)
     template_header = sg.Frame('Template:', template_layout,
                                    key='template_header',
@@ -172,24 +176,36 @@ def create_report_header(report: Report)->sg.Frame:
 
 
 #%% Plan Selector
-
 def plan_selector(plan_list: List[PlanDescription]):
     '''Plan Selection GUI
     '''
     patients = {plan.name_str() for plan in plan_list}
     patient_list = sorted(patients)
-    column_names = ['Patient', 'Plan Info', 'Course', 'Dose', 'Fractions', 'File', 'Type']
-    show_column = [False, False, False, True, False] # Show only Fractions
-    column_widths = [30, 30, 5, 5, 30, 10]
+    column_settings = [
+        ('Patient', False, 15),
+        ('Plan Info', False, 30),
+        ('File', False, 30),
+        ('Type', False, 6),
+        ('Patient Name', False, 12),
+        ('Patient ID', False, 10),
+        ('Plan Name', False, 6),
+        ('Course', False, 5),
+        ('Dose', True, 5),
+        ('Fractions', False, 3),
+        ('Exported On', True, 21)
+        ]
+    column_names = [col[0] for col in column_settings]
+    show_column = [col[1] for col in column_settings]
+    column_widths = [col[2] for col in column_settings]
     tree_settings = dict(key='Plan_tree',
                          headings=column_names,
                          visible_column_map=show_column,
-                         col0_width=30,
+                         col0_width=12,
                          col_widths=column_widths,
                          auto_size_columns=False,
                          justification='left',
                          num_rows=5,
-                         font=('Verdana', 104, 'normal'),
+                         font=('Verdana', 8, 'normal'),
                          show_expanded=True,
                          select_mode='browse',
                          enable_events=True)
@@ -201,11 +217,22 @@ def plan_selector(plan_list: List[PlanDescription]):
     for plan in plan_list:
         patient = plan.name_str()
         plan_info = plan.plan_str()
-        values_list = [patient, plan_info, plan.course, plan.dose, plan.fractions, plan.plan_file.name, plan.file_type]
-        treedata.Insert(patient, plan_info, plan_info, values_list)
+        values_list = ['', plan_info]
+        values_list.extend(plan)
+        treedata.Insert(patient, plan_info, plan.plan_name, values_list)
     return sg.Tree(data=treedata, **tree_settings)
 
 
+#%% Report Selector
+def report_selector(report_definitions: Dict[str, Report]):
+    '''Report Selection GUI
+    '''
+    report_list = [str(ky) for ky in report_definitions.keys()]
+    report_selector_box = sg.Combo(report_list,
+                                   key='report_selector',
+                                   size=(40, 5),
+                                   readonly=True)
+    return report_selector_box
 
 
 #%% GUI settings
@@ -276,7 +303,6 @@ def main():
 
     #%% Load list of Plan Files
     plan_list = find_plan_files(config, test_path)
-
     plan_header = create_plan_header(desc)
     report_header = create_report_header(report)
 
@@ -316,8 +342,9 @@ sg.SetOptions(element_padding=(0,0), margins=(0,0))
 plan_header = create_plan_header(desc)
 report_header = create_report_header(report)
 plan_selection = plan_selector(plan_list)
+report_selection = report_selector(report_definitions)
 layout = [[plan_header, report_header],
-          [plan_selection]
+          [plan_selection, report_selection]
           ]
 
 w = sg.Window('Plan Evaluation',
