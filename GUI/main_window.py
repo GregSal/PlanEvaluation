@@ -71,117 +71,78 @@ class IconPaths(dict):
 
 
 #%% Plan Header
-
 def create_plan_header(desc: PlanDescription)->sg.Frame:
-    def format_plan_text(desc: PlanDescription)->sg.Text:
-        '''Create a text GUI element containing plan info.
-        Arguments:
-            desc {PlanDescription} -- Summary data for the plan.
-        Returns:
-            sg.Column -- A group of text GUI s with Dose, Course and
-            export date for the plan.
-        '''
-        dose_value=desc.dose
-        fractions_value=desc.fractions
-        if dose_value:
-            if fractions_value:
-                dose_pattern =  '{dose:>4.1f}cGy in {fractions:>2d} fractions'
-                dose_text = dose_pattern.format(dose=dose_value,
-                                                fractions=fractions_value)
-            else:
-                dose_pattern =  '{dose:>4.1f}cGy'
-                dose_text = dose_pattern.format(dose=dose_value)
+    '''Create a Frame GUI element containing patient and plan info.
+    Arguments:
+        desc {PlanDescription} -- Summary data for the plan.
+    Returns:
+        sg.Frame -- A group of text GUI s with Dose, Course,
+        export date, patient name and ID for the plan.
+    '''
+    # Set Dose Text
+    dose_value=desc.dose
+    fractions_value=desc.fractions
+    if dose_value:
+        if fractions_value:
+            dose_pattern =  '{dose:>4.1f}cGy in {fractions:>2d} fractions'
+            dose_text = dose_pattern.format(dose=dose_value,
+                                            fractions=fractions_value)
         else:
-            dose_text = ''
-        plan_labels = [[sg.Text('Dose:', size=(8,1), pad=(0,0))],
-                       [sg.Text('Course:', size=(8,1), pad=(0,0))],
-                       [sg.Text('Exported:', size=(8,1), pad=(0,0))]
-                        ]
-        plan_values = [[sg.Text(dose_text, key='dose_text', size=(20,1), pad=(0,0))],
-                       [sg.Text(desc.course, key='course_text', size=(20,1), pad=(0,0))],
-                       [sg.Text(desc.export_date, key='exported_text', size=(20,1), pad=(0,0))]
-                       ]
-        layout = [[sg.Column(plan_labels, pad=(0,0)), sg.Column(plan_values, pad=(0,0))]]
-        plan_desc = sg.Column(layout, key='plan_desc', visible=True, pad=(0,0))
-        return plan_desc
-
-    def format_patient_text(desc: PlanDescription)->sg.Frame:
-        '''Create a Frame GUI element containing patient info for the given plan.
-        Arguments:
-            desc {PlanDescription} -- Summary data for the plan.
-        Returns:
-            sg.Frame -- A text GUI element with patient name and ID for the plan.
-        '''
-        name_value = desc.patient_name
-        id = desc.patient_id
-        try:
-            id_value = int(id)
-        except (ValueError, TypeError):
-            id_value = str(id)
-            id_pattern = '{id:>8s}'
-        else:
-            id_pattern = '{id:0>8n}'
-        finally:
-            id_text = id_pattern.format(id=id_value)
-        patient_labels = [[sg.Text('Name:', size=(6,1), pad=(0,0))],
-                          [sg.Text('ID:', size=(6,1), pad=(0,0))]
-                          ]
-        patient_values = [[sg.Text(desc.patient_name, key='pt_name_text', pad=(0,0))],
-                          [sg.Text(id_text, key='id_text', pad=(0,0))]
-                          ]
-        layout = [[sg.Column(patient_labels, pad=(0,0)), sg.Column(patient_values, pad=(0,0))]]
-        patient_desc = sg.Column(layout, key='plan_desc', visible=True, pad=(0,0))
-        patient_header = sg.Frame('Patient:', [[patient_desc]],
-                                  key='patient_header',
-                                  title_location=sg.TITLE_LOCATION_TOP_LEFT,
-                                  font=('Calibri', 12),
-                                  element_justification='left')
-        return patient_header
-
+            dose_pattern =  '{dose:>4.1f}cGy'
+            dose_text = dose_pattern.format(dose=dose_value)
+    else:
+        dose_text = ''
+    # Set Patient Header
+    pt_id = desc.patient_id
+    try:
+        id_value = int(pt_id)
+    except (ValueError, TypeError):
+        id_value = str(pt_id)
+        id_pattern = '{id:>8s}'
+    else:
+        id_pattern = '{id:0>8n}'
+    finally:
+        id_text = id_pattern.format(id=id_value)
+    patient_desc = [
+        [sg.Text('Name:', size=(6,1)), sg.Text(desc.patient_name, key='pt_name_text')],
+        [sg.Text('ID:', size=(6,1)), sg.Text(id_text, key='id_text')]
+        ]
+    patient_header = sg.Frame('Patient:', patient_desc,
+                              key='patient_header',
+                              title_location=sg.TITLE_LOCATION_TOP_LEFT,
+                              font=('Calibri', 12),
+                              element_justification='left')
+    # Set Main Label
     plan_title = sg.Text(text=desc.plan_name,
                          key='plan_title',
                          font=('Calibri', 14, 'bold'),
+                         pad=((5, 0), (0, 10)),
                          justification='center', visible=True)
-    plan_desc = format_plan_text(desc)
-    patient_header = format_patient_text(desc)
-    plan_header = sg.Frame('Plan', [[plan_title], [plan_desc], [patient_header]],
-                           key='plan_header',
+    header_layout = [
+        [plan_title],
+        [sg.Text('Dose:', size=(8,1)), sg.Text(dose_text, key='dose_text')],
+        [sg.Text('Course:', size=(8,1)), sg.Text(desc.course, key='course_text')],
+        [sg.Text('Exported:', size=(8,1)), sg.Text(desc.export_date, key='exported_text')],
+        [patient_header]
+        ]
+    plan_header = sg.Frame('Plan', header_layout, key='plan_header',
                            title_location=sg.TITLE_LOCATION_TOP,
-                           font=('Calibri', 14, 'bold'),
+                           font=('Arial Black', 14, 'bold'),
                            element_justification='center',
                            relief=sg.RELIEF_GROOVE, border_width=5)
     return plan_header
 
 #%% Report Header
-
 def create_report_header(report: Report)->sg.Frame:
-
-    def create_template_header(report: Report)->sg.Frame:
-        def wrapped_descriptor(desc_text, header_text,
-                               spacer='\t    ', text_width=30):
-            lines = tw.wrap(desc_text, width=text_width)
-            wrapped_text = header_text + lines[0] + '\n'
-            for line in lines[1:]:
-                wrapped_text += spacer + line +'\n'
-            wrapped_text = wrapped_text[0:-1] # remove final newlines
-            return wrapped_text
-
-        wrapped_file = wrapped_descriptor(report.template_file.name,
-                                          'File:\t    ')
-        wrapped_sheet = wrapped_descriptor(report.worksheet, 'WorkSheet:  ')
-        template_str = wrapped_file + '\n' + wrapped_sheet
-        template_desc = sg.Text(text=template_str,
-                                key='template_desc',
-                                visible=True)
-        template_header = sg.Frame('Template:', [[template_desc]],
-                                   key='template_header',
-                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
-                                   font=('Calibri', 12),
-                                   element_justification='left')
-        return template_header
-
-    template_header = create_template_header(report)
     wrapped_desc = tw.fill(report.description, width=40)
+    wrapped_file = tw.fill(report.template_file.name, width=30)
+    wrapped_sheet = tw.fill(report.worksheet, width=30)
+    template_layout = [
+        [sg.Text('File:', size=(12,1)),
+         sg.Text(wrapped_file, key='template_file')],
+        [sg.Text('WorkSheet:', size=(12,1)),
+         sg.Text(wrapped_sheet, key='template_sheet')],
+        ]
     report_title = sg.Text(text=report.name,
                            key='report_title',
                            font=('Calibri', 14, 'bold'),
@@ -190,48 +151,45 @@ def create_report_header(report: Report)->sg.Frame:
     report_desc = sg.Text(text=wrapped_desc,
                           key='report_desc',
                           visible=True)
-    report_header = sg.Frame('Report', [[report_title],
-                                        [report_desc],
-                                        [template_header]],
+    template_header = sg.Frame('Template:', template_layout,
+                                   key='template_header',
+                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
+                                   font=('Calibri', 12),
+                                   element_justification='left')
+    header_layout = [
+        [report_title],
+        [report_desc],
+        [template_header]
+        ]
+    report_header = sg.Frame('Report', header_layout,
                              key='report_header',
                              title_location=sg.TITLE_LOCATION_TOP,
-                             font=('Calibri', 14, 'bold'),
+                             font=('Arial Black', 14, 'bold'),
                              element_justification='center',
                              relief=sg.RELIEF_GROOVE, border_width=5)
     return report_header
 
+
+
 #%% Plan Selector
 
 def plan_selector(plan_list: List[PlanDescription]):
-    '''Summary info for a Plan file.
-    Attributes:
-        plan_file {Path} -- The full path to the plan file.
-        file_type {str} -- The type of plan file. Currently only "DVH".
-        patient_name {str} -- The full name of the patient.
-        patient_id {str} -- The ID assigned to the patient (CR#).
-        plan_name {str} -- The plan ID, or name.
-        course {optional, str} -- The course ID.
-        dose {optional, float} -- The prescribed dose in cGy.
-        fractions {optional, int} -- The number of fractions.
-        export_date {optional, str} -- The date, as a string, when the plan
-            file was exported.
+    '''Plan Selection GUI
     '''
     patients = {plan.name_str() for plan in plan_list}
     patient_list = sorted(patients)
-    #print(plan_list)
-    #print(patient_list)
-    # Constants
     column_names = ['Patient', 'Plan Info', 'Course', 'Dose', 'Fractions', 'File', 'Type']
-    show_column = [False, False, False, True, False]
+    show_column = [False, False, False, True, False] # Show only Fractions
     column_widths = [30, 30, 5, 5, 30, 10]
-    tree_settings = dict(headings=column_names,
+    tree_settings = dict(key='Plan_tree',
+                         headings=column_names,
                          visible_column_map=show_column,
                          col0_width=30,
                          col_widths=column_widths,
                          auto_size_columns=False,
                          justification='left',
                          num_rows=5,
-                         key='Plan_tree',
+                         font=('Verdana', 104, 'normal'),
                          show_expanded=True,
                          select_mode='browse',
                          enable_events=True)
@@ -354,7 +312,7 @@ report = deepcopy(report_definitions[report_name])
 
 #%% Load list of Plan Files
 plan_list = find_plan_files(config, test_path)
-sg.SetOptions(element_padding=(0,0))
+sg.SetOptions(element_padding=(0,0), margins=(0,0))
 plan_header = create_plan_header(desc)
 report_header = create_report_header(report)
 plan_selection = plan_selector(plan_list)

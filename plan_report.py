@@ -819,14 +819,21 @@ class Report():
         match_data = {name: ref.match for name, ref in self.references.items()}
         return match_data
 
-    def update_references(new_refs: List[ReferenceGroup], plan: Plan)->int:
-        update_count = 0
-        for new_ref in new_refs:
-            ref_def = self.references[new_ref.reference_name]
-            success = ref_def.update_ref(new_ref, plan)
-            if success:
-                update_count += 1
-        return update_count
+    def update_ref(self, new_ref: ReferenceGroup, plan: Plan)->bool:
+        updated = False
+        self['match_method'] = new_ref.match_status
+        if not new_ref.match_status:
+            self['plan_element'] = None
+            updated = True
+        elif new_ref.match_status is 'Direct Entry':
+            self['plan_element'] = new_ref.plan_Item
+            updated = True
+        elif new_ref.match_status is 'Manual':
+            matched_element = plan.get_data_element(new_ref.reference_type,
+                                                    new_ref.plan_Item)
+            self['plan_element'] = matched_element
+            updated = True
+        return updated
 
     def get_values(self, plan: Plan):
         '''Get values for the Report Elements from the plan data.
