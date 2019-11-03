@@ -3,6 +3,7 @@
 from typing import Any, Dict, Tuple, List
 from copy import deepcopy
 from operator import attrgetter
+from collections import OrderedDict
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -68,14 +69,19 @@ def find_plan_files(config, plan_path: Path = None)->List[PlanDescription]:
         config {ET.Element} -- An XML element containing default paths.
         plan_path {Path} -- A directory containing .dvh files.
     Returns:
-        List[PlanDescription] -- A sorted list containing descriptions of all
-            .dvh files identified in plan_path.
+        OrderedDict[str, PlanDescription] -- A sorted dictionary containing
+            descriptions of all .dvh files identified in plan_path.
     '''
     sort_list = ('patient_name', 'course', 'plan_name', 'export_date')
     plan_list = get_dvh_list(config, plan_path)
     if plan_list:
+        plan_dict = OrderedDict()
         plan_set = sorted(plan_list, key=attrgetter(*sort_list))
-    return plan_set
+        for plan in plan_list:
+            plan_dict[plan.plan_str()] = plan
+    else:
+        plan_dict = None
+    return plan_dict
 
 
 def load_plan(config, plan_path, name='Plan', type='DVH',

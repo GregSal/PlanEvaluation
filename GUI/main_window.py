@@ -12,6 +12,7 @@ from typing import Optional, Union, Any, Dict, Tuple, List, Set
 from typing import NamedTuple
 from copy import deepcopy
 from functools import partial
+from collections import OrderedDict
 
 import xml.etree.ElementTree as ET
 
@@ -68,44 +69,16 @@ class IconPaths(dict):
         return None
 
 
-
-
 #%% Plan Header
-def create_plan_header(desc: PlanDescription)->sg.Frame:
+def create_plan_header()->sg.Frame:
     '''Create a Frame GUI element containing patient and plan info.
-    Arguments:
-        desc {PlanDescription} -- Summary data for the plan.
     Returns:
         sg.Frame -- A group of text GUI s with Dose, Course,
         export date, patient name and ID for the plan.
     '''
-    # Set Dose Text
-    dose_value=desc.dose
-    fractions_value=desc.fractions
-    if dose_value:
-        if fractions_value:
-            dose_pattern =  '{dose:>4.1f}cGy in {fractions:>2d} fractions'
-            dose_text = dose_pattern.format(dose=dose_value,
-                                            fractions=fractions_value)
-        else:
-            dose_pattern =  '{dose:>4.1f}cGy'
-            dose_text = dose_pattern.format(dose=dose_value)
-    else:
-        dose_text = ''
-    # Set Patient Header
-    pt_id = desc.patient_id
-    try:
-        id_value = int(pt_id)
-    except (ValueError, TypeError):
-        id_value = str(pt_id)
-        id_pattern = '{id:>8s}'
-    else:
-        id_pattern = '{id:0>8n}'
-    finally:
-        id_text = id_pattern.format(id=id_value)
     patient_desc = [
-        [sg.Text('Name:', size=(8,1)), sg.Text(desc.patient_name, key='pt_name_text')],
-        [sg.Text('ID:', size=(8,1)), sg.Text(id_text, key='id_text', size=(43,1))]
+        [sg.Text('Name:', size=(8,1)), sg.Text('', key='pt_name_text', size=(43,1))],
+        [sg.Text('ID:', size=(8,1)), sg.Text('', key='id_text', size=(43,1))]
         ]
     patient_header = sg.Frame('Patient:', patient_desc,
                               key='patient_header',
@@ -114,76 +87,49 @@ def create_plan_header(desc: PlanDescription)->sg.Frame:
                               font=('Calibri', 12),
                               element_justification='left')
     # Set Main Label
-    plan_title = sg.Text(text=desc.plan_name,
+    plan_title = sg.Text(text='',
                          key='plan_title',
                          font=('Calibri', 14, 'bold'),
                          pad=((5, 0), (0, 10)),
-                         justification='center', visible=True)
+                         size=(12,1),
+                         justification='center')
     header_layout = [
         [plan_title],
-        [sg.Text('Dose:', size=(8,1)), sg.Text(dose_text, key='dose_text')],
-        [sg.Text('Course:', size=(8,1)), sg.Text(desc.course, key='course_text')],
-        [sg.Text('Exported:', size=(8,1)), sg.Text(desc.export_date, key='exported_text')],
+        [sg.Text('Dose:', size=(8,1)), sg.Text('', key='dose_text', size=(40,1))],
+        [sg.Text('Course:', size=(8,1)), sg.Text('', key='course_text', size=(40,1))],
+        [sg.Text('Exported:', size=(8,1)), sg.Text('', key='exported_text', size=(40,1))],
         [patient_header]
         ]
     plan_header = sg.Frame('Plan', header_layout, key='plan_header',
-                           size=(48,12),
-                           title_location=sg.TITLE_LOCATION_TOP,
-                           font=('Arial Black', 14, 'bold'),
+                           font=('Arial Black', 14, 'bold'), size=(48,12),
                            element_justification='center',
-                           relief=sg.RELIEF_GROOVE, border_width=5)
+                           title_location=sg.TITLE_LOCATION_TOP,
+                           relief=sg.RELIEF_GROOVE, border_width=5,
+                           visible=True)
     return plan_header
 
-#%% Report Header
-def create_report_header(report: Report)->sg.Frame:
-    wrapped_desc = tw.fill(report.description, width=40)
-    wrapped_file = tw.fill(report.template_file.name, width=30)
-    wrapped_sheet = tw.fill(report.worksheet, width=30)
-    template_layout = [
-        [sg.Text('File:', size=(12,1)),
-         sg.Text(wrapped_file, key='template_file')],
-        [sg.Text('WorkSheet:', size=(12,1)),
-         sg.Text(wrapped_sheet, key='template_sheet')],
-        ]
-    report_title = sg.Text(text=report.name,
-                           key='report_title',
-                           font=('Calibri', 14, 'bold'),
-                           pad=((5, 0), (0, 10)),
-                           justification='center',
-                           visible=True)
-    report_desc = sg.Text(text=wrapped_desc,
-                          key='report_desc',
-                          pad=(10, 3),
-                          visible=True)
-    template_header = sg.Frame('Template:', template_layout,
-                                   key='template_header',
-                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
-                                   font=('Calibri', 12),
-                                   element_justification='left')
-    header_layout = [
-        [report_title],
-        [report_desc],
-        [template_header]
-        ]
-    report_header = sg.Frame('Report', header_layout,
-                             key='report_header',
-                             title_location=sg.TITLE_LOCATION_TOP,
-                             font=('Arial Black', 14, 'bold'),
-                             element_justification='center',
-                             relief=sg.RELIEF_GROOVE, border_width=5)
-    return report_header
+def update_plan_header(window: sg.Window, desc: PlanDescription):
+    '''Update the text values for the patient and plan info.
+    Arguments:
+        desc {PlanDescription} -- Summary data for the plan.
+        window {} -- The GUI window containing the text.
+    '''
+    dose_text = desc.format_dose()
+    id_text = desc.format_id()
+    window['plan_title'].update(value=desc.plan_name)
+    window['exported_text'].update(value=desc.export_date)
+    window['course_text'].update(value=desc.course)
+    window['dose_text'].update(value=dose_text)
+    window['pt_name_text'].update(value=desc.patient_name)
+    window['id_text'].update(value=id_text)
 
 
-
-#%% Plan Selector
-def plan_selector(plan_list: List[PlanDescription]):
+def plan_selector(plan_dict: OrderedDict):
     '''Plan Selection GUI
     '''
-    patients = {plan.name_str() for plan in plan_list}
+    patients = {plan.name_str() for plan in plan_dict.values()}
     patient_list = sorted(patients)
     column_settings = [
-        ('Patient', False, 15),
-        ('Plan Info', False, 30),
         ('File', False, 30),
         ('Type', False, 6),
         ('Patient Name', False, 12),
@@ -209,28 +155,78 @@ def plan_selector(plan_list: List[PlanDescription]):
                          show_expanded=True,
                          select_mode='browse',
                          enable_events=True)
-    # Tree data
-    # Plan Files for selecting
     treedata = sg.TreeData()
     for patient in patient_list:
-        treedata.Insert('', patient, patient, [patient])
-    for plan in plan_list:
+        treedata.Insert('', patient, patient, [])
+    for plan_info, plan in plan_dict.items():
         patient = plan.name_str()
-        plan_info = plan.plan_str()
-        values_list = ['', plan_info]
-        values_list.extend(plan)
-        treedata.Insert(patient, plan_info, plan.plan_name, values_list)
+        treedata.Insert(patient, plan_info, plan.plan_name, plan)
     return sg.Tree(data=treedata, **tree_settings)
 
 
-#%% Report Selector
+#%% Report Header
+def create_report_header()->sg.Frame:
+    template_layout = [
+        [sg.Text('File:', size=(12,1)),
+         sg.Text('', key='template_file', size=(25,1))],
+        [sg.Text('WorkSheet:', size=(12,1)),
+         sg.Text('', key='template_sheet', size=(25,1))],
+        ]
+    report_title = sg.Text(text='',
+                           key='report_title',
+                           font=('Calibri', 14, 'bold'),
+                           size=(12,1),
+                           pad=((5, 0), (0, 10)),
+                           justification='center',
+                           visible=True)
+    report_desc = sg.Text(text='',
+                          key='report_desc',
+                          size=(30,1),
+                          pad=(10, 3),
+                          visible=True)
+    template_header = sg.Frame('Template:', template_layout,
+                                   key='template_header',
+                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
+                                   font=('Calibri', 12),
+                                   element_justification='left')
+    header_layout = [
+        [report_title],
+        [report_desc],
+        [template_header]
+        ]
+    report_header = sg.Frame('Report', header_layout,
+                             key='report_header',
+                             title_location=sg.TITLE_LOCATION_TOP,
+                             font=('Arial Black', 14, 'bold'), size=(30,20),
+                             element_justification='center',
+                             relief=sg.RELIEF_GROOVE, border_width=5)
+    return report_header
+
+
+def update_report_header(window: sg.Window, report: Report):
+    '''Update the text values for the report header.
+    Arguments:
+        window {} -- The GUI window containing the text.
+        report {Report} -- The selected report.
+    '''
+    wrapped_desc = tw.fill(report.description, width=40)
+    wrapped_file = tw.fill(report.template_file.name, width=30)
+    wrapped_sheet = tw.fill(report.worksheet, width=30)
+    window['report_title'].update(value=report.name)
+    window['report_desc'].update(value=wrapped_desc)
+    window['template_file'].update(value=wrapped_file)
+    window['template_sheet'].update(value=wrapped_sheet)
+
+
 def report_selector(report_definitions: Dict[str, Report]):
     '''Report Selection GUI
     '''
-    report_list = [str(ky) for ky in report_definitions.keys()]
+    #FIXME Add Blank as first item in selector
+    report_list = [''] + [str(ky) for ky in report_definitions.keys()]
     report_selector_box = sg.Combo(report_list,
                                    key='report_selector',
                                    size=(40, 5),
+                                   enable_events=True,
                                    readonly=True)
     return report_selector_box
 
@@ -326,28 +322,27 @@ results_path = base_path / 'GUI' / 'Output'
 icon_path = base_path / 'GUI' / 'icons'
 icons = IconPaths(icon_path)
 
-#%% Initial Plan Settings
+#%% Load Config file and Report definitions
 config_file = 'TestPlanEvaluationConfig.xml'
+(config, report_definitions) = initialize(data_path, config_file)
+plan_dict = find_plan_files(config, test_path)
+
+#%% Initial Plan Settings
 desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
                         4800, 4,  'Tuesday, August 29, 2017 16:19:54')
 report_name = 'SABR 54 in 3'
-
-#%% Load Config file and Report definitions
-(config, report_definitions) = initialize(data_path, config_file)
 report = deepcopy(report_definitions[report_name])
 
-#%% Load list of Plan Files
-plan_list = find_plan_files(config, test_path)
+#%% Create Main Window
 sg.SetOptions(element_padding=(0,0), margins=(0,0))
-plan_header = create_plan_header(desc)
-report_header = create_report_header(report)
-plan_selection = plan_selector(plan_list)
+plan_header = create_plan_header()
+report_header = create_report_header()
+plan_selection = plan_selector(plan_dict)
 report_selection = report_selector(report_definitions)
 layout = [[plan_header, report_header],
-          [plan_selection, report_selection]
-          ]
+          [plan_selection, report_selection]]
 
-w = sg.Window('Plan Evaluation',
+window = sg.Window('Plan Evaluation',
     layout=layout,
     resizable=True,
     debugger_enabled=True,
@@ -355,8 +350,18 @@ w = sg.Window('Plan Evaluation',
     element_justification="left")
 
 while True:
-    event, values = w.Read(timeout=200)
+    event, values = window.Read(timeout=2000)
     if event is None:
         break
+    elif event in 'Plan_tree':
+        selected_plan = values['Plan_tree'][0]
+        plan_desc = plan_dict.get(selected_plan)
+        if plan_desc:
+            update_plan_header(window, plan_desc)
+    elif event in 'report_selector':
+        selected_report = values['report_selector']
+        report = deepcopy(report_definitions.get(selected_report))
+        if report:
+            update_report_header(window, report)
     elif event == sg.TIMEOUT_KEY:
         continue

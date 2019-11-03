@@ -80,6 +80,34 @@ class PlanDescription(NamedTuple):
         text = pattern.format(last=last, first_ltr=fl, ID=self.patient_id)
         return text
 
+    def format_id(self):
+        pt_id = self.patient_id
+        try:
+            id_value = int(pt_id)
+        except (ValueError, TypeError):
+            id_value = str(pt_id)
+            id_pattern = '{id:>8s}'
+        else:
+            id_pattern = '{id:0>8n}'
+        finally:
+            id_text = id_pattern.format(id=id_value)
+        return id_text
+
+    def format_dose(self):
+        dose_value=self.dose
+        fractions_value=self.fractions
+        if dose_value:
+            if fractions_value:
+                dose_pattern =  '{dose:>4.1f}cGy in {fractions:>2d} fractions'
+                dose_text = dose_pattern.format(dose=dose_value,
+                                                fractions=fractions_value)
+            else:
+                dose_pattern =  '{dose:>4.1f}cGy'
+                dose_text = dose_pattern.format(dose=dose_value)
+        else:
+            dose_text = ''
+        return dose_text
+
     def plan_str(self):
         pattern = 'Plan: {plan:<12} [{exp_date}]'
         text = pattern.format(plan=self.plan_name, exp_date=self.export_date)
@@ -88,13 +116,13 @@ class PlanDescription(NamedTuple):
     def __str__(self):
         '''Make a summary string of the plan info.
         '''
-        pattern = '{last:>20}, {first_ltr} ({ID:0>8n}) Plan: {plan:<12} [{exp_date}]'
+        pattern = '{last:>20}, {first_ltr} ({ID:8s}) Plan: {plan:<12} [{exp_date}]'
         first, last = self.parse_name()
         if first:
             fl = first[0]
         else:
             fl = ''
-        text = pattern.format(last=last, first_ltr=fl, ID=self.patient_id, plan=self.plan_name, exp_date=self.export_date)
+        text = pattern.format(last=last, first_ltr=fl, ID=self.format_id(), plan=self.plan_name, exp_date=self.export_date)
         return text
 
 
