@@ -5,8 +5,11 @@
   <DefaultDirectories>
     <DVH>.\GUI\Testing</DVH>
     <DVH_File>plan.dvh</DVH_File>
-    <ReportDefinitions>.\GUI\Testing</ReportDefinitions>
+    <ReportDefinitions>
+      <Directory>.\GUI\Testing</Directory>
+    </ReportDefinitions>
     <ReportTemplates>.\GUI\Testing</ReportTemplates>
+    <ReportPickleFile>.\GUI\Testing\Reports.pkl</ReportPickleFile>
     <Save>.\GUI\Testing\Output</Save>
   </DefaultDirectories>
   <LateralityCodeExceptions>

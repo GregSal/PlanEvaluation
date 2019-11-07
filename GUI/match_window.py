@@ -24,90 +24,14 @@ import PySimpleGUI as sg
 import xlwings as xw
 
 from build_plan_report import initialize, read_report_files
-from plan_report import Report, ReferenceGroup, MatchList
+from plan_report import Report, ReferenceGroup, MatchList, MatchHistory
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements
-
+from main_window import IconPaths
 
 Values = Dict[str, List[str]]
 
 
 #%% Match GUI functions
-class IconPaths(dict):
-    '''Match Parameters for a PlanReference.
-        Report Item name, match status, plan item type, Plan Item name
-    Attributes:
-        match_icon {Path} -- Green Check mark
-        not_matched_icon {str} -- The type of PlanElement.  Can be one of:
-            ('Plan Property', Structure', 'Reference Point', 'Ratio')
-        match_status: {str} -- How a plan value was obtained.  One of:
-            One of Auto, Manual, Direct Entry, or None
-        plan_Item: {str} -- The name of the matched element from the Plan.
-    '''
-    def __init__(self, icon_path):
-        '''Initialize the icon paths.
-        Attributes:
-            icon_path {Path} -- The path to the Icon Directory
-        Contains the following Icon references:
-            match_icon {Path} -- Green Check mark
-            not_matched_icon {Path} -- Red X
-            changed_icon {Path} -- Yellow Sun
-        '''
-        super().__init__()
-        # Icons
-        self['match_icon'] = icon_path / 'Checkmark.png'
-        self['not_matched_icon'] = icon_path / 'Error_Symbol.png'
-        self['changed_icon'] = icon_path / 'emblem-new'
-
-    def path(self, icon_name):
-        '''Return a string path to the icon.
-        Attributes:
-            icon_name {str} -- The name of an icon in the dictionary
-        '''
-        icon_path = self.get(icon_name)
-        if icon_path:
-            return str(icon_path)
-        return None
-
-
-class MatchHistoryItem(NamedTuple):
-    '''Record of a change made to a reference match.
-    Attributes:
-        old_value {ReferenceGroup} -- The value before the change
-        new_value {ReferenceGroup} -- The value after the change
-    '''
-    old_value: ReferenceGroup
-    new_value: ReferenceGroup = None
-
-
-class MatchHistory(list):
-    '''A record of the changes made to the reference matching.
-    Attributes:
-        reference_name {str} -- The name of the PlanReference
-    '''
-    def __init__(self):
-        '''Create an empty list
-        '''
-        super().__init__()
-
-    def add(self, old_value: ReferenceGroup, new_value: ReferenceGroup = None):
-        '''Record a new match change.
-        Arguments:
-            old_value {ReferenceGroup} -- The value before the change
-            new_value {ReferenceGroup} -- The value after the change
-        '''
-        self.append(MatchHistoryItem(old_value, new_value))
-
-    def undo(self)->MatchHistoryItem:
-        return self.pop()
-
-    def changed(self)->List[ReferenceGroup]:
-        change_list = list()
-        for hist_item in self:
-            if hist_item.new_value:
-                change_list.append(hist_item.new_value)
-        return changed_list
-
-
 def plan_item_menu(plan_elements: PlanItemLookup,
                    select_type: str = None)->List[PlanElements]:
     '''Generate a PlanItem Selection menu from a particular type of PlanItem.
@@ -164,6 +88,10 @@ def update_menu(values: Values, item_menu, item_list: List[str],
             item_menu.entryconfig(index, state='disabled')
     return selected_type
 
+def update_tree(tree: sg.Tree, new_value: ReferenceGroup):
+    lookup = new_value.match_name
+    tree.Update(key=lookup, value=new_value)
+
 
 def update_match(event: str, values: Values, tree: sg.Tree,
                  reference_data: Dict[str, ReferenceGroup],
@@ -187,18 +115,8 @@ def update_match(event: str, values: Values, tree: sg.Tree,
         status = 'Manual'
     new_value = ReferenceGroup(*new_value[0:-2], status, item_name)
     history.add(old_value, new_value)
-    lookup = new_value.match_name
-    tree.Update(key=lookup, value=new_value)
-    return history
-
-
-def rerun_match(report: Report, plan: Plan,
-                history: MatchHistory)->Tuple[MatchList, MatchList]:
-    '''Re-run the match with updated plan data and then apply stored manual
-        matching and entries.
-    '''
-    report.match_elements(plan)
-    report.update_references(history.changed(), plan)
+    update_tree(tree, new_value)
+    return (old_value, new_value)
 
 
 #%% GUI settings
@@ -275,12 +193,15 @@ def manual_match(report: Report, plan: Plan, icons: IconPaths)->Tuple[Report, Pl
         elif event in 'Match_tree':
             update_menu(values, item_menu, item_list, reference_data, element_types)
         elif event in 'Approve':
-            num_updates = report.update_references(history.changed(), plan)
+            num_updates = len(history.changed())
             break
         else:
-            history = update_match(event, values, tree, reference_data, history)
+            (old, new) = update_match(event, values, reference_data)
+            report.update_ref(new, plan)
+            history.add(old, new)
+            update_tree(tree, new)
     window.Close()
-    return report, plan, num_updates
+    return report, num_updates
 
 
 #%% Run Tests

@@ -26,11 +26,12 @@ import xlwings as xw
 
 from build_plan_report import initialize, read_report_files, load_config, find_plan_files
 from plan_report import Report, ReferenceGroup, MatchList
-from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, get_dvh_list, PlanDescription
+from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, get_dvh_list, PlanDescription, load_plan
 
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
+
 
 class IconPaths(dict):
     '''Match Parameters for a PlanReference.
@@ -67,6 +68,7 @@ class IconPaths(dict):
         if icon_path:
             return str(icon_path)
         return None
+
 
 
 #%% Plan Header

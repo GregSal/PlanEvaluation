@@ -1,5 +1,6 @@
 '''Report on Plan parameters based on defined Criteria'''
 
+#%% imports etc.
 from typing import Optional, Union, Any, Dict, Tuple, List, Set
 from typing import NamedTuple
 from pathlib import Path
@@ -21,7 +22,7 @@ MatchList = List[PlanDataItem]
 logging.basicConfig(level=logging.WARNING)
 LOGGER = logging.getLogger(__name__)
 
-
+#%% Generic XML functions
 def optional_load(xml_element: ET.Element, element_name: str,
                   default_value: str)->str:
     '''Read an optional text value contained in a sub-element of the supplied
@@ -42,37 +43,7 @@ def optional_load(xml_element: ET.Element, element_name: str,
     return default_value
 
 
-class ReferenceGroup(NamedTuple):
-    '''Match Parameters for a PlanReference.
-        Report Item name, match status, plan item type, Plan Item name
-    Attributes:
-        reference_name {str} -- The name of the PlanReference
-        reference_type {str} -- The type of PlanElement.  Can be one of:
-            ('Plan Property', Structure', 'Reference Point', 'Ratio')
-        match_status: {str} -- How a plan value was obtained.  One of:
-            One of Auto, Manual, Direct Entry, or None
-        plan_Item: {str} -- The name of the matched element from the Plan.
-    '''
-    reference_name: str
-    reference_type: str
-    laterality: str = None
-    match_status: str = None
-    plan_Item: str = None
-
-    def get_match_name(self)->str:
-        '''Form a match name from a reference name and laterality.
-        Returns:
-            str -- A unique name for the reference that includes laterality.
-        '''
-        lat = self.laterality
-        if not lat:
-            lat = ''
-        name = lat + self.reference_name
-        return name
-
-    match_name = property(get_match_name)
-
-
+#%% Alias Methods
 def load_alias_list(aliases: ET.Element)->Alias:
     '''Read in a list of alias patterns.
     Arguments:
@@ -181,6 +152,7 @@ def match_alias(aliases: Alias, plan_elements: List[PlanDataItem],
     return matched_element
 
 
+#%% Laterality Methods
 def load_default_laterality(default_laterality_root: ET.Element)->Alias:
     '''Read a list of default Reference Name laterality modifiers.
     Arguments:
@@ -268,6 +240,38 @@ def match_laterality(reference_name: str,
             if matched_element:
                 break
     return matched_element
+
+
+#%% Report classes
+class ReferenceGroup(NamedTuple):
+    '''Match Parameters for a PlanReference.
+        Report Item name, match status, plan item type, Plan Item name
+    Attributes:
+        reference_name {str} -- The name of the PlanReference
+        reference_type {str} -- The type of PlanElement.  Can be one of:
+            ('Plan Property', Structure', 'Reference Point', 'Ratio')
+        match_status: {str} -- How a plan value was obtained.  One of:
+            One of Auto, Manual, Direct Entry, or None
+        plan_Item: {str} -- The name of the matched element from the Plan.
+    '''
+    reference_name: str
+    reference_type: str
+    laterality: str = None
+    match_status: str = None
+    plan_Item: str = None
+
+    def get_match_name(self)->str:
+        '''Form a match name from a reference name and laterality.
+        Returns:
+            str -- A unique name for the reference that includes laterality.
+        '''
+        lat = self.laterality
+        if not lat:
+            lat = ''
+        name = lat + self.reference_name
+        return name
+
+    match_name = property(get_match_name)
 
 
 class PlanReference(dict):
@@ -967,3 +971,111 @@ class Report():
             repr_str += '\n'.join('\t' + line for line in e_str.splitlines())
         repr_str += '\n'
         return repr_str
+
+
+def read_report_files(report_locations: List[Path],
+                      **parameters)->Dict[str, Report]:
+    '''Read in all report definitions contained in the XML report files
+    located in the given directories.
+    Arguments:
+        report_locations {List[Path]} -- A list of full paths to folders
+            containing Report definition .xml files.
+        report_parameters {dict} -- parameters used to define reports.  
+            See the Report class definition for details.
+    Returns:
+        Dict[str, Report] -- A dictionary of report definitions, the key is
+            the name of the report.
+    '''
+    def load_report_definitions(report_file: Path,
+                                report_parameters: dict)->Dict[str, Report]:
+        '''Read in all report definitions contained in a given XML report file
+        Arguments:
+            report_file {Path} -- The full path to the Report .xml file.
+            report_parameters {dict} -- parameters used to define reports.  
+                See the Report class definition for details.
+        Returns:
+            Dict[str, Report] -- A dictionary of report definitions, the key is
+                the name of the report.
+        '''
+        report_tree = ET.parse(report_file)
+        report_root = report_tree.getroot()
+        report_dict = dict()
+        for report_def in report_root.findall('Report'):
+            report = Report(report_def, **report_parameters)
+            report_dict[report.name] = report
+        return report_dict
+
+    report_definitions = dict()
+    for report_path in report_locations:
+        for file in report_path.glob('*.xml'):
+            file_iter = ET.iterparse(str(file), events=['start'])
+            (event, elm) = file_iter.__next__()
+            if 'ReportDefinitions' in elm.tag:
+                report_dict = load_report_definitions(file, parameters)
+                report_definitions.update(report_dict)
+    return report_definitions
+
+
+#%% Match History class and Methods
+class MatchHistoryItem(NamedTuple):
+    '''Record of a change made to a reference match.
+    Attributes:
+        old_value {ReferenceGroup} -- The value before the change
+        new_value {ReferenceGroup} -- The value after the change
+    '''
+    old_value: ReferenceGroup
+    new_value: ReferenceGroup = None
+
+
+class MatchHistory(list):
+    '''A record of the changes made to the reference matching.
+    Attributes:
+        reference_name {str} -- The name of the PlanReference
+    '''
+    def __init__(self):
+        '''Create an empty list
+        '''
+        super().__init__()
+
+    def add(self, old_value: ReferenceGroup, new_value: ReferenceGroup = None):
+        '''Record a new match change.
+        Arguments:
+            old_value {ReferenceGroup} -- The value before the change
+            new_value {ReferenceGroup} -- The value after the change
+        '''
+        self.append(MatchHistoryItem(old_value, new_value))
+
+    def changed(self)->List[ReferenceGroup]:
+        change_list = list()
+        for hist_item in self:
+            if hist_item.new_value:
+                change_list.append(hist_item.new_value)
+        return changed_list
+
+    def undo_last_change(self)->MatchHistoryItem:
+        last_change = self.pop()
+        return last_change
+
+def rerun_matching(report: Report, plan: Plan, matches: MatchHistory)->Report:
+    '''Re-run the match with updated plan data and then apply stored manual
+        matching and entries.
+    '''
+    report.match_elements(plan)
+    for change_match in matches.changed():
+        report.update_ref(change_match, plan)
+    return report
+
+
+def undo_match(report: Report, plan: Plan, change: MatchHistoryItem)->Report:
+    report.update_ref(change.old_value, plan)
+    return report
+
+def reset_matching(report: Report, plan: Plan, history: MatchHistory)->Report:
+    '''Re-run the match with updated plan data and then apply stored manual
+        matching and entries.
+    '''
+    report.match_elements(plan)
+    for change_match in matches.changed():
+        report.update_ref(change_match, plan)
+    history = MatchHistory()
+    return report, history
