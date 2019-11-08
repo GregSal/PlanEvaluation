@@ -24,9 +24,9 @@ import PySimpleGUI as sg
 
 import xlwings as xw
 
-from build_plan_report import initialize, read_report_files, load_config, find_plan_files
-from plan_report import Report, ReferenceGroup, MatchList
-from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, get_dvh_list, PlanDescription, load_plan
+from build_plan_report import load_config, update_reports, load_reports, find_plan_files, run_report
+from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
+from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions
 
 
 Values = Dict[str, List[str]]
@@ -232,6 +232,26 @@ def report_selector(report_definitions: Dict[str, Report]):
                                    readonly=True)
     return report_selector_box
 
+def select_report(selected_report: str):
+    selected_report = values['report_selector']
+    report = deepcopy(report_definitions.get(selected_report))
+    return report
+
+def load_plan(plan_desc: PlanDescription, **plan_parameters)->Plan:
+    '''Load plan data from the specified file or folder.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        dvh_loc {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+            the name of a .dvh file in the default DVH directory, or a
+            directory containing .dvh files. If not given,
+            the default DVH directory in config will be used.
+    Returns:
+        Plan -- The requested or the default plan.
+    '''
+    plan_file = plan_desc.plan_file
+    dvh_file = DvhFile(plan_file)
+    plan = Plan(dvh_data=dvh_file, **plan_parameters)
+    return plan
 
 #%% GUI settings
 def main_window(icons: IconPaths, plan_elements: PlanItemLookup,
@@ -286,7 +306,7 @@ def main():
     icon_path = base_path / 'GUI' / 'icons'
     icons = IconPaths(icon_path)
 
-    #%% Initial Plan and Report Settings
+    # Initial Plan and Report Settings
     config_file = 'TestPlanEvaluationConfig.xml'
     desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
                            4800, 4,  'Tuesday, August 29, 2017 16:19:54')
@@ -294,17 +314,15 @@ def main():
     report_description = 'SABR Plan Evaluation Sheet for 12Gy/fr Schedules '
     report_description += '(48 Gy in 4F) or (60Gy/5F)'
 
-    #%% Load Config file and Report definitions
+    # Load Config file and Report definitions
     (config, report_parameters) = initialize(data_path, config_file)
     report_definitions = read_report_files(**report_parameters)
     report = deepcopy(report_definitions[report_name])
 
-    #%% Load list of Plan Files
+    # Load list of Plan Files
     plan_list = find_plan_files(config, test_path)
     plan_header = create_plan_header(desc)
     report_header = create_report_header(report)
-
-
 
     w.Read()
 
@@ -326,23 +344,41 @@ icons = IconPaths(icon_path)
 
 #%% Load Config file and Report definitions
 config_file = 'TestPlanEvaluationConfig.xml'
-(config, report_definitions) = initialize(data_path, config_file)
+config = load_config(data_path, config_file)
+report_definitions = update_reports(config)
 plan_dict = find_plan_files(config, test_path)
 
-#%% Initial Plan Settings
-desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
-                        4800, 4,  'Tuesday, August 29, 2017 16:19:54')
-report_name = 'SABR 54 in 3'
-report = deepcopy(report_definitions[report_name])
+code_exceptions_def = config.find('LateralityCodeExceptions')
+plan_parameters = dict(
+    default_units=get_default_units(config),
+    laterality_exceptions=get_laterality_exceptions(code_exceptions_def),
+    name='Plan'
+    )
 
+
+#%% Initial Plan Settings
+#desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
+#                        4800, 4,  'Tuesday, August 29, 2017 16:19:54')
+#report_name = 'SABR 54 in 3'
+#report = deepcopy(report_definitions[report_name])
+selected_report = None
+plan_desc = None
+active_plan = None
+history = MatchHistory()
+    
 #%% Create Main Window
 sg.SetOptions(element_padding=(0,0), margins=(0,0))
 plan_header = create_plan_header()
 report_header = create_report_header()
 plan_selection = plan_selector(plan_dict)
 report_selection = report_selector(report_definitions)
+load_plan_button = sg.Button(button_text='Load Plan', key='load_plan', disabled=False)
+match_structures_button = sg.Button(button_text='Match Structures', key='match_structures', disabled=False)
+generate_report_button = sg.Button(button_text='Show Report', key='generate_report', disabled=False)
 layout = [[plan_header, report_header],
-          [plan_selection, report_selection]]
+          [plan_selection, report_selection],
+          [load_plan_button, match_structures_button, generate_report_button]
+          ]
 
 window = sg.Window('Plan Evaluation',
     layout=layout,
@@ -361,9 +397,14 @@ while True:
         if plan_desc:
             update_plan_header(window, plan_desc)
     elif event in 'report_selector':
-        selected_report = values['report_selector']
-        report = deepcopy(report_definitions.get(selected_report))
+        report = select_report(selected_report)
         if report:
             update_report_header(window, report)
+    elif event in 'load_plan':
+        active_plan = load_plan(plan_desc, **plan_parameters)
+    elif event in 'match_structures':
+        rerun_matching(report, active_plan, history)
+    elif event in 'generate_report':
+        run_report(active_plan, report)
     elif event == sg.TIMEOUT_KEY:
         continue

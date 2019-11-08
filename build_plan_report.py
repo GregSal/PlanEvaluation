@@ -14,7 +14,7 @@ from plan_report import Report, read_report_files
 from plan_report import load_default_laterality
 from plan_report import load_aliases, load_laterality_table
 from plan_data import DvhFile, Plan, PlanDescription, find_plan_files
-from plan_data import get_default_units, get_laterality_exceptions
+from plan_data import get_default_units, get_laterality_exceptions, DvhSource
 
 #%% Initialization Methods
 # TODO use file utilities functions for path and file name checking/completion
@@ -61,7 +61,7 @@ def update_reports(config: ET.Element,
     laterality_lookup_def = config.find('LateralityTable')
     default_patterns_def = config.find('DefaultLateralityPatterns')
     report_parameters = dict(
-        report_path=report_path,
+        report_locations=report_locations,
         template_path=template_path,
         alias_reference=load_aliases(alias_def),
         laterality_lookup=load_laterality_table(laterality_lookup_def),
@@ -141,39 +141,8 @@ def load_plan(config, plan_path: DvhSource, name='Plan', type='DVH')->Plan:
     return plan
 
 
-def initialize(base_path: Path,
-               config_file: str)->Tuple[ET.Element, Dict[str, Any]]:
-    '''Load the initial parameters and tables.
-    Arguments:
-        base_path {Path} -- The starting directory, where the config file is
-            located.
-        config_file {str} -- The name of the config file.
-    Returns:
-        Tuple[ET.Element, Dict[str, Report]] -- The configuration data and the
-            report parameters.
-    '''
-    config = load_config(base_path, config_file)
-    report_path = Path(
-        config.findtext(r'./DefaultDirectories/ReportDefinitions'))
-    template_path = Path(
-        config.findtext(r'./DefaultDirectories/ReportTemplates'))
-    alias_def = config.find('AliasList')
-    laterality_lookup_def = config.find('LateralityTable')
-    default_patterns_def = config.find('DefaultLateralityPatterns')
-
-    report_parameters = dict(
-        report_path=report_path,
-        template_path=template_path,
-        alias_reference=load_aliases(alias_def),
-        laterality_lookup=load_laterality_table(laterality_lookup_def),
-        lat_patterns=load_default_laterality(default_patterns_def))
-    report_definitions = read_report_files(**report_parameters)
-    return (config, report_definitions)
-
-
 #%% Generate report
 def run_report(plan: Plan, report: Report):
-    report.match_elements(plan)
     report.get_values(plan)
     report.build()
 
@@ -188,7 +157,6 @@ def build_report(config: ET.Element, report_definitions: Dict[str, Report],
         report.save_file = save_file
     plan = Plan(config, plan_name, DvhFile(plan_file_name))
     run_report(plan, report)
-
 
 
 def main():

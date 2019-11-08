@@ -11,6 +11,7 @@ elements for analysis.
 from typing import Union, NamedTuple, Tuple, Dict, List, Any
 from pathlib import Path
 from collections import OrderedDict
+from operator import attrgetter
 import xml.etree.ElementTree as ET
 import re
 import logging
@@ -903,7 +904,8 @@ class PlanDescription(NamedTuple):
             fl = first[0]
         else:
             fl = ''
-        text = pattern.format(last=last, first_ltr=fl, ID=self.format_id(), plan=self.plan_name, exp_date=self.export_date)
+        text = pattern.format(last=last, first_ltr=fl, ID=self.format_id(),
+                              plan=self.plan_name, exp_date=self.export_date)
         return text
 
 
@@ -984,9 +986,6 @@ class Plan():
         self.data_elements = {'Plan Property': dict(),
                                 'Structure': dict(),
                                 'Reference Point': dict()}
-
-        # Set a .dvh file as the data source
-        dvh_data = self.get_dvh(config, dvh_loc)
         self.dvh_data_file = Path(dvh_data.file_name)
 
         # Load the dvh data
@@ -1139,7 +1138,7 @@ def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
 
 
 def find_plan_files(config: ET.Element,
-                    plan_path: Path = None)->OrderedDict[str, PlanDescription]:
+                    plan_path: Path = None)->OrderedDict:
     '''Load DVH file headers for all .dvh files in a directory.
     If plan_path is not given, the default directory in the config file is used.
     Arguments:

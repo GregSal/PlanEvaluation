@@ -603,8 +603,8 @@ class ReportElement():
                 PlanElement.get_value method.
         '''
         plan_element = reference['plan_element']
-        target_units = self.target.get('Unit')
         if plan_element:
+            target_units = self.target.get('Unit')
             conversion['target_units'] = target_units
             conversion['constructor'] = self.constructor
             self.value = plan_element.get_value(**conversion)
@@ -851,7 +851,7 @@ class Report():
             reference_name = element.reference
             reference = self.references.get(reference_name)
             if reference:
-                element.get_value(conversion_parameters, reference)
+                element.get_value(reference, conversion_parameters)
         return None
 
     def build(self)->xw.Sheet:
@@ -885,7 +885,7 @@ class Report():
         # Add elements to the worksheet
         for element in self.report_elements.values():
             element.add_to_report(spreadsheet)
-        workbook.save(str(self.save_file))
+        #workbook.save(str(self.save_file))
         return workbook
 
     def save(self, file_name, sheet_name):
@@ -1050,7 +1050,7 @@ class MatchHistory(list):
         for hist_item in self:
             if hist_item.new_value:
                 change_list.append(hist_item.new_value)
-        return changed_list
+        return change_list
 
     def undo_last_change(self)->MatchHistoryItem:
         last_change = self.pop()
