@@ -70,27 +70,26 @@ def create_plan_header()->sg.Frame:
     '''
     def build_patient_header():
         # Set Patient Label
-        pt_name_label = sg.Text('Name:', size=(8,1))
-        pt_name_text = sg.Text('', key='pt_name_text', size=(43,1))
-        pt_id_label = sg.Text('ID:', size=(8,1))
-        pt_id_text = sg.Text('', key='id_text', size=(43,1))
+        pt_name_label = sg.Text('Name:', size=(6,1))
+        pt_name_text = sg.Text('', key='pt_name_text', size=(20,1))
+        pt_id_label = sg.Text('ID:', size=(6,1))
+        pt_id_text = sg.Text('', key='id_text', size=(20,1))
         patient_desc = [[pt_name_label, pt_name_text],
                         [pt_id_label, pt_id_text]]
         patient_header = sg.Frame('Patient:', patient_desc,
                                   key='patient_header',
-                                  size=(47,12),
                                   title_location=sg.TITLE_LOCATION_TOP_LEFT,
                                   font=('Calibri', 12),
                                   element_justification='left')
         return patient_header
 
     def build_plan_info_layout():
-        dose_label = sg.Text('Dose:', size=(8,1))
-        dose_text = sg.Text('', key='dose_text', size=(40,1))
-        course_label = sg.Text('Course:', size=(8,1))
-        course_text = sg.Text('', key='course_text', size=(40,1))
-        exported_label = sg.Text('Exported:', size=(8,1))
-        exported_text = sg.Text('', key='exported_text', size=(40,1))
+        dose_label = sg.Text('Dose:', size=(6,1))
+        dose_text = sg.Text('', key='dose_text', size=(30,1))
+        course_label = sg.Text('Course:', size=(6,1))
+        course_text = sg.Text('', key='course_text', size=(30,1))
+        exported_label = sg.Text('Exported:', size=(6,1))
+        exported_text = sg.Text('', key='exported_text', size=(30,1))
         plan_header_layout = [[dose_label, dose_text],
                               [course_label, course_text],
                               [exported_label, exported_text]]
@@ -98,19 +97,18 @@ def create_plan_header()->sg.Frame:
 
     # Set Main Label
     plan_title = sg.Text(text='', key='plan_title', size=(12,1),
-                         font=('Calibri', 14, 'bold'), pad=((5, 0), (0, 10)),                         
+                         font=('Calibri', 14, 'bold'), pad=((5, 0), (5, 10)),                         
                          justification='center')
     load_plan_button = sg.Button(key='load_plan', button_text='Select a Plan',
                                  disabled=True, button_color=('red', 'white'),
-                                 relief=sg.RELIEF_RAISED, border_width=5,
-                                 size=(20, 1), auto_size_button=False,
-                                 pad=((10, 0), (0, 0)),
+                                 border_width=5, pad=((10, 0), (0, 0)),
+                                 size=(12, 1), auto_size_button=False,
                                  font=('Times New Roman', 12, 'normal'))
     header_layout = [[plan_title, load_plan_button]]
     header_layout += build_plan_info_layout()
     header_layout += [[build_patient_header()]]
     plan_header = sg.Frame('Plan', header_layout, key='plan_header',
-                           font=('Arial Black', 14, 'bold'), size=(48,12),
+                           font=('Arial Black', 14, 'bold'),
                            element_justification='center',
                            title_location=sg.TITLE_LOCATION_TOP,
                            relief=sg.RELIEF_GROOVE, border_width=5,
@@ -147,7 +145,7 @@ def plan_selector(plan_dict: OrderedDict):
         ('Course', False, 5),
         ('Dose', True, 5),
         ('Fractions', False, 3),
-        ('Exported On', True, 21)
+        ('Exported On', True, 25)
         ]
     column_names = [col[0] for col in column_settings]
     show_column = [col[1] for col in column_settings]
@@ -176,27 +174,28 @@ def plan_selector(plan_dict: OrderedDict):
 #%% Report Header
 def create_report_header()->sg.Frame:
     template_layout = [
-        [sg.Text('File:', size=(12,1)),
-         sg.Text('', key='template_file', size=(25,1))],
-        [sg.Text('WorkSheet:', size=(12,1)),
-         sg.Text('', key='template_sheet', size=(25,1))],
+        [sg.Text('File:', size=(10,1)),
+         sg.Text('', key='template_file', pad=(0, 5), size=(25,2))],
+        [sg.Text('WorkSheet:', size=(10,1)),
+         sg.Text('', key='template_sheet', pad=(0, 5), size=(25,1))],
         ]
     report_title = sg.Text(text='',
                            key='report_title',
                            font=('Calibri', 14, 'bold'),
                            size=(12,1),
-                           pad=((5, 0), (0, 10)),
+                           pad=((0, 0), (4, 5)),
                            justification='center',
                            visible=True)
     report_desc = sg.Text(text='',
                           key='report_desc',
-                          size=(30,1),
-                          pad=(10, 3),
+                          size=(30,2),
+                          pad=((15, 0), (0, 20)),
                           visible=True)
     template_header = sg.Frame('Template:', template_layout,
                                    key='template_header',
                                    title_location=sg.TITLE_LOCATION_TOP_LEFT,
                                    font=('Calibri', 12),
+                                   pad=(0, 0),
                                    element_justification='left')
     header_layout = [
         [report_title],
@@ -206,7 +205,7 @@ def create_report_header()->sg.Frame:
     report_header = sg.Frame('Report', header_layout,
                              key='report_header',
                              title_location=sg.TITLE_LOCATION_TOP,
-                             font=('Arial Black', 14, 'bold'), size=(30,20),
+                             font=('Arial Black', 14, 'bold'),
                              element_justification='center',
                              relief=sg.RELIEF_GROOVE, border_width=5)
     return report_header
@@ -235,27 +234,24 @@ def make_actions_column(report_definitions: Dict[str, Report]):
     report_list += [str(ky) for ky in report_definitions.keys()]
     report_selector_box = sg.Combo(report_list,
                                     key='report_selector',
-                                    size=(15, 2),
+                                    pad=((10,10), (20,10)), size=(15, 2),
                                     enable_events=True,
                                     readonly=True)
     match_structures_button = sg.Button(key='match_structures',
                                         button_text='Match Structures',
                                         disabled=True,
                                         button_color=('red', 'white'),
-                                        relief=sg.RELIEF_RAISED,
-                                        border_width=5,
-                                        size=(20, 1), auto_size_button=False,
-                                        pad=(5, (5),
+                                        border_width=5, pad=(5, 5),
+                                        size=(15, 1), auto_size_button=False,
                                         font=('Times New Roman', 12, 'normal'))
     generate_report_button = sg.Button(key='generate_report',
                                        button_text='Show Report',
                                        disabled=True,
                                        button_color=('red', 'white'),
-                                       relief=sg.RELIEF_RAISED, border_width=5,
-                                       size=(20, 1), auto_size_button=False,
-                                       pad=(5, 5),
+                                       border_width=5, pad=(5, 5),
+                                       size=(15, 1), auto_size_button=False,
                                        font=('Times New Roman', 12, 'normal'))
-    actions = sg.column([[report_selector_box],
+    actions = sg.Column([[report_selector_box],
                          [match_structures_button],
                          [generate_report_button]
                          ])
@@ -386,7 +382,7 @@ plan_parameters = dict(
 
 
 #%% Initial Plan Settings
-class GuiData(NamedTuple):
+class GuiData():
     '''Parameters used by the GUI interface.
     Attributes:
         selected_plan_desc {PlanDescription} -- The string summary fields for the selected plan.
@@ -404,6 +400,50 @@ class GuiData(NamedTuple):
     history: MatchHistory = MatchHistory()
 
 data = GuiData()
+
+# Plan Status  Text Colour disabled
+load_plan_config = {
+    None:       dict(button_text='Select Plan',
+                     button_color=('red', 'white'),
+                     disabled=True),
+    'Selected': dict(button_text='Load Plan',
+                     button_color=('black', 'blue'),
+                     disabled=False),
+    'Loading':  dict(button_text='Loading ...',
+                     button_color=('red', 'yellow'),
+                     disabled=True),
+    'Loaded':   dict(button_text='Plan Loaded',
+                     button_color=('black', 'green'),
+                     disabled=False)
+    }
+match_config = {
+    None:       dict(button_text='Select Report',
+                     button_color=('red', 'white'),
+                     disabled=True),
+    'Selected': dict(button_text='Match Structures',
+                     button_color=('black', 'blue'),
+                     disabled=False),
+    'Matching': dict(button_text='Matching ...',
+                     button_color=('red', 'yellow'),
+                     disabled=True),
+    'Matched':  dict(button_text='Structured Matched',
+                     button_color=('black', 'green'),
+                     disabled=False)
+    }
+generate_config = {
+    None:       dict(button_text='',
+                     button_color=('red', 'white'),
+                     disabled=True),
+    'Matched': dict(button_text='Generate Report',
+                     button_color=('black', 'blue'),
+                     disabled=False),
+    'Generating': dict(button_text='Generating Report ...',
+                     button_color=('red', 'yellow'),
+                     disabled=True),
+    'Generated':  dict(button_text='Report Generated',
+                     button_color=('black', 'green'),
+                     disabled=False)
+    }
 
 #%% Create Main Window
 sg.SetOptions(element_padding=(0,0), margins=(0,0))
@@ -428,16 +468,17 @@ while True:
     elif event == sg.TIMEOUT_KEY:
         continue
     elif event in 'Plan_tree':
-        data.selected_plan = values['Plan_tree'][0]
-        data.selected_plan_desc = plan_dict.get(data.selected_plan_desc)
-        if plan_desc:
-            update_plan_header(window, plan_dict.get(data.selected_plan_desc))
+        plan_desc = values['Plan_tree'][0]
+        data.selected_plan_desc = plan_dict.get(plan_desc)
+        if data.selected_plan_desc:
+            update_plan_header(window, data.selected_plan_desc)
     elif event in 'report_selector':
-        report = select_report(selected_report)
+        data.selected_report = values['report_selector']
+        report = select_report(data.selected_report)
         if report:
             update_report_header(window, report)
     elif event in 'load_plan':
-        active_plan = load_plan(plan_desc, **plan_parameters)
+        active_plan = load_plan(data.selected_plan_desc, **plan_parameters)
     elif event in 'match_structures':
         rerun_matching(report, active_plan, history)
     elif event in 'generate_report':
