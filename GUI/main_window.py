@@ -2,32 +2,23 @@
 '''
 
 #%% imports etc.
-import sys
 import os
-from pathlib import Path
-from operator import attrgetter
+import sys
 import textwrap as tw
-
-from typing import Optional, Union, Any, Dict, Tuple, List, Set
-from typing import NamedTuple
+from pathlib import Path
 from copy import deepcopy
 from functools import partial
-from collections import OrderedDict
-
+from operator import attrgetter
 import xml.etree.ElementTree as ET
-
-#import tkinter.filedialog as tkf
-#import tkinter as tk
-#from tkinter import messagebox
-
-import PySimpleGUI as sg
+from collections import OrderedDict
+from typing import Optional, Union, Any, Dict, Tuple, List, Set, NamedTuple
 
 import xlwings as xw
+import PySimpleGUI as sg
 
 from build_plan_report import load_config, update_reports, load_reports, find_plan_files, run_report
 from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions
-
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
@@ -70,7 +61,6 @@ class IconPaths(dict):
         return None
 
 
-
 #%% Plan Header
 def create_plan_header()->sg.Frame:
     '''Create a Frame GUI element containing patient and plan info.
@@ -78,30 +68,47 @@ def create_plan_header()->sg.Frame:
         sg.Frame -- A group of text GUI s with Dose, Course,
         export date, patient name and ID for the plan.
     '''
-    patient_desc = [
-        [sg.Text('Name:', size=(8,1)), sg.Text('', key='pt_name_text', size=(43,1))],
-        [sg.Text('ID:', size=(8,1)), sg.Text('', key='id_text', size=(43,1))]
-        ]
-    patient_header = sg.Frame('Patient:', patient_desc,
-                              key='patient_header',
-                              size=(47,12),
-                              title_location=sg.TITLE_LOCATION_TOP_LEFT,
-                              font=('Calibri', 12),
-                              element_justification='left')
+    def build_patient_header():
+        # Set Patient Label
+        pt_name_label = sg.Text('Name:', size=(8,1))
+        pt_name_text = sg.Text('', key='pt_name_text', size=(43,1))
+        pt_id_label = sg.Text('ID:', size=(8,1))
+        pt_id_text = sg.Text('', key='id_text', size=(43,1))
+        patient_desc = [[pt_name_label, pt_name_text],
+                        [pt_id_label, pt_id_text]]
+        patient_header = sg.Frame('Patient:', patient_desc,
+                                  key='patient_header',
+                                  size=(47,12),
+                                  title_location=sg.TITLE_LOCATION_TOP_LEFT,
+                                  font=('Calibri', 12),
+                                  element_justification='left')
+        return patient_header
+
+    def build_plan_info_layout():
+        dose_label = sg.Text('Dose:', size=(8,1))
+        dose_text = sg.Text('', key='dose_text', size=(40,1))
+        course_label = sg.Text('Course:', size=(8,1))
+        course_text = sg.Text('', key='course_text', size=(40,1))
+        exported_label = sg.Text('Exported:', size=(8,1))
+        exported_text = sg.Text('', key='exported_text', size=(40,1))
+        plan_header_layout = [[dose_label, dose_text],
+                              [course_label, course_text],
+                              [exported_label, exported_text]]
+        return plan_header_layout
+
     # Set Main Label
-    plan_title = sg.Text(text='',
-                         key='plan_title',
-                         font=('Calibri', 14, 'bold'),
-                         pad=((5, 0), (0, 10)),
-                         size=(12,1),
+    plan_title = sg.Text(text='', key='plan_title', size=(12,1),
+                         font=('Calibri', 14, 'bold'), pad=((5, 0), (0, 10)),                         
                          justification='center')
-    header_layout = [
-        [plan_title],
-        [sg.Text('Dose:', size=(8,1)), sg.Text('', key='dose_text', size=(40,1))],
-        [sg.Text('Course:', size=(8,1)), sg.Text('', key='course_text', size=(40,1))],
-        [sg.Text('Exported:', size=(8,1)), sg.Text('', key='exported_text', size=(40,1))],
-        [patient_header]
-        ]
+    load_plan_button = sg.Button(key='load_plan', button_text='Select a Plan',
+                                 disabled=True, button_color=('red', 'white'),
+                                 relief=sg.RELIEF_RAISED, border_width=5,
+                                 size=(20, 1), auto_size_button=False,
+                                 pad=((10, 0), (0, 0)),
+                                 font=('Times New Roman', 12, 'normal'))
+    header_layout = [[plan_title, load_plan_button]]
+    header_layout += build_plan_info_layout()
+    header_layout += [[build_patient_header()]]
     plan_header = sg.Frame('Plan', header_layout, key='plan_header',
                            font=('Arial Black', 14, 'bold'), size=(48,12),
                            element_justification='center',
@@ -220,17 +227,39 @@ def update_report_header(window: sg.Window, report: Report):
     window['template_sheet'].update(value=wrapped_sheet)
 
 
-def report_selector(report_definitions: Dict[str, Report]):
-    '''Report Selection GUI
+#%% Actions
+def make_actions_column(report_definitions: Dict[str, Report]):
+    '''Report Selection GUI    
     '''
-    #FIXME Add Blank as first item in selector
-    report_list = [''] + [str(ky) for ky in report_definitions.keys()]
+    report_list = ['Select a Report']
+    report_list += [str(ky) for ky in report_definitions.keys()]
     report_selector_box = sg.Combo(report_list,
-                                   key='report_selector',
-                                   size=(40, 5),
-                                   enable_events=True,
-                                   readonly=True)
-    return report_selector_box
+                                    key='report_selector',
+                                    size=(15, 2),
+                                    enable_events=True,
+                                    readonly=True)
+    match_structures_button = sg.Button(key='match_structures',
+                                        button_text='Match Structures',
+                                        disabled=True,
+                                        button_color=('red', 'white'),
+                                        relief=sg.RELIEF_RAISED,
+                                        border_width=5,
+                                        size=(20, 1), auto_size_button=False,
+                                        pad=(5, (5),
+                                        font=('Times New Roman', 12, 'normal'))
+    generate_report_button = sg.Button(key='generate_report',
+                                       button_text='Show Report',
+                                       disabled=True,
+                                       button_color=('red', 'white'),
+                                       relief=sg.RELIEF_RAISED, border_width=5,
+                                       size=(20, 1), auto_size_button=False,
+                                       pad=(5, 5),
+                                       font=('Times New Roman', 12, 'normal'))
+    actions = sg.column([[report_selector_box],
+                         [match_structures_button],
+                         [generate_report_button]
+                         ])
+    return actions
 
 def select_report(selected_report: str):
     selected_report = values['report_selector']
@@ -357,45 +386,52 @@ plan_parameters = dict(
 
 
 #%% Initial Plan Settings
-#desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
-#                        4800, 4,  'Tuesday, August 29, 2017 16:19:54')
-#report_name = 'SABR 54 in 3'
-#report = deepcopy(report_definitions[report_name])
-selected_report = None
-plan_desc = None
-active_plan = None
-history = MatchHistory()
-    
+class GuiData(NamedTuple):
+    '''Parameters used by the GUI interface.
+    Attributes:
+        selected_plan_desc {PlanDescription} -- The string summary fields for the selected plan.
+            Intially = None
+        active_plan {Plan} -- The loaded plan. should match with selected_plan_desc.
+            Intially = None
+        selected_report {Report} -- A deep copy of the report selected from the report definitions.
+            Intially = None
+        history {MatchHistory} -- A record of all manual matched made and modified this session.
+            Initially an empty MatchHistory List.
+    '''
+    selected_plan_desc: PlanDescription = None
+    active_plan: Plan = None
+    selected_report: Report = None
+    history: MatchHistory = MatchHistory()
+
+data = GuiData()
+
 #%% Create Main Window
 sg.SetOptions(element_padding=(0,0), margins=(0,0))
 plan_header = create_plan_header()
 report_header = create_report_header()
 plan_selection = plan_selector(plan_dict)
-report_selection = report_selector(report_definitions)
-load_plan_button = sg.Button(button_text='Load Plan', key='load_plan', disabled=False)
-match_structures_button = sg.Button(button_text='Match Structures', key='match_structures', disabled=False)
-generate_report_button = sg.Button(button_text='Show Report', key='generate_report', disabled=False)
-layout = [[plan_header, report_header],
-          [plan_selection, report_selection],
-          [load_plan_button, match_structures_button, generate_report_button]
-          ]
+report_actions = make_actions_column(report_definitions)
+layout = [[plan_header, report_header, report_actions],
+          [plan_selection]]
 
 window = sg.Window('Plan Evaluation',
-    layout=layout,
-    resizable=True,
-    debugger_enabled=True,
-    finalize=True,
-    element_justification="left")
+                   layout=layout,
+                   resizable=True,
+                   debugger_enabled=True,
+                   finalize=True,
+                   element_justification="left")
 
 while True:
     event, values = window.Read(timeout=2000)
     if event is None:
         break
+    elif event == sg.TIMEOUT_KEY:
+        continue
     elif event in 'Plan_tree':
-        selected_plan = values['Plan_tree'][0]
-        plan_desc = plan_dict.get(selected_plan)
+        data.selected_plan = values['Plan_tree'][0]
+        data.selected_plan_desc = plan_dict.get(data.selected_plan_desc)
         if plan_desc:
-            update_plan_header(window, plan_desc)
+            update_plan_header(window, plan_dict.get(data.selected_plan_desc))
     elif event in 'report_selector':
         report = select_report(selected_report)
         if report:
@@ -406,5 +442,3 @@ while True:
         rerun_matching(report, active_plan, history)
     elif event in 'generate_report':
         run_report(active_plan, report)
-    elif event == sg.TIMEOUT_KEY:
-        continue
