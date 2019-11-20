@@ -1,7 +1,0 @@
-name,source,unit,cell_address,cell_format
-Patient,Patient Name,,D4,General
-CR#,Patient ID,,D5,@
-Fractions,Fractions,,H5,0
-GTV Volume,GTV Volume,cc,G7,0.00
-Plan Normalization,Normalization,%,G14,0.0%
-
