@@ -252,9 +252,15 @@ def make_actions_column(report_definitions: Dict[str, Report]):
                                        border_width=5, pad=(5, 5),
                                        size=(15, 1), auto_size_button=False,
                                        font=('Times New Roman', 12, 'normal'))
+    exit_button = sg.Button(key='EXIT', button_text='Exit',
+                            button_color=('black', 'grey'),
+                            border_width=5, pad=(5, 5),
+                            size=(15, 1), auto_size_button=False,
+                            font=('Times New Roman', 12, 'normal'))
     actions = sg.Column([[report_selector_box],
                          [match_structures_button],
-                         [generate_report_button]
+                         [generate_report_button],
+                         [exit_button]
                          ])
     return actions
 
@@ -468,6 +474,9 @@ while True:
     event, values = window.Read(timeout=2000)
     if event is None:
         break
+    elif event in 'EXIT':
+        window.close()
+        break
     elif event == sg.TIMEOUT_KEY:
         continue
     elif event in 'Plan_tree':
@@ -485,6 +494,7 @@ while True:
                 window['match_structures'].update(**match_config['Selected'])
     elif event in 'load_plan':
         window['load_plan'].update(**load_plan_config['Loading'])
+        window.refresh()
         active_plan = load_plan(data.selected_plan_desc, **plan_parameters)
         if active_plan:
             window['load_plan'].update(**load_plan_config['Loaded'])
@@ -494,10 +504,12 @@ while True:
             window['load_plan'].update(**load_plan_config[None])
     elif event in 'match_structures':
         window['match_structures'].update(**match_config['Matching'])
+        window.refresh()
         rerun_matching(report, active_plan, history)
         window['match_structures'].update(**match_config['Matched'])
         window['generate_report'].update(**generate_config['Matched'])
     elif event in 'generate_report':
         window['generate_report'].update(**generate_config['Generating'])
+        window.refresh()
         run_report(active_plan, report)
         window['generate_report'].update(**generate_config['Generated'])
