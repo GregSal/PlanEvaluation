@@ -97,7 +97,7 @@ def create_plan_header()->sg.Frame:
 
     # Set Main Label
     plan_title = sg.Text(text='', key='plan_title', size=(12,1),
-                         font=('Calibri', 14, 'bold'), pad=((5, 0), (5, 10)),                         
+                         font=('Calibri', 14, 'bold'), pad=((5, 0), (5, 10)),
                          justification='center')
     load_plan_button = sg.Button(key='load_plan', button_text='Select a Plan',
                                  disabled=True, button_color=('red', 'white'),
@@ -227,8 +227,9 @@ def update_report_header(window: sg.Window, report: Report):
 
 
 #%% Actions
+# Plan Status  Text Colour disabled
 def make_actions_column(report_definitions: Dict[str, Report]):
-    '''Report Selection GUI    
+    '''Report Selection GUI
     '''
     report_list = ['Select a Report']
     report_list += [str(ky) for ky in report_definitions.keys()]
@@ -403,49 +404,51 @@ data = GuiData()
 
 # Plan Status  Text Colour disabled
 load_plan_config = {
-    None:       dict(button_text='Select Plan',
+    None:       dict(text='Select Plan',
                      button_color=('red', 'white'),
                      disabled=True),
-    'Selected': dict(button_text='Load Plan',
+    'Selected': dict(text='Load Plan',
                      button_color=('black', 'blue'),
                      disabled=False),
-    'Loading':  dict(button_text='Loading ...',
+    'Loading':  dict(text='Loading ...',
                      button_color=('red', 'yellow'),
                      disabled=True),
-    'Loaded':   dict(button_text='Plan Loaded',
+    'Loaded':   dict(text='Plan Loaded',
                      button_color=('black', 'green'),
                      disabled=False)
     }
 match_config = {
-    None:       dict(button_text='Select Report',
+    None:       dict(text='Select Report',
                      button_color=('red', 'white'),
                      disabled=True),
-    'Selected': dict(button_text='Match Structures',
+    'Selected': dict(text='Match Structures',
                      button_color=('black', 'blue'),
                      disabled=False),
-    'Matching': dict(button_text='Matching ...',
+    'Matching': dict(text='Matching ...',
                      button_color=('red', 'yellow'),
                      disabled=True),
-    'Matched':  dict(button_text='Structured Matched',
+    'Matched':  dict(text='Structured Matched',
                      button_color=('black', 'green'),
                      disabled=False)
     }
 generate_config = {
-    None:       dict(button_text='',
+    None:       dict(text='',
                      button_color=('red', 'white'),
                      disabled=True),
-    'Matched': dict(button_text='Generate Report',
+    'Matched': dict(text='Generate Report',
                      button_color=('black', 'blue'),
                      disabled=False),
-    'Generating': dict(button_text='Generating Report ...',
+    'Generating': dict(text='Generating Report ...',
                      button_color=('red', 'yellow'),
                      disabled=True),
-    'Generated':  dict(button_text='Report Generated',
+    'Generated':  dict(text='Report Generated',
                      button_color=('black', 'green'),
                      disabled=False)
     }
-
 #%% Create Main Window
+report = None
+active_plan = None
+history = MatchHistory()
 sg.SetOptions(element_padding=(0,0), margins=(0,0))
 plan_header = create_plan_header()
 report_header = create_report_header()
@@ -472,14 +475,29 @@ while True:
         data.selected_plan_desc = plan_dict.get(plan_desc)
         if data.selected_plan_desc:
             update_plan_header(window, data.selected_plan_desc)
+            window['load_plan'].update(**load_plan_config['Selected'])
     elif event in 'report_selector':
         data.selected_report = values['report_selector']
         report = select_report(data.selected_report)
         if report:
             update_report_header(window, report)
+            if active_plan:
+                window['match_structures'].update(**match_config['Selected'])
     elif event in 'load_plan':
+        window['load_plan'].update(**load_plan_config['Loading'])
         active_plan = load_plan(data.selected_plan_desc, **plan_parameters)
+        if active_plan:
+            window['load_plan'].update(**load_plan_config['Loaded'])
+            if report:
+                window['match_structures'].update(**match_config['Selected'])
+        else:
+            window['load_plan'].update(**load_plan_config[None])
     elif event in 'match_structures':
+        window['match_structures'].update(**match_config['Matching'])
         rerun_matching(report, active_plan, history)
+        window['match_structures'].update(**match_config['Matched'])
+        window['generate_report'].update(**generate_config['Matched'])
     elif event in 'generate_report':
+        window['generate_report'].update(**generate_config['Generating'])
         run_report(active_plan, report)
+        window['generate_report'].update(**generate_config['Generated'])
