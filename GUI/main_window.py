@@ -19,6 +19,7 @@ import PySimpleGUI as sg
 from build_plan_report import load_config, update_reports, load_reports, find_plan_files, run_report
 from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions
+from match_window import manual_match
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
@@ -285,231 +286,146 @@ def load_plan(plan_desc: PlanDescription, **plan_parameters)->Plan:
     plan = Plan(dvh_data=dvh_file, **plan_parameters)
     return plan
 
-#%% GUI settings
-def main_window(icons: IconPaths, plan_elements: PlanItemLookup,
-                 reference_data: List[ReferenceGroup])->sg.Window:
-    plan_header = create_plan_header(desc)
-    report_header = create_report_header(report)
-    w = sg.Window('Plan Evaluation',
-        layout=[[plan_header, report_header]],
-        default_element_size=(45, 1),
-        default_button_element_size=(None, None),
-        auto_size_text=None,
-        auto_size_buttons=None,
-        location=(None, None),
-        size=(None, None),
-        element_padding=None,
-        margins=(None, None),
-        button_color=None,
-        font=None,
-        progress_bar_color=(None, None),
-        background_color=None,
-        border_depth=None,
-        auto_close=False,
-        auto_close_duration=3,
-        icon=None,
-        force_toplevel=False,
-        alpha_channel=1,
-        return_keyboard_events=False,
-        use_default_focus=True,
-        text_justification=None,
-        no_titlebar=False,
-        grab_anywhere=False,
-        keep_on_top=False,
-        resizable=False,
-        disable_close=False,
-        disable_minimize=False,
-        right_click_menu=None,
-        transparent_color=None,
-        debugger_enabled=False,
-        finalize=True,
-        element_justification="left")
-    return window
-
 
 #%% Main
 def main():
     '''Define Folder Paths, load report and plan data.
     '''
-    base_path = Path.cwd() / '..'
+    base_path = Path.cwd()
     test_path = base_path / 'GUI' / 'Testing'
     data_path = test_path
     results_path = base_path / 'GUI' / 'Output'
     icon_path = base_path / 'GUI' / 'icons'
     icons = IconPaths(icon_path)
-
-    # Initial Plan and Report Settings
+    #%% Load Config file and Report definitions
     config_file = 'TestPlanEvaluationConfig.xml'
-    desc = PlanDescription(Path.cwd(), 'DVH', 'AA, BB', '11', 'LUNR', 'C1',
-                           4800, 4,  'Tuesday, August 29, 2017 16:19:54')
-    report_name = 'SABR 54 in 3'
-    report_description = 'SABR Plan Evaluation Sheet for 12Gy/fr Schedules '
-    report_description += '(48 Gy in 4F) or (60Gy/5F)'
+    config = load_config(data_path, config_file)
+    report_definitions = update_reports(config)
+    plan_dict = find_plan_files(config, test_path)
 
-    # Load Config file and Report definitions
-    (config, report_parameters) = initialize(data_path, config_file)
-    report_definitions = read_report_files(**report_parameters)
-    report = deepcopy(report_definitions[report_name])
+    code_exceptions_def = config.find('LateralityCodeExceptions')
+    plan_parameters = dict(
+        default_units=get_default_units(config),
+        laterality_exceptions=get_laterality_exceptions(code_exceptions_def),
+        name='Plan'
+        )
 
-    # Load list of Plan Files
-    plan_list = find_plan_files(config, test_path)
-    plan_header = create_plan_header(desc)
-    report_header = create_report_header(report)
+    #%% Initial Plan Settings
+    load_plan_config = {
+        None:       dict(text='Select Plan',
+                         button_color=('red', 'white'),
+                         disabled=True),
+        'Selected': dict(text='Load Plan',
+                         button_color=('black', 'blue'),
+                         disabled=False),
+        'Loading':  dict(text='Loading ...',
+                         button_color=('red', 'yellow'),
+                         disabled=True),
+        'Loaded':   dict(text='Plan Loaded',
+                         button_color=('black', 'green'),
+                         disabled=False)
+        }
+    match_config = {
+        None:       dict(text='Select Report',
+                         button_color=('red', 'white'),
+                         disabled=True),
+        'Selected': dict(text='Match Structures',
+                         button_color=('black', 'blue'),
+                         disabled=False),
+        'Matching': dict(text='Matching ...',
+                         button_color=('red', 'yellow'),
+                         disabled=True),
+        'Matched':  dict(text='Structured Matched',
+                         button_color=('black', 'green'),
+                         disabled=False)
+        }
+    generate_config = {
+        None:       dict(text='',
+                         button_color=('red', 'white'),
+                         disabled=True),
+        'Matched': dict(text='Generate Report',
+                         button_color=('black', 'blue'),
+                         disabled=False),
+        'Generating': dict(text='Generating Report ...',
+                         button_color=('red', 'yellow'),
+                         disabled=True),
+        'Generated':  dict(text='Report Generated',
+                         button_color=('black', 'green'),
+                         disabled=False)
+        }
+    #%% Create Main Window
+    report = None
+    active_plan = None
+    history = MatchHistory()
+    sg.SetOptions(element_padding=(0,0), margins=(0,0))
+    plan_header = create_plan_header()
+    report_header = create_report_header()
+    plan_selection = plan_selector(plan_dict)
+    report_actions = make_actions_column(report_definitions)
+    layout = [[plan_header, report_header, report_actions],
+              [plan_selection]]
 
-    w.Read()
+    window = sg.Window('Plan Evaluation',
+                       layout=layout,
+                       resizable=True,
+                       debugger_enabled=True,
+                       finalize=True,
+                       element_justification="left")
 
-    report.match_elements(plan)
-    (report, plan, num_updates) = manual_match(report, plan, icons)
-
-
-#%% Run Tests
-
-#if __name__ == '__main__':
-#    main()
-
-base_path = Path.cwd()
-test_path = base_path / 'GUI' / 'Testing'
-data_path = test_path
-results_path = base_path / 'GUI' / 'Output'
-icon_path = base_path / 'GUI' / 'icons'
-icons = IconPaths(icon_path)
-
-#%% Load Config file and Report definitions
-config_file = 'TestPlanEvaluationConfig.xml'
-config = load_config(data_path, config_file)
-report_definitions = update_reports(config)
-plan_dict = find_plan_files(config, test_path)
-
-code_exceptions_def = config.find('LateralityCodeExceptions')
-plan_parameters = dict(
-    default_units=get_default_units(config),
-    laterality_exceptions=get_laterality_exceptions(code_exceptions_def),
-    name='Plan'
-    )
-
-
-#%% Initial Plan Settings
-class GuiData():
-    '''Parameters used by the GUI interface.
-    Attributes:
-        selected_plan_desc {PlanDescription} -- The string summary fields for the selected plan.
-            Intially = None
-        active_plan {Plan} -- The loaded plan. should match with selected_plan_desc.
-            Intially = None
-        selected_report {Report} -- A deep copy of the report selected from the report definitions.
-            Intially = None
-        history {MatchHistory} -- A record of all manual matched made and modified this session.
-            Initially an empty MatchHistory List.
-    '''
-    selected_plan_desc: PlanDescription = None
-    active_plan: Plan = None
-    selected_report: Report = None
-    history: MatchHistory = MatchHistory()
-
-data = GuiData()
-
-# Plan Status  Text Colour disabled
-load_plan_config = {
-    None:       dict(text='Select Plan',
-                     button_color=('red', 'white'),
-                     disabled=True),
-    'Selected': dict(text='Load Plan',
-                     button_color=('black', 'blue'),
-                     disabled=False),
-    'Loading':  dict(text='Loading ...',
-                     button_color=('red', 'yellow'),
-                     disabled=True),
-    'Loaded':   dict(text='Plan Loaded',
-                     button_color=('black', 'green'),
-                     disabled=False)
-    }
-match_config = {
-    None:       dict(text='Select Report',
-                     button_color=('red', 'white'),
-                     disabled=True),
-    'Selected': dict(text='Match Structures',
-                     button_color=('black', 'blue'),
-                     disabled=False),
-    'Matching': dict(text='Matching ...',
-                     button_color=('red', 'yellow'),
-                     disabled=True),
-    'Matched':  dict(text='Structured Matched',
-                     button_color=('black', 'green'),
-                     disabled=False)
-    }
-generate_config = {
-    None:       dict(text='',
-                     button_color=('red', 'white'),
-                     disabled=True),
-    'Matched': dict(text='Generate Report',
-                     button_color=('black', 'blue'),
-                     disabled=False),
-    'Generating': dict(text='Generating Report ...',
-                     button_color=('red', 'yellow'),
-                     disabled=True),
-    'Generated':  dict(text='Report Generated',
-                     button_color=('black', 'green'),
-                     disabled=False)
-    }
-#%% Create Main Window
-report = None
-active_plan = None
-history = MatchHistory()
-sg.SetOptions(element_padding=(0,0), margins=(0,0))
-plan_header = create_plan_header()
-report_header = create_report_header()
-plan_selection = plan_selector(plan_dict)
-report_actions = make_actions_column(report_definitions)
-layout = [[plan_header, report_header, report_actions],
-          [plan_selection]]
-
-window = sg.Window('Plan Evaluation',
-                   layout=layout,
-                   resizable=True,
-                   debugger_enabled=True,
-                   finalize=True,
-                   element_justification="left")
-
-while True:
-    event, values = window.Read(timeout=2000)
-    if event is None:
-        break
-    elif event in 'EXIT':
-        window.close()
-        break
-    elif event == sg.TIMEOUT_KEY:
-        continue
-    elif event in 'Plan_tree':
-        plan_desc = values['Plan_tree'][0]
-        data.selected_plan_desc = plan_dict.get(plan_desc)
-        if data.selected_plan_desc:
-            update_plan_header(window, data.selected_plan_desc)
-            window['load_plan'].update(**load_plan_config['Selected'])
-    elif event in 'report_selector':
-        data.selected_report = values['report_selector']
-        report = select_report(data.selected_report)
-        if report:
-            update_report_header(window, report)
-            if active_plan:
-                window['match_structures'].update(**match_config['Selected'])
-    elif event in 'load_plan':
-        window['load_plan'].update(**load_plan_config['Loading'])
-        window.refresh()
-        active_plan = load_plan(data.selected_plan_desc, **plan_parameters)
-        if active_plan:
-            window['load_plan'].update(**load_plan_config['Loaded'])
+    while True:
+        event, values = window.Read(timeout=2000)
+        if event is None:
+            break
+        elif event in 'EXIT':
+            window.close()
+            break
+        elif event == sg.TIMEOUT_KEY:
+            continue
+        elif event in 'Plan_tree':
+            plan_desc = values['Plan_tree'][0]
+            data.selected_plan_desc = plan_dict.get(plan_desc)
+            if data.selected_plan_desc:
+                update_plan_header(window, data.selected_plan_desc)
+                window['load_plan'].update(**load_plan_config['Selected'])
+        elif event in 'report_selector':
+            data.selected_report = values['report_selector']
+            report = select_report(data.selected_report)
             if report:
-                window['match_structures'].update(**match_config['Selected'])
-        else:
-            window['load_plan'].update(**load_plan_config[None])
-    elif event in 'match_structures':
-        window['match_structures'].update(**match_config['Matching'])
-        window.refresh()
-        rerun_matching(report, active_plan, history)
-        window['match_structures'].update(**match_config['Matched'])
-        window['generate_report'].update(**generate_config['Matched'])
-    elif event in 'generate_report':
-        window['generate_report'].update(**generate_config['Generating'])
-        window.refresh()
-        run_report(active_plan, report)
-        window['generate_report'].update(**generate_config['Generated'])
+                update_report_header(window, report)
+                if active_plan:
+                    window['match_structures'].update(**match_config['Selected'])
+        elif event in 'load_plan':
+            window['load_plan'].update(**load_plan_config['Loading'])
+            window.refresh()
+            active_plan = load_plan(data.selected_plan_desc, **plan_parameters)
+            if active_plan:
+                window['load_plan'].update(**load_plan_config['Loaded'])
+                if report:
+                    window['match_structures'].update(**match_config['Selected'])
+            else:
+                window['load_plan'].update(**load_plan_config[None])
+        elif event in 'match_structures':
+            window['match_structures'].update(**match_config['Matching'])
+            window.refresh()
+            rerun_matching(report, active_plan, history)
+            report = manual_match(report, plan, icons)
+            window['match_structures'].update(**match_config['Matched'])
+            window['generate_report'].update(**generate_config['Matched'])
+        elif event in 'generate_report':
+            window['generate_report'].update(**generate_config['Generating'])
+            window.refresh()
+            run_report(active_plan, report)
+            window['generate_report'].update(**generate_config['Generated'])
+
+
+
+
+%% Run Tests
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+

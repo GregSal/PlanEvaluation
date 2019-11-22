@@ -431,16 +431,16 @@ class PlanReference(dict):
 
     def update_ref(new_ref: ReferenceGroup, plan: Plan)->bool:
         updated = False
-        self['match_method'] = ref.match_status
-        if not ref.match_status:
+        self['match_method'] = new_ref.match_status
+        if not new_ref.match_status:
             self['plan_element'] = None
             updated = True
-        elif ref.match_status is 'Direct Entry':
-            self['plan_element'] = ref.plan_Item
+        elif new_ref.match_status is 'Direct Entry':
+            self['plan_element'] = new_ref.plan_Item
             updated = True
-        elif ref.match_status is 'Manual':
-            matched_element = plan.get_data_element(ref.reference_type,
-                                                    ref.plan_Item)
+        elif new_ref.match_status is 'Manual':
+            matched_element = plan.get_data_element(new_ref.reference_type,
+                                                    new_ref.plan_Item)
             self['plan_element'] = matched_element
             updated = True
         return updated
