@@ -163,7 +163,7 @@ def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
                        return_keyboard_events=False,  finalize=True)
     return window
 
-def manual_match(report: Report, plan: Plan, icons: IconPaths)->Tuple[Report, Plan]:
+def manual_match(report: Report, plan: Plan, icons: IconPaths)->Report:
     reference_data = report.get_matches()
     plan_elements = plan.items()
     element_types = {name: elmt.element_type
@@ -193,15 +193,17 @@ def manual_match(report: Report, plan: Plan, icons: IconPaths)->Tuple[Report, Pl
         elif event in 'Match_tree':
             update_menu(values, item_menu, item_list, reference_data, element_types)
         elif event in 'Approve':
-            num_updates = len(history.changed())
+            for new_match in history.changed():
+                report.update_ref(new_match, plan)
+            #num_updates = len(history.changed())
             break
         else:
             (old, new) = update_match(event, values, reference_data)
-            report.update_ref(new, plan)
+            #report.update_ref(new, plan)
             history.add(old, new)
             update_tree(tree, new)
     window.Close()
-    return report, num_updates
+    return report
 
 
 #%% Run Tests
