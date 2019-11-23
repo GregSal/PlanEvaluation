@@ -16,6 +16,44 @@ from plan_report import load_aliases, load_laterality_table
 from plan_data import DvhFile, Plan, PlanDescription, find_plan_files
 from plan_data import get_default_units, get_laterality_exceptions, DvhSource
 
+
+class IconPaths(dict):
+    '''Match Parameters for a PlanReference.
+        Report Item name, match status, plan item type, Plan Item name
+    Attributes:
+        match_icon {Path} -- Green Check mark
+        not_matched_icon {str} -- The type of PlanElement.  Can be one of:
+            ('Plan Property', Structure', 'Reference Point', 'Ratio')
+        match_status: {str} -- How a plan value was obtained.  One of:
+            One of Auto, Manual, Direct Entry, or None
+        plan_Item: {str} -- The name of the matched element from the Plan.
+    '''
+    def __init__(self, icon_path):
+        '''Initialize the icon paths.
+        Attributes:
+            icon_path {Path} -- The path to the Icon Directory
+        Contains the following Icon references:
+            match_icon {Path} -- Green Check mark
+            not_matched_icon {Path} -- Red X
+            changed_icon {Path} -- Yellow Sun
+        '''
+        super().__init__()
+        # Icons
+        self['match_icon'] = icon_path / 'Checkmark.png'
+        self['not_matched_icon'] = icon_path / 'Error_Symbol.png'
+        self['changed_icon'] = icon_path / 'emblem-new'
+
+    def path(self, icon_name):
+        '''Return a string path to the icon.
+        Attributes:
+            icon_name {str} -- The name of an icon in the dictionary
+        '''
+        icon_path = self.get(icon_name)
+        if icon_path:
+            return str(icon_path)
+        return None
+
+
 #%% Initialization Methods
 # TODO use file utilities functions for path and file name checking/completion
 def load_config(base_path: Path, config_file_name: str)->ET.Element:

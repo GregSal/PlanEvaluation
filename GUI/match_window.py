@@ -3,30 +3,25 @@
 '''
 
 #%% imports etc.
-import sys
-import os
 from pathlib import Path
 from operator import attrgetter
 
-from typing import Optional, Union, Any, Dict, Tuple, List, Set
-from typing import NamedTuple
+from typing import Dict, Tuple, List
+
+from typing import Dict, Tuple, List
 from copy import deepcopy
-from functools import partial
 
 import xml.etree.ElementTree as ET
 
-import tkinter.filedialog as tkf
-import tkinter as tk
-from tkinter import messagebox
 
 import PySimpleGUI as sg
 
-import xlwings as xw
 
-from build_plan_report import initialize, read_report_files
-from plan_report import Report, ReferenceGroup, MatchList, MatchHistory
+from build_plan_report import load_config, load_reports
+from plan_report import Report, ReferenceGroup, MatchHistory
+from plan_report import Report, ReferenceGroup, MatchHistory
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements
-from main_window import IconPaths
+from build_plan_report import IconPaths
 
 Values = Dict[str, List[str]]
 
@@ -93,14 +88,11 @@ def update_tree(tree: sg.Tree, new_value: ReferenceGroup):
     tree.Update(key=lookup, value=new_value)
 
 
-def update_match(event: str, values: Values, tree: sg.Tree,
+def update_match(event: str, selection: str, tree: sg.Tree,
                  reference_data: Dict[str, ReferenceGroup],
                  history: MatchHistory)->MatchHistory:
     '''Update the reference lists
     '''
-    selection = values.get('Match_tree')
-    if not selection:
-        return history
     ref = reference_data.get(selection[0])
     old_value = ReferenceGroup(*ref)
     new_value = ReferenceGroup(*ref)
@@ -116,7 +108,7 @@ def update_match(event: str, values: Values, tree: sg.Tree,
     new_value = ReferenceGroup(*new_value[0:-2], status, item_name)
     history.add(old_value, new_value)
     update_tree(tree, new_value)
-    return (old_value, new_value)
+    return history
 
 
 #%% GUI settings
@@ -198,10 +190,10 @@ def manual_match(report: Report, plan: Plan, icons: IconPaths)->Report:
             #num_updates = len(history.changed())
             break
         else:
-            (old, new) = update_match(event, values, reference_data)
-            #report.update_ref(new, plan)
-            history.add(old, new)
-            update_tree(tree, new)
+            selection = values.get('Match_tree')
+            if selection:
+                history = update_match(event, selection, tree, reference_data, history)
+            print(history)
     window.Close()
     return report
 
@@ -217,8 +209,8 @@ def load_test_data(data_path: Path,
     config_file = 'PlanEvaluationConfig.xml'
     dvh_path = test_path / dvh_file
     # Load Config file and Report definitions
-    (config, report_parameters) = initialize(data_path, config_file)
-    report_definitions = read_report_files(**report_parameters)
+    config = load_config(data_path, config_file)
+    report_definitions = load_reports(config)
     report = deepcopy(report_definitions[report_name])
     plan = Plan(config, 'test', DvhFile(dvh_path))
     return(config, plan, report)

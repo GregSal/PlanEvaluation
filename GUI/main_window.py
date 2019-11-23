@@ -17,49 +17,13 @@ import xlwings as xw
 import PySimpleGUI as sg
 
 from build_plan_report import load_config, update_reports, load_reports, find_plan_files, run_report
+from build_plan_report import IconPaths
 from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions
 from match_window import manual_match
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
-
-
-class IconPaths(dict):
-    '''Match Parameters for a PlanReference.
-        Report Item name, match status, plan item type, Plan Item name
-    Attributes:
-        match_icon {Path} -- Green Check mark
-        not_matched_icon {str} -- The type of PlanElement.  Can be one of:
-            ('Plan Property', Structure', 'Reference Point', 'Ratio')
-        match_status: {str} -- How a plan value was obtained.  One of:
-            One of Auto, Manual, Direct Entry, or None
-        plan_Item: {str} -- The name of the matched element from the Plan.
-    '''
-    def __init__(self, icon_path):
-        '''Initialize the icon paths.
-        Attributes:
-            icon_path {Path} -- The path to the Icon Directory
-        Contains the following Icon references:
-            match_icon {Path} -- Green Check mark
-            not_matched_icon {Path} -- Red X
-            changed_icon {Path} -- Yellow Sun
-        '''
-        super().__init__()
-        # Icons
-        self['match_icon'] = icon_path / 'Checkmark.png'
-        self['not_matched_icon'] = icon_path / 'Error_Symbol.png'
-        self['changed_icon'] = icon_path / 'emblem-new'
-
-    def path(self, icon_name):
-        '''Return a string path to the icon.
-        Attributes:
-            icon_name {str} -- The name of an icon in the dictionary
-        '''
-        icon_path = self.get(icon_name)
-        if icon_path:
-            return str(icon_path)
-        return None
 
 
 #%% Plan Header
@@ -265,11 +229,6 @@ def make_actions_column(report_definitions: Dict[str, Report]):
                          ])
     return actions
 
-def select_report(selected_report: str):
-    selected_report = values['report_selector']
-    report = deepcopy(report_definitions.get(selected_report))
-    return report
-
 def load_plan(plan_desc: PlanDescription, **plan_parameters)->Plan:
     '''Load plan data from the specified file or folder.
     Arguments:
@@ -295,7 +254,7 @@ def main():
     test_path = base_path / 'GUI' / 'Testing'
     data_path = test_path
     results_path = base_path / 'GUI' / 'Output'
-    icon_path = base_path / 'GUI' / 'icons'
+    icon_path = base_path / 'icons'
     icons = IconPaths(icon_path)
     #%% Load Config file and Report definitions
     config_file = 'TestPlanEvaluationConfig.xml'
@@ -356,6 +315,7 @@ def main():
     #%% Create Main Window
     report = None
     active_plan = None
+    selected_plan_desc = None
     history = MatchHistory()
     sg.SetOptions(element_padding=(0,0), margins=(0,0))
     plan_header = create_plan_header()
@@ -383,13 +343,13 @@ def main():
             continue
         elif event in 'Plan_tree':
             plan_desc = values['Plan_tree'][0]
-            data.selected_plan_desc = plan_dict.get(plan_desc)
-            if data.selected_plan_desc:
-                update_plan_header(window, data.selected_plan_desc)
+            selected_plan_desc = plan_dict.get(plan_desc)
+            if selected_plan_desc:
+                update_plan_header(window, selected_plan_desc)
                 window['load_plan'].update(**load_plan_config['Selected'])
         elif event in 'report_selector':
-            data.selected_report = values['report_selector']
-            report = select_report(data.selected_report)
+            selected_report = values['report_selector']
+            report = deepcopy(report_definitions.get(selected_report))
             if report:
                 update_report_header(window, report)
                 if active_plan:
@@ -397,9 +357,10 @@ def main():
         elif event in 'load_plan':
             window['load_plan'].update(**load_plan_config['Loading'])
             window.refresh()
-            active_plan = load_plan(data.selected_plan_desc, **plan_parameters)
+            active_plan = load_plan(selected_plan_desc, **plan_parameters)
             if active_plan:
                 window['load_plan'].update(**load_plan_config['Loaded'])
+                window.refresh()
                 if report:
                     window['match_structures'].update(**match_config['Selected'])
             else:
@@ -408,7 +369,7 @@ def main():
             window['match_structures'].update(**match_config['Matching'])
             window.refresh()
             rerun_matching(report, active_plan, history)
-            report = manual_match(report, plan, icons)
+            report = manual_match(report, active_plan, icons)
             window['match_structures'].update(**match_config['Matched'])
             window['generate_report'].update(**generate_config['Matched'])
         elif event in 'generate_report':
@@ -420,7 +381,7 @@ def main():
 
 
 
-%% Run Tests
+#%% Run Tests
 
 if __name__ == '__main__':
     main()
