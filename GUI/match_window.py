@@ -27,6 +27,25 @@ Values = Dict[str, List[str]]
 
 
 #%% Match GUI functions
+class TreeRtClick(sg.Tree):
+    '''A variation of the Tree class that replaces the right-click callback
+    function with one that first selects the tree item at the location of the
+    right-click.
+    '''
+    def _RightClickMenuCallback(self, event):
+        '''
+        Replace the parent class' right-click callback function with one that
+        first selects the tree item at the location of the right-click.
+        '''
+        tree = self.Widget  # Get the Tkinter Tree widget
+
+        # These two calls are directly to the Tkinter Treeview widget.
+        item_to_select = tree.identify_row(event.y) # Identify the tree item
+        tree.selection_set(item_to_select)  # Set that item as selected.
+
+        super()._RightClickMenuCallback(event) # Continue with normal right-click menu function.
+
+
 def plan_item_menu(plan_elements: PlanItemLookup,
                    select_type: str = None)->List[PlanElements]:
     '''Generate a PlanItem Selection menu from a particular type of PlanItem.
@@ -147,7 +166,7 @@ def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
 
     # Build window
     layout = [[sg.Text('Report Item Matching')],
-              [sg.Tree(data=treedata, **tree_settings)],
+              [TreeRtClick(data=treedata, **tree_settings)],
               [sg.Button('Approve'), sg.Button('Cancel')]
              ]
     window = sg.Window('Match Items', layout=layout,
