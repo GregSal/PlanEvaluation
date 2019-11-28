@@ -254,6 +254,7 @@ class ReferenceGroup(NamedTuple):
             One of Auto, Manual, Direct Entry, or None
         plan_Item: {str} -- The name of the matched element from the Plan.
     '''
+    reference_index: Tuple[str]
     reference_name: str
     reference_type: str
     laterality: str = None
@@ -340,6 +341,14 @@ class PlanReference(dict):
 
     matched_name = property(get_plan_item_name)
 
+    @property
+    def ref_index(self):
+        ref_name = self.get('reference_name')
+        ref_type = self.get('reference_type')
+        ref_lat = self.get('reference_laterality')
+        indx = (ref_type, ref_name, ref_lat)
+        return indx
+
     def lookup_aliases(self, alias_reference: AliasRef)->Alias:
         '''Lookup possible aliases for the reference name.
         Arguments:
@@ -421,7 +430,8 @@ class PlanReference(dict):
         '''Return a tuple of match parameters
         Report Item name, match status, plan item type, Plan Item name
         '''
-        return ReferenceGroup(self['reference_name'],
+        return ReferenceGroup(self.ref_index,
+                              self['reference_name'],
                               self['reference_type'],
                               self['reference_laterality'],
                               self['match_method'],
@@ -759,9 +769,9 @@ class Report():
                 element_definition = ReportElement(element)
                 reference = element.find('PlanReference')
                 element_name = element_definition.name
-                reference_name = self.add_reference(reference, alias_reference,
+                reference_index = self.add_reference(reference, alias_reference,
                                                     element_name)
-                element_definition.reference = reference_name
+                element_definition.reference = reference_index
                 self.report_elements[element_name] = element_definition
 
         save_path = report_def.findtext(r'./FilePaths/Save/Path')
@@ -782,8 +792,8 @@ class Report():
         if not reference_name:
             reference['reference_name'] = element_name
             reference_name = element_name
-        self.references[reference_name] = reference
-        return reference_name
+        self.references[reference.ref_index] = reference
+        return reference.ref_index
 
     def match_elements(self, plan: Plan)->Tuple[MatchList, MatchList]:
         '''Find match in plan for report elements.
@@ -825,7 +835,7 @@ class Report():
 
     def update_ref(self, new_ref: ReferenceGroup, plan: Plan)->bool:
         updated = False
-        reference = self.references[new_ref.reference_name]
+        reference = self.references[new_ref.index]
         reference['match_method'] = new_ref.match_status
         if not new_ref.match_status:
             reference['plan_element'] = None
@@ -981,7 +991,7 @@ def read_report_files(report_locations: List[Path],
     Arguments:
         report_locations {List[Path]} -- A list of full paths to folders
             containing Report definition .xml files.
-        report_parameters {dict} -- parameters used to define reports.  
+        report_parameters {dict} -- parameters used to define reports.
             See the Report class definition for details.
     Returns:
         Dict[str, Report] -- A dictionary of report definitions, the key is
@@ -992,7 +1002,7 @@ def read_report_files(report_locations: List[Path],
         '''Read in all report definitions contained in a given XML report file
         Arguments:
             report_file {Path} -- The full path to the Report .xml file.
-            report_parameters {dict} -- parameters used to define reports.  
+            report_parameters {dict} -- parameters used to define reports.
                 See the Report class definition for details.
         Returns:
             Dict[str, Report] -- A dictionary of report definitions, the key is

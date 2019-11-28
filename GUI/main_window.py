@@ -253,14 +253,20 @@ def main():
     base_path = Path.cwd()
     test_path = base_path / 'GUI' / 'Testing'
     data_path = test_path
+    dvh_path = test_path
     results_path = base_path / 'GUI' / 'Output'
-    icon_path = base_path / 'icons'
+    #base_path = Path(r'L:\temp\Plan Eval Test Documents')
+    #data_path = base_path / 'Data'
+    #dvh_path = base_path / 'DVH'
+    #results_path = base_path / 'Output'
+    code_path = Path.cwd()
+    icon_path = code_path / 'icons'
     icons = IconPaths(icon_path)
     #%% Load Config file and Report definitions
     config_file = 'TestPlanEvaluationConfig.xml'
     config = load_config(data_path, config_file)
     report_definitions = update_reports(config)
-    plan_dict = find_plan_files(config, test_path)
+    plan_dict = find_plan_files(config, dvh_path)
 
     code_exceptions_def = config.find('LateralityCodeExceptions')
     plan_parameters = dict(
