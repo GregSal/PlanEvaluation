@@ -5,33 +5,63 @@
 #%% imports etc.
 from pathlib import Path
 from operator import attrgetter
-
-from typing import Dict, Tuple, List
-
-from typing import Dict, Tuple, List
 from copy import deepcopy
-
+from typing import Dict, Tuple, List
 import xml.etree.ElementTree as ET
 
-
 import PySimpleGUI as sg
-
-
-from build_plan_report import load_config, load_reports
-from plan_report import Report, ReferenceGroup, MatchHistory
+from build_plan_report import load_config, load_reports, IconPaths
 from plan_report import Report, ReferenceGroup, MatchHistory
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements
-from build_plan_report import IconPaths
 
 Values = Dict[str, List[str]]
 
 
 #%% Match GUI functions
+class InvisibleButtonMenu(sg.ButtonMenu):
+    '''A variation of the ButtonMenu class that does not appear but provides
+    for different right-click menu options.
+    '''
+    button_settings = dict(
+        button_text='',
+        tooltip=None,
+        disabled=False,
+        auto_size_button=False,
+        tearoff=False,
+        visible=True
+        )
+    def __init__(self, button_text, menu_def, menu_name: str, *args, **kwargs):
+        kwargs.update(self.button_settings)  # force certain settings
+        kwargs['menu_def'] = menu_def
+        kwargs['key'] = menu_name
+        super().__init__(*args, **kwargs)  #  Creates a ButtonMenu
+
+
 class TreeRtClick(sg.Tree):
     '''A variation of the Tree class that replaces the right-click callback
     function with one that first selects the tree item at the location of the
     right-click.
     '''
+    def get_key(self, item_to_select):
+        '''Get appropriate menu key for the selected tree item.
+        Arguments:
+            item_to_select {str} -- A TK tree item ID
+        Returns:
+            str -- The menu key for selecting the appropriate right-click menu
+        '''
+        selected_key = self.IdToKey[item_to_select]
+        ref = self.TreeData.tree_dict[selected_key].values
+        menu_key = ref.reference_type
+        return menu_key
+
+    def select_menu(self, item_to_select: str):
+        '''
+        '''
+        menu_key = self.get_key(item_to_select)
+        bt_menu = self.ParentForm[menu_key]
+        if bt_menu:
+            self.TKRightClickMenu = bt_menu.TKRightClickMenu
+
     def _RightClickMenuCallback(self, event):
         '''
         Replace the parent class' right-click callback function with one that
@@ -42,11 +72,11 @@ class TreeRtClick(sg.Tree):
         # These two calls are directly to the Tkinter Treeview widget.
         item_to_select = tree.identify_row(event.y) # Identify the tree item
         tree.selection_set(item_to_select)  # Set that item as selected.
-
+        self.select_menu(item_to_select)
         super()._RightClickMenuCallback(event) # Continue with normal right-click menu function.
 
 
-def plan_item_menu(plan_elements: PlanItemLookup,
+def item_menu(plan_elements: PlanItemLookup,
                    select_type: str = None)->List[PlanElements]:
     '''Generate a PlanItem Selection menu from a particular type of PlanItem.
     '''
@@ -60,11 +90,32 @@ def plan_item_menu(plan_elements: PlanItemLookup,
     return menu
 
 
+def item_group(plan_elements: PlanItemLookup)->Dict[str, List[PlanElements]]:
+    '''Generate PlanItem Selection menus for all types of PlanItems.
+    '''
+    itypes = {elmt.element_type for elmt in plan_elements.values()}
+    group = {itype: item_menu(plan_elements, itype) for itype in itypes}
+    return group
+
+
+def menu_options(plan_elements: PlanItemLookup)->List[InvisibleButtonMenu]:
+    '''Build a group of invisible ButtonMenus that provide multiple
+    right-click menu options.
+    '''
+    item_group_dict = item_group(plan_elements)
+    invisible_menus = list()
+    for menu_name, menu_def in item_group_dict.items():
+        menu_b = InvisibleButtonMenu('', menu_def, menu_name)
+        invisible_menus.append(menu_b)
+    return invisible_menus
+
 def make_reference_list(reference_data: Dict[str, ReferenceGroup],
-              sort_list: List[str] = ['reference_type', 'reference_name']
+              sort_list: List[str] = None
               )->List[ReferenceGroup]:
     '''Generate a sorted list of Reference matches.
     '''
+    if not sort_list:
+        sort_list = ['reference_type', 'reference_name']
     reference_list = list(reference_data.values())
     if sort_list:
         reference_set = sorted(reference_list, key=attrgetter(*sort_list))
@@ -114,7 +165,6 @@ def update_match(event: str, selection: str, tree: sg.Tree,
     '''
     ref = reference_data.get(selection[0])
     old_value = ReferenceGroup(*ref)
-    new_value = ReferenceGroup(*ref)
     if 'Enter Value' in event:
         item_name = enter_value(ref.reference_name)
         status = 'Direct Entry'
@@ -124,7 +174,7 @@ def update_match(event: str, selection: str, tree: sg.Tree,
     else:
         item_name = event
         status = 'Manual'
-    new_value = ReferenceGroup(*new_value[0:-2], status, item_name)
+    new_value = ReferenceGroup(*old_value[0:-2], status, item_name)
     history.add(old_value, new_value)
     update_tree(tree, new_value)
     return history
@@ -132,12 +182,13 @@ def update_match(event: str, selection: str, tree: sg.Tree,
 
 #%% GUI settings
 def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
-                 reference_data: List[ReferenceGroup])->sg.Window:
+                 reference_data: Dict[str, ReferenceGroup])->sg.Window:
     # Constants
-    column_names = ['Name', 'Type', 'Laterality', 'Match', 'Matched Item']
-    show_column = [False, True, False, False, True]
-    column_widths = [30,15,15,15,30]
-    menu = plan_item_menu(plan_elements)
+    column_names = ['Index', 'Name', 'Type', 'Laterality', 'Match', 'Matched Item']
+    show_column = [False, False, True, False, False, True]
+    column_widths = [30,30,15,15,15,30]
+    menu = item_menu(plan_elements)
+    multi_menu = menu_options(plan_elements)
     tree_settings = dict(headings=column_names,
                          visible_column_map=show_column,
                          col0_width=30,
@@ -167,7 +218,8 @@ def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
     # Build window
     layout = [[sg.Text('Report Item Matching')],
               [TreeRtClick(data=treedata, **tree_settings)],
-              [sg.Button('Approve'), sg.Button('Cancel')]
+              [sg.Button('Approve'), sg.Button('Cancel')],
+              multi_menu
              ]
     window = sg.Window('Match Items', layout=layout,
                        keep_on_top=True, resizable=True,
