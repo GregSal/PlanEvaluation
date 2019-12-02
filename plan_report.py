@@ -271,7 +271,6 @@ class ReferenceGroup(NamedTuple):
             lat = ''
         name = lat + self.reference_name
         return name
-
     match_name = property(get_match_name)
 
 
@@ -835,7 +834,7 @@ class Report():
 
     def update_ref(self, new_ref: ReferenceGroup, plan: Plan)->bool:
         updated = False
-        reference = self.references[new_ref.index]
+        reference = self.references[new_ref.reference_index]
         reference['match_method'] = new_ref.match_status
         if not new_ref.match_status:
             reference['plan_element'] = None
