@@ -16,10 +16,10 @@ from typing import Optional, Union, Any, Dict, Tuple, List, Set, NamedTuple
 import xlwings as xw
 import PySimpleGUI as sg
 
-from build_plan_report import load_config, update_reports, load_reports, find_plan_files, run_report
+from build_plan_report import load_config, update_reports, load_reports, run_report, load_dvh
 from build_plan_report import IconPaths
 from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
-from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions
+from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions, find_plan_files
 from match_window import manual_match
 
 Values = Dict[str, List[str]]
@@ -229,22 +229,6 @@ def make_actions_column(report_definitions: Dict[str, Report]):
                          ])
     return actions
 
-def load_plan(plan_desc: PlanDescription, **plan_parameters)->Plan:
-    '''Load plan data from the specified file or folder.
-    Arguments:
-        config {ET.Element} -- An XML element containing default paths.
-        dvh_loc {DvhSource} -- A DvhFile object, the path, to a .dvh file,
-            the name of a .dvh file in the default DVH directory, or a
-            directory containing .dvh files. If not given,
-            the default DVH directory in config will be used.
-    Returns:
-        Plan -- The requested or the default plan.
-    '''
-    plan_file = plan_desc.plan_file
-    dvh_file = DvhFile(plan_file)
-    plan = Plan(dvh_data=dvh_file, **plan_parameters)
-    return plan
-
 
 #%% Main
 def main():
@@ -265,7 +249,7 @@ def main():
     #%% Load Config file and Report definitions
     config_file = 'TestPlanEvaluationConfig.xml'
     config = load_config(data_path, config_file)
-    report_definitions = update_reports(config)
+    report_definitions = load_reports(config)
     plan_dict = find_plan_files(config, dvh_path)
 
     code_exceptions_def = config.find('LateralityCodeExceptions')
@@ -363,7 +347,7 @@ def main():
         elif event in 'load_plan':
             window['load_plan'].update(**load_plan_config['Loading'])
             window.refresh()
-            active_plan = load_plan(selected_plan_desc, **plan_parameters)
+            active_plan = load_dvh(selected_plan_desc, **plan_parameters)
             if active_plan:
                 window['load_plan'].update(**load_plan_config['Loaded'])
                 window.refresh()

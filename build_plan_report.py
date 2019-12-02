@@ -179,6 +179,23 @@ def load_plan(config, plan_path: DvhSource, name='Plan', type='DVH')->Plan:
     return plan
 
 
+def load_dvh(plan_desc: PlanDescription, **plan_parameters)->Plan:
+    '''Load plan data from the specified file or folder.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        dvh_loc {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+            the name of a .dvh file in the default DVH directory, or a
+            directory containing .dvh files. If not given,
+            the default DVH directory in config will be used.
+    Returns:
+        Plan -- The requested or the default plan.
+    '''
+    plan_file = plan_desc.plan_file
+    dvh_file = DvhFile(plan_file)
+    plan = Plan(dvh_data=dvh_file, **plan_parameters)
+    return plan
+
+
 #%% Generate report
 def run_report(plan: Plan, report: Report):
     report.get_values(plan)
