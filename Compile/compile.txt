@@ -1,3 +1,5 @@
-pyi-makespec --nowindow --log-level=INFO --add-data="DVH.png;."  --add-data="DVH.ico;." --add-data=".\Data;Data" --icon=.\DVH.ico build_SABR_plan_report.py
+cd "C:\Users\gsalomon\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation"
 
-pyinstaller --noconfirm build_SABR_plan_report.spec
+pyinstaller -makespec --nowindow --log-level=INFO  --add-data=".\Data;Data"  --add-data=".\Icons;Icons"  --add-data="PlanEvaluationConfig.xml;." PlanEvaluation.py
+
+pyinstaller --noconfirm PlanEvaluation.spec

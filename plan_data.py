@@ -1148,6 +1148,8 @@ def find_plan_files(config: ET.Element,
         OrderedDict[str, PlanDescription] -- A sorted dictionary containing
             descriptions of all .dvh files identified in plan_path.
     '''
+    if not plan_path:
+        plan_path = Path(config.findtext(r'./DefaultDirectories/DVH'))
     sort_list = ('patient_name', 'course', 'plan_name', 'export_date')
     plan_list = scan_for_dvh(plan_path)
     if plan_list:

@@ -220,7 +220,7 @@ def main():
     #%% Load Config File Data
     base_path = Path.cwd()
     test_path = base_path / 'GUI\Testing'
-    config_file = 'TestPlanEvaluationConfig.xml'
+    config_file = 'PlanEvaluationConfig.xml'
     (config, report_definitions) = initialize(test_path, config_file)
 
     #%% Load list of Plan Files
