@@ -277,3 +277,5 @@ paket-files/
 # CodeRush
 .cr/
 
+/Old Code
+/Test Data
