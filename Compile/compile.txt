@@ -1,5 +1,5 @@
 cd "C:\Users\gsalomon\OneDrive - Queen's University\Python\Projects\EclipseRelated\PlanEvaluation"
 
-pyinstaller -makespec --nowindow --log-level=INFO  --add-data=".\Data;Data"  --add-data=".\Icons;Icons"  --add-data="PlanEvaluationConfig.xml;." PlanEvaluation.py
+pyinstaller -makespec --nowindow --log-level=INFO --add-data=".\Data;Data" --add-data=".\DVH Files;DVH Files" --add-data=".\Icons;Icons" --add-data=".\Report Output;Report Output" --add-data="PlanEvaluationConfig.xml;." PlanEvaluation.py
 
 pyinstaller --noconfirm PlanEvaluation.spec

@@ -9,11 +9,11 @@ Last modified Sept 12 2019-->
     </Description>
       <FilePaths>
       <Template>
-        <File>./SABR Plan Evaluation Worksheet BLANK For testing.xlsx</File>
+        <File>.\SABR Plan Evaluation Worksheet BLANK.xlsx</File>
         <WorkSheet>EvaluationSheet 48Gy4F 60Gy5F</WorkSheet>
       </Template>
       <Save>
-        <Path>../Output</Path>
+        <Path>..\Output</Path>
         <File>SABR Plan Evaluation Worksheet filled.xlsx</File>
         <WorkSheet>SABR 48 in 4</WorkSheet>
       </Save>

@@ -9,11 +9,11 @@ Last modified Sept 12 2019-->
     </Description>
     <FilePaths>
       <Template>
-        <File>./SABR Plan Evaluation Worksheet BLANK For testing.xlsx</File>
+        <File>.\SABR Plan Evaluation Worksheet BLANK.xlsx</File>
         <WorkSheet>EvaluationSheet 60Gy 8F</WorkSheet>
       </Template>
       <Save>
-        <Path>../Output</Path>
+        <Path>..\Output</Path>
         <File>SABR Plan Evaluation Worksheet filled.xlsx</File>
         <WorkSheet>Evaluation Sheet 60Gy 8F</WorkSheet>
       </Save>
@@ -161,18 +161,6 @@ Last modified Sept 12 2019-->
         <Target>
           <Unit>%</Unit>
           <CellAddress>G17</CellAddress>
-          <CellFormat>0.00%</CellFormat>
-        </Target>
-      </ReportItem>
-      <ReportItem name="Ref Point">
-        <Label>Dose @COM-PTV (cGy)</Label>
-        <PlanReference>
-          <Type>Reference Point</Type>
-          <Name>COM-PTV</Name>
-        </PlanReference>
-        <Target>
-          <Unit>%</Unit>
-          <CellAddress>G15</CellAddress>
           <CellFormat>0.00%</CellFormat>
         </Target>
       </ReportItem>
