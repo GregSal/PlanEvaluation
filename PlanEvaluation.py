@@ -21,6 +21,7 @@ from build_plan_report import IconPaths
 from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions, find_plan_files
 from match_window import manual_match
+from UpdateReports import update_report_definitions
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
@@ -193,11 +194,15 @@ def update_report_header(window: sg.Window, report: Report):
 
 #%% Actions
 # Plan Status  Text Colour disabled
+def make_report_selection_list(report_definitions):
+    report_list = ['Select a Report']
+    report_list += [str(ky) for ky in report_definitions.keys()]
+    return report_list
+
 def make_actions_column(report_definitions: Dict[str, Report]):
     '''Report Selection GUI
     '''
-    report_list = ['Select a Report']
-    report_list += [str(ky) for ky in report_definitions.keys()]
+    report_list = make_report_selection_list(report_definitions)
     report_selector_box = sg.Combo(report_list,
                                     key='report_selector',
                                     pad=((10,10), (20,10)), size=(15, 2),
@@ -229,6 +234,55 @@ def make_actions_column(report_definitions: Dict[str, Report]):
                          ])
     return actions
 
+#%% Main Menu
+def main_menu():
+    menu_def = [['&File', ['&DVH File Location', '&Save Location',
+                           '&Report Location', '&Update Report Definitions',
+                           'E&xit']]]
+    return sg.Menu(menu_def, tearoff=False, pad=(20, 1))
+
+def dir_selection_window(current_dir: Path,
+                         header = 'Select a Folder:',
+                         title = 'Select a directory')->Path:
+    '''Generate the window used to select directories.
+    '''
+    form_rows = [[sg.Text(header)],
+                 [sg.InputText(key='SelectedDir'),
+                  sg.FolderBrowse(target='SelectedDir',
+                                  initial_folder=str(current_dir))],
+                 [sg.Ok(), sg.Cancel()]
+                ]
+    window = sg.Window(title, form_rows)
+    event, values = window.read()
+    window.close()
+    if event in 'Cancel':
+        return current_dir
+    elif event in OK:
+        new_dir = Path(values['SelectedDir'])
+        return new_dir
+    return None
+
+
+
+def save_dir_selection_window(current_dir: Path)->sg.Window:
+    '''Generate the window used to select directories containing report
+    definitions.
+    '''
+    form_rows = [[sg.Text('Select a Folder Containing Plan DVH files')],
+                 [sg.InputText(key='PlanDir'),
+                  sg.FolderBrowse(target='PlanDir',
+                                  initial_folder=str(current_dir))],
+                 [sg.Ok(), sg.Cancel()]
+                ]
+    window = sg.Window('Select the directory containing Plan DVH files', form_rows)
+    event, values = window.read()
+    window.close()
+    if event in 'Cancel':
+        return current_dir
+    elif event in OK:
+        new_dir = Path(values['PlanDir'])
+        return new_dir
+    return None
 
 #%% Main
 def main():
@@ -293,11 +347,25 @@ def main():
                          button_color=('black', 'green'),
                          disabled=False)
         }
+    locations = {
+        'DVH File Location': dict(
+            header = 'Select a Folder Containing Plan DVH files',
+            title = 'Plan DVH Directory'),
+        'Save Location': dict(
+            header = 'Select the directory to save the Plan Evaluation Report',
+            title = 'Save Location'),
+        'Report Location': dict(
+            header = 'Select the directory containing the Report definitions',
+            title = 'Report Location')
+        }
+    locations_list = list(locations.keys())
+
     #%% Create Main Window
     report = None
     active_plan = None
     selected_plan_desc = None
     history = MatchHistory()
+    sg.change_look_and_feel('LightGreen')
     sg.SetOptions(element_padding=(0,0), margins=(0,0))
     plan_header = create_plan_header()
     report_header = create_report_header()
@@ -358,7 +426,11 @@ def main():
             window.refresh()
             run_report(active_plan, report)
             window['generate_report'].update(**generate_config['Generated'])
-
+        elif event in 'Update Report Definitions':
+            report_definitions = update_report_definitions(config, base_path)
+            report_list = make_report_selection_list(report_definitions)
+            window['report_selector'].update(values=report_list)
+            window.refresh()
 
 
 

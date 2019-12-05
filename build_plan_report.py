@@ -133,7 +133,7 @@ def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhFile:
     Returns:
         DvhFile -- The requested or the default .dvh file.
     '''
-    default_directories = config.find(r'./DefaultDirectories')   
+    default_directories = config.find(r'./DefaultDirectories')
     if isinstance(dvh_loc, DvhFile):
         dvh_data_source = dvh_loc
     elif isinstance(dvh_loc, Path):
@@ -214,27 +214,28 @@ def build_report(config: ET.Element, report_definitions: Dict[str, Report],
     run_report(plan, report)
 
 
+#%% Main
 def main():
     '''Test
     '''
-    #%% Load Config File Data
+    # Load Config File Data
     base_path = Path.cwd()
     test_path = base_path / 'GUI\Testing'
     config_file = 'PlanEvaluationConfig.xml'
     (config, report_definitions) = initialize(test_path, config_file)
 
-    #%% Load list of Plan Files
+    # Load list of Plan Files
     plan_list = find_plan_files(config)
 
-    #%% Select a Report
+    # Select a Report
     report_name = 'SABR 48 in 4'
     #report = deepcopy(report_definitions[report_name])
 
-    #%% Load Plan File
+    # Load Plan File
     #dvh_file_name = 'test.dvh'
     #test_plan = Plan(config, 'Test Plan', dvh_file_name)
 
-    #%% Do match
+    # Do match
     #report.match_elements(test_plan)
     #report.get_values(test_plan)
     #report.build()
