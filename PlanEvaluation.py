@@ -100,6 +100,7 @@ def update_plan_header(window: sg.Window, desc: PlanDescription):
 def plan_selector(plan_dict: OrderedDict):
     '''Plan Selection GUI
     '''
+    #FIXME Check for empty plan_dict
     patients = {plan.name_str() for plan in plan_dict.values()}
     patient_list = sorted(patients)
     column_settings = [
@@ -222,6 +223,13 @@ def make_actions_column(report_definitions: Dict[str, Report]):
                                        border_width=5, pad=(5, 5),
                                        size=(15, 1), auto_size_button=False,
                                        font=('Times New Roman', 12, 'normal'))
+    update_report_button = sg.Button(key='update_report_definitions',
+                                       button_text='Report Definitions',
+                                       disabled=False,
+                                       button_color=('black', 'white'),
+                                       border_width=5, pad=(5, 5),
+                                       size=(15, 1), auto_size_button=False,
+                                       font=('Times New Roman', 12, 'normal'))
     exit_button = sg.Button(key='EXIT', button_text='Exit',
                             button_color=('black', 'grey'),
                             border_width=5, pad=(5, 5),
@@ -230,59 +238,11 @@ def make_actions_column(report_definitions: Dict[str, Report]):
     actions = sg.Column([[report_selector_box],
                          [match_structures_button],
                          [generate_report_button],
+                         [update_report_button],
                          [exit_button]
                          ])
     return actions
 
-#%% Main Menu
-def main_menu():
-    menu_def = [['&File', ['&DVH File Location', '&Save Location',
-                           '&Report Location', '&Update Report Definitions',
-                           'E&xit']]]
-    return sg.Menu(menu_def, tearoff=False, pad=(20, 1))
-
-def dir_selection_window(current_dir: Path,
-                         header = 'Select a Folder:',
-                         title = 'Select a directory')->Path:
-    '''Generate the window used to select directories.
-    '''
-    form_rows = [[sg.Text(header)],
-                 [sg.InputText(key='SelectedDir'),
-                  sg.FolderBrowse(target='SelectedDir',
-                                  initial_folder=str(current_dir))],
-                 [sg.Ok(), sg.Cancel()]
-                ]
-    window = sg.Window(title, form_rows)
-    event, values = window.read()
-    window.close()
-    if event in 'Cancel':
-        return current_dir
-    elif event in OK:
-        new_dir = Path(values['SelectedDir'])
-        return new_dir
-    return None
-
-
-
-def save_dir_selection_window(current_dir: Path)->sg.Window:
-    '''Generate the window used to select directories containing report
-    definitions.
-    '''
-    form_rows = [[sg.Text('Select a Folder Containing Plan DVH files')],
-                 [sg.InputText(key='PlanDir'),
-                  sg.FolderBrowse(target='PlanDir',
-                                  initial_folder=str(current_dir))],
-                 [sg.Ok(), sg.Cancel()]
-                ]
-    window = sg.Window('Select the directory containing Plan DVH files', form_rows)
-    event, values = window.read()
-    window.close()
-    if event in 'Cancel':
-        return current_dir
-    elif event in OK:
-        new_dir = Path(values['PlanDir'])
-        return new_dir
-    return None
 
 #%% Main
 def main():
@@ -347,18 +307,7 @@ def main():
                          button_color=('black', 'green'),
                          disabled=False)
         }
-    locations = {
-        'DVH File Location': dict(
-            header = 'Select a Folder Containing Plan DVH files',
-            title = 'Plan DVH Directory'),
-        'Save Location': dict(
-            header = 'Select the directory to save the Plan Evaluation Report',
-            title = 'Save Location'),
-        'Report Location': dict(
-            header = 'Select the directory containing the Report definitions',
-            title = 'Report Location')
-        }
-    locations_list = list(locations.keys())
+
 
     #%% Create Main Window
     report = None
@@ -426,7 +375,7 @@ def main():
             window.refresh()
             run_report(active_plan, report)
             window['generate_report'].update(**generate_config['Generated'])
-        elif event in 'Update Report Definitions':
+        elif event in 'update_report_definitions':
             report_definitions = update_report_definitions(config, base_path)
             report_list = make_report_selection_list(report_definitions)
             window['report_selector'].update(values=report_list)

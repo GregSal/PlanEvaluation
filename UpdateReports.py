@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from pathlib import Path
 from typing import Any, Dict, Tuple, List
+import xml.etree.ElementTree as ET
 import PySimpleGUI as sg
 from build_plan_report import load_config, update_reports
 
@@ -42,7 +43,7 @@ def get_report_dir_list(config: ET.Element,
     return report_dirs
 
 
-def selection_window(report_locations: list[str], base_str: str = '')->sg.Window:
+def selection_window(report_locations: List[str], base_str: str = '')->sg.Window:
     '''Generate the window used to select directories containing report
     definitions.
     '''
