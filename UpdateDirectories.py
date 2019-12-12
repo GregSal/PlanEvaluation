@@ -26,20 +26,20 @@ ELEMENT_STYLES = {
         ),
     'title': dict(
         auto_size_text=True,
-        relief=sg.RELIEF_RAISED,
-        font=('Arial Black', 14, 'bold'),
+        #relief=sg.RELIEF_RAISED,
+        font=('Arial Black', 12, 'bold'),
         text_color='blue',
-        background_color='LightBlue1',
+        #background_color='LightBlue1',
         border_width=6,
         justification='center',
-        pad=(10, 10)
+        #pad=(10, 10)
         ),
     'input_text': dict(
         default_text="",
         size=(60, 1),
         disabled=False,
         password_char="",
-        justification='left',
+        justification='right',
         background_color='Slategray1',
         text_color='black',
         font=('Tahoma', 11, 'normal'),
@@ -48,7 +48,7 @@ ELEMENT_STYLES = {
         enable_events=False,
         do_not_clear=True,
         focus=False,
-        pad=((20, 5), (10, 10)),
+        pad=((20, 5), (5, 5)),
         right_click_menu=None,
         visible=True,
         metadata=None
@@ -71,7 +71,7 @@ ELEMENT_STYLES = {
         text_color='black',
         background_color='steel blue',
         border_width=3,
-        pad=((0, 20), (10, 10))
+        pad=((0, 20), (5, 5))
         ),
     'FileBrowse': dict(
         button_text='Browse',
@@ -87,12 +87,12 @@ ELEMENT_STYLES = {
         image_data=None,
         image_size=(None, None),
         image_subsample=None,
-        border_width=3,
-        size=(15, 1),
+        border_width=1,
+        size=(10, 1),
         auto_size_button=False,
         button_color=('black', 'steel blue'),
         #use_ttk_buttons=None,
-        font=('Georgia', 11, 'bold'),
+        font=('Georgia', 11, 'normal'),
         bind_return_key=False,
         focus=False,
         pad=((0, 20), (10, 10)),
@@ -142,9 +142,10 @@ def file_selection_window(header='Select a File:',
                       file_types=file_options,
                       **ELEMENT_STYLES['FileBrowse']
                  )],
-                 [sg.Ok(), sg.Cancel()]
+                 [sg.Column([], pad=(50,0), key='space'), sg.Ok(), sg.Cancel()]
                  ]
-    window = sg.Window(title, form_rows)
+    window = sg.Window(title, form_rows, element_justification='center', finalize=True)
+    window['space'].expand(expand_x=True, expand_y=False)
     event, values = window.read()
     window.close()
     if event in 'Ok':
