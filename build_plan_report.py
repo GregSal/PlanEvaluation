@@ -69,6 +69,21 @@ def load_config(base_path: Path, config_file_name: str)->ET.Element:
     config = config_tree.getroot()
     return config
 
+
+def save_config(updated_config: ET.Element,
+                base_path: Path, config_file_name: str):
+    '''Saves the XML configuration file
+    Arguments:
+        base_path {Path} -- The directory containing the config file.
+        config_file_name {str} -- The name of configuration file.
+    Returns:
+        ET.Element -- The root element of the XML config data
+    '''
+    config_path = base_path / config_file_name
+    config_tree = ET.ElementTree(element=updated_config) 
+    config_tree.write(config_path) 
+
+
 #%% Report loading Methods
 def update_reports(config: ET.Element,
                    report_locations: List[Path] = None,

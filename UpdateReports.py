@@ -26,15 +26,13 @@ def report_dir_list(base_path: Path, report_dirs):
         report_locations.append(report_dir_str)
     return report_locations
 
-def get_report_dir_list(config: ET.Element,
-                        base_str: Path = '')->List[str]:
-    '''Generate a string list of directories containing report definitions.
+def get_report_dir_list(config: ET.Element)->List[Path]:
+    '''Generate a list of directories containing report definitions.
     The list is obtained from the Config .xml file.
-    The directories in the string list replace the top directory path,
-    given by base_str, with: ".\".
     Arguments:
         config {ET.Element} -- Config .xml file Element.
-        base_str {str} -- A string path to the top directory referenced.
+    Returns:
+        List[Path] -- A list of directories containing report definitions.
     '''
     default_directories = config.find(r'./DefaultDirectories')
     rpt_dir = default_directories.find('ReportDefinitions')
@@ -71,7 +69,7 @@ def selection_window(report_locations: List[str], base_str: str = '')->sg.Window
 def select_locations(report_locations, base_path):
     base_str = str(base_path)
     window = selection_window(report_locations, base_str)
-    done=False
+    done = False
     dir_list = window['ReportDirs']
     while not done:
         event, values = window.read(timeout=200)
@@ -107,11 +105,13 @@ def update_report_definitions(config, base_path, report_locations=None):
     '''
     default_directories = config.find(r'./DefaultDirectories')
     pickle_file = Path(default_directories.findtext('ReportPickleFile'))
-    if not report_locations:
-         report_dirs = get_report_dir_list(config)
-         report_list = report_dir_list(base_path, report_dirs)
-    else:
+    if report_locations:
         report_list = report_dir_list(base_path, list(report_locations))
+    else:
+        report_dirs = get_report_dir_list(config)
+        report_list = report_dir_list(base_path, report_dirs)
+
+    # Call GUI to select Report Definition Directories
     new_report_locations = select_locations(report_list, base_path)
     if new_report_locations:
         report_paths = [Path(dir).resolve() for dir in new_report_locations]
@@ -126,22 +126,11 @@ def main():
     '''Define Folder Paths, load report and plan data.
     '''
     base_path = Path.cwd().resolve()
-    base_str = str(base_path)
     #%% Load Config file and Report definitions
     config_file = 'PlanEvaluationConfig.xml'
     config = load_config(base_path, config_file)
-    default_directories = config.find(r'./DefaultDirectories')
-    pickle_file = Path(default_directories.findtext('ReportPickleFile'))
-    report_dirs = get_report_dir_list(config)
-    report_list = report_dir_list(base_path, report_dirs)
-    new_report_locations = select_locations(report_list, base_path)
-    report_locations = get_report_dir_list(base_str, default_directories)
-    report_locations = select_locations(report_locations, base_str)
-    if new_report_locations:
-        report_paths = [Path(dir).resolve() for dir in new_report_locations]
-        report_definitions = update_reports(config, report_paths, pickle_file)
-    else:
-        report_definitions = None
+
+    report_definitions = update_report_definitions(config, base_path)
     return report_definitions
 
 

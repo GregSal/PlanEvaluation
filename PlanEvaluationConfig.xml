@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!--Created with Liquid Studio 2019 (https://www.liquid-technologies.com)-->
+<!-- Created with Liquid Studio 2019 (https://www.liquid-technologies.com) -->
 <!--Last Modified Sept 12 2019-->
 <PlanEvaluationConfig>
   <DefaultDirectories>
@@ -60,6 +60,18 @@
     <LateralityIndicator PlanLaterality="Both" ReportItemLaterality="Both" Size="3">Both</LateralityIndicator>
     <LateralityIndicator PlanLaterality="None" ReportItemLaterality="Both" Size="1">B</LateralityIndicator>
     <LateralityIndicator PlanLaterality="None" ReportItemLaterality="Both" Size="3">Both</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Left" Size="1">L</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Left" Size="3">LT</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Left" Size="3">Left</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Left" Size="1">L</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Left" Size="3">LT</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Left" Size="3">Left</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Right" Size="1">R</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Right" Size="3">RT</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Right" ReportItemLaterality="Right" Size="3">Right</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Right" Size="1">R</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Right" Size="3">RT</LateralityIndicator>
+    <LateralityIndicator PlanLaterality="Left" ReportItemLaterality="Right" Size="3">Right</LateralityIndicator>
   </LateralityTable>
   <DefaultLateralityPatterns>
     <Pattern Size="1">{Base} {LatIndicator}</Pattern>

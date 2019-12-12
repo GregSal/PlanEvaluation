@@ -33,7 +33,7 @@ DvhIndex = Tuple[int, int, str]
 #x_column, y_column, desired_x_unit
 
 LOGGER = logging.getLogger(__name__)
-
+class NotDVH(Exception): pass
 
 #%% Laterality Methods
 def get_laterality_exceptions(region_code_root: ET.Element)->List[str]:
@@ -409,7 +409,7 @@ class Structure():
     Attributes:
         name {str} -- The name of the structure.
         element_type {str} -- The category of the element.
-            Default is'Structure'.
+            Default is 'Structure'.
         structure_properties {Dict[str, PlanElement]} -- The dose and volume
             properties of the structure.
         dose_data {DVH} -- The DVH data associated with the structure.
@@ -431,7 +431,7 @@ class Structure():
         Keyword Arguments:
             name {str} -- The name of the structure. (default: {None})
             element_type {str} -- The category of the element.
-                Default is'Structure'.
+                Default is 'Structure'.
             properties {Dict[str, PlanElement]} -- The dose and volume
                 properties. (default: {None})
             dvh {DVH} -- The DVH curve for the structure. (default: {None})
@@ -957,7 +957,7 @@ class Plan():
         fractions
             returns the number of fractions in the prescription.
     '''
-    def __init__(self, default_units: Dict[str, str], 
+    def __init__(self, default_units: Dict[str, str],
                  laterality_exceptions: List[str], dvh_data: DvhFile = None,
                  name: str = 'Plan'):
         '''Load  the plan data.
@@ -1017,7 +1017,7 @@ class Plan():
             data_type {str} -- The element type.  One of:
                 'Plan Property'
                 'Structure'
-                'Reference Point'The element data to be added.
+                'Reference Point 'The element data to be added.
             element_name {str} -- The name of the requested element.
         Returns:
             Elements -- The requested plan data item.
@@ -1104,6 +1104,29 @@ class Plan():
 
 
 #%% Methods for finding and loading plan data
+def dvh_info(dvh_file: Path)->PlanDescription:
+    dvh = DvhFile(dvh_file)
+    try:
+        header = dvh.read_header()
+    except (EOFError, OSError, TypeError) as err:
+        raise NotDVH from err
+    else:
+        plan_info = PlanDescription(
+            plan_file=dvh_file,
+            file_type='DVH',
+            patient_name = header['Patient Name'].element_value,
+            patient_id = header['Patient ID'].element_value,
+            plan_name = header['Plan'].element_value,
+            course = header['Course'].element_value,
+            dose = header['Prescribed dose'].element_value,
+            export_date = header['Date'].element_value
+            )
+    finally:
+        del dvh  # Close the dvh file
+        # Question keep the .dvh file open after scanning its header?
+    return plan_info
+
+
 def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
     '''Load DVH file headers for all .dvh files in a directory.
     Arguments:
@@ -1114,26 +1137,12 @@ def scan_for_dvh(plan_path: Path)->List[PlanDescription]:
     dvh_list = list()
     assert(plan_path.is_dir())
     for dvh_file in plan_path.glob('*.dvh'):
-        dvh = DvhFile(dvh_file)
         try:
-            header = dvh.read_header()
-        except (EOFError, OSError, TypeError):
+            plan_info = dvh_info(dvh_file)
+        except NotDVH:
             continue # Ignore files that fail to read properly
         else:
-            plan_info = PlanDescription(
-                plan_file=dvh_file,
-                file_type='DVH',
-                patient_name = header['Patient Name'].element_value,
-                patient_id = header['Patient ID'].element_value,
-                plan_name = header['Plan'].element_value,
-                course = header['Course'].element_value,
-                dose = header['Prescribed dose'].element_value,
-                export_date = header['Date'].element_value
-                )
             dvh_list.append(plan_info)
-        finally:
-            del dvh  # Close the dvh file
-            # Question keep the .dvh file open after scanning its header?
     return dvh_list
 
 
