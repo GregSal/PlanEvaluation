@@ -85,7 +85,7 @@ def save_config(updated_config: ET.Element,
 
 
 #%% Report loading Methods
-def set_report_parameters(config: ET.Element)->Dict[Any]:
+def set_report_parameters(config: ET.Element)->Dict[str, Any]:
     default_directories = config.find(r'./DefaultDirectories')
     template_path = Path(default_directories.findtext('ReportTemplates'))
     alias_def = config.find('AliasList')
@@ -167,7 +167,7 @@ def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhFile:
             return None
     elif isinstance(dvh_loc, str):
         dvh_dir = Path(default_directories.findtext('DVH'))
-        dvh_file = dvh_path / dvh_loc
+        dvh_file = dvh_dir / dvh_loc
         dvh_data_source = DvhFile(dvh_file)
     else:
         dvh_dir = Path(default_directories.findtext('DVH'))
@@ -242,8 +242,8 @@ def main():
     base_path = Path.cwd()
     test_path = base_path / 'GUI\Testing'
     config_file = 'PlanEvaluationConfig.xml'
-    (config, report_definitions) = initialize(test_path, config_file)
-
+    config = load_config(base_path, config_file)
+    report_definitions = load_reports(config)
     # Load list of Plan Files
     plan_list = find_plan_files(config)
 

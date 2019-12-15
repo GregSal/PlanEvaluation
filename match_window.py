@@ -149,7 +149,7 @@ class MenuChoices():
     def clear_menu(self):
         '''Remove all menu items from a right-click menu.
         '''
-        rt_menu = self.TKRightClickMenu
+        rt_menu = self.RightClickMenu
         # This call is directly to the Tkinter menu widget.
         rt_menu.delete(0,'end')
 

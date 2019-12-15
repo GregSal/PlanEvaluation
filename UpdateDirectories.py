@@ -4,11 +4,12 @@
 
 
 from pathlib import Path
-from typing import Optional, Union, Any, Dict, Tuple, List, Set, NamedTuple
+from copy import deepcopy
+from typing import Tuple, List, NamedTuple
 import xml.etree.ElementTree as ET
 import PySimpleGUI as sg
-from build_plan_report import load_config, save_config, update_reports, load_reports
-from build_plan_report import set_report_parameters, update_report_definitions
+from build_plan_report import load_config, save_config, load_reports
+from build_plan_report import set_report_parameters
 from plan_data import NotDVH
 from plan_report import load_report_definitions
 from UpdateReports import update_report_definitions
@@ -128,7 +129,7 @@ def file_selection_window(header='Select a File:',
                           title='Select a File',
                           current_path: Path = Path.cwd(),
                           file_options=(('All Files', '*.*'),),
-                          style=None) -> Path:
+                          path_type: str = 'Load File')->Path:
     '''Generate the window used to select directories.
     Keyword Arguments:
         header {str} -- Test at the top of the window. 
@@ -140,17 +141,23 @@ def file_selection_window(header='Select a File:',
     Returns:
         Path -- The selected file, or None if a file is not selected.
     '''
+    button_style = ELEMENT_STYLES['FileBrowse'].copy()
+    button_style['initial_folder'] = str(current_path)
+    if path_type in 'Save File':
+        button_style['button_type'] = sg.BUTTON_TYPE_SAVEAS_FILE
+        button_style['file_types'] = file_options
+    else:
+        button_style['button_type'] = sg.BUTTON_TYPE_BROWSE_FILE
+        button_style['file_types'] = file_options
+
     form_rows = [[sg.Text(header, **ELEMENT_STYLES['title'])],
                  [sg.InputText(key='SelectedFile',
                                **ELEMENT_STYLES['input_text']),
-                  sg.Button(
-                      target='SelectedFile',
-                      initial_folder=str(current_path),
-                      file_types=file_options,
-                      **ELEMENT_STYLES['FileBrowse']
-                 )],
-                 [sg.Column([], pad=(50,0), key='space'), sg.Ok(), sg.Cancel()]
-                 ]
+                  sg.Button(target='SelectedFile', **button_style)
+                 ],
+                 [sg.Column([], pad=(50,0), key='space'),
+                  sg.Ok(), sg.Cancel()]
+                ]
     window = sg.Window(title, form_rows, element_justification='center',
                        finalize=True)
     window['space'].expand(expand_x=True, expand_y=False)
@@ -212,7 +219,7 @@ def select_report_file(default_directories: ET.Element)->Path:
         header='Select a Report Definition file to load',
         title='Select Report Definition File',
         current_path=starting_dir,
-        file_options=(('XML Files', '*.xml'))
+        file_options=(('XML Files', '*.xml'),)
         )
     return report_file
 
@@ -236,7 +243,8 @@ def select_save_file(default_directories: ET.Element)->Path:
         header='Save the Completed Report',
         title='Save Report As',
         current_path=starting_dir,
-        file_options=(('Excel Files', '*.xlsx'))
+        file_options=(('Excel Files', '*.xlsx'),),
+        path_type='Save File'
         )
     return new_save_file
 
@@ -255,7 +263,7 @@ class DfltPath(NamedTuple):
 
 def path_selection_frame(default_directories: ET.Element,
                          path_param: DfltPath)->sg.Frame:
-    button_style = ELEMENT_STYLES['FileBrowse']
+    button_style = ELEMENT_STYLES['FileBrowse'].copy()
     button_style['target'] = path_param.widget_name
     # Set the starting path
     default_path = default_directories.findtext(path_param.xml_element)
@@ -275,22 +283,23 @@ def path_selection_frame(default_directories: ET.Element,
     button = sg.Button(**button_style)
     input = sg.InputText(key=path_param.widget_name,
                          **ELEMENT_STYLES['input_text'])
-    selection_frame = sg.frame(title=path_param.frame_title,
-                               layout=[input, button],
+    selection_frame = sg.Frame(title=path_param.frame_title,
+                               layout=[[input, button]],
                                **ELEMENT_STYLES['frame'])
     return selection_frame
 
 
 def path_selection_window(default_directories: ET.Element,
                           locations: List[DfltPath])->sg.Window:
-    layout = {}
+    layout = []
     for path_param in locations:
-        selection_frame = path_selection_frame(config, path_param)
+        selection_frame = path_selection_frame(default_directories, path_param)
         layout.append([selection_frame])
     layout.append([sg.Column([], pad=(50,3), key='space'),
                    sg.Ok(pad=(3,3)), sg.Cancel(pad=(3,3))])
     window = sg.Window('Set Default Files and Directories', layout,
-                       element_justification='center', finalize=True)
+                       element_justification='center',
+                       element_padding=(5, 0), finalize=True)
     window['space'].expand(expand_x=True, expand_y=False)
     return window
 
@@ -361,17 +370,17 @@ def main():
 
     locations = [
         DfltPath('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
-        DfltPath('DVH_File', 'File', 'dvh_file', 'Default Plan DVH file.', (
-            ('All Files', '*.*'),
+        DfltPath('DVH_File', 'Load File', 'dvh_file', 'Default Plan DVH file.', (
             ('DVH Files', '*.dvh'),
+            ('All Files', '*.*'),
             ("Text Files", "*.txt")
             )),
-        DfltPath('ReportPickleFile', 'File', 'report_file',
+        DfltPath('ReportPickleFile', 'Load File', 'report_file',
                                 'Report Definition file.', (
-                                    ('All Files', '*.*'),
-                                    ('Pickle Files', '*.pkl')
+                                    ('Pickle Files', '*.pkl'),
+                                    ('All Files', '*.*')
                                     )),
-        DfltPath('Save', 'Directory', 'save_dir',
+        DfltPath('Save', 'Directory', 'Save File',
                                 'Location to save Completed Reports', (
                                     ('Excel Files', '*.xlsx'),
                                     ('All Files', '*.*')
@@ -419,7 +428,7 @@ def main():
                                                     locations)
             if new_defaults is not None:
                 default_directories = new_defaults
-                save_config(updated_config, base_path, test_config_file)
+                save_config(config, base_path, test_config_file)
         elif event in 'Select Plan DVH File':
             print('select_plan_file(config)')
             plan_file = select_plan_file(default_directories)
@@ -435,6 +444,9 @@ def main():
             report_dict = load_report_definitions(report_file,
                                                   report_parameters)
             report_definitions.update(report_dict)
+            report_list = make_report_selection_list(report_definitions)
+            window['report_selector'].update(values=report_list)
+            window.refresh()
         elif event in 'Update all Report Definitions':
             report_definitions = update_report_definitions(config, base_path)
             report_list = make_report_selection_list(report_definitions)
@@ -442,11 +454,11 @@ def main():
             window.refresh()
         elif event in 'Set Save File Name':
             print('Set Save File Name')
-            # Done To Here
             save_file = select_save_file(default_directories)
-            if report:
-                report.save_file = Path(save_file)    
-                update_report_header(window, report)
+            if save_file is not None:
+                if report:
+                    report.save_file = Path(save_file)    
+                    update_report_header(window, report)
 
 
 # %% Run Tests

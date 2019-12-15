@@ -438,7 +438,7 @@ class PlanReference(dict):
 
     match = property(reference_group)
 
-    def update_ref(new_ref: ReferenceGroup, plan: Plan)->bool:
+    def update_ref(self, new_ref: ReferenceGroup, plan: Plan)->bool:
         updated = False
         self['match_method'] = new_ref.match_status
         if not new_ref.match_status:
@@ -662,6 +662,8 @@ class ReportElement():
         Returns:
             str -- A formatted string describing this ReportElement.
         '''
+        # FIXME The special method '__repr__' expects 0 param(s), 3 were given
+        
         item_dict = self.table_output(references, add_target)
         repr_str = '\nReportElement(\n'
         repr_str = '\tName={ItemName}\n'
@@ -1083,12 +1085,12 @@ def undo_match(report: Report, plan: Plan, change: MatchHistoryItem)->Report:
     report.update_ref(change.old_value, plan)
     return report
 
-def reset_matching(report: Report, plan: Plan, history: MatchHistory)->Report:
+def reset_matching(report: Report, plan: Plan, matches: MatchHistory)->Report:
     '''Re-run the match with updated plan data and then apply stored manual
         matching and entries.
     '''
     report.match_elements(plan)
     for change_match in matches.changed():
         report.update_ref(change_match, plan)
-    history = MatchHistory()
-    return report, history
+    matches = MatchHistory()
+    return report, matches

@@ -206,7 +206,7 @@ def make_actions_column(report_definitions: Dict[str, Report]):
     report_list = make_report_selection_list(report_definitions)
     report_selector_box = sg.Combo(report_list,
                                     key='report_selector',
-                                    pad=((10,10), (20,10)), size=(15, 2),
+                                    pad=((10,10), (20,10)), size=(15, 3),
                                     enable_events=True,
                                     readonly=True)
     match_structures_button = sg.Button(key='match_structures',
