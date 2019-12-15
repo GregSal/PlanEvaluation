@@ -1,0 +1,427 @@
+﻿Section=Form
+PaperSize=Letter
+PaperOrientation=Portrait
+Text=PatientLastName; $PatientLastName
+Text=PatientFirstName; $PatientFirstName
+Text=PatientMiddleName; $PatientMiddleName
+Text=PatientId; $PatientId
+If=$PatientId2
+  Text=PatientId2; $PatientId2
+EndIf
+Text=PatientDateOfBirth; $PatientDateOfBirth
+If=$PatientComment
+  Text=PatientComment; $PatientComment
+EndIf
+Text=PatientSex; $PatientSex
+Text=PrimaryOncologist; $PrimaryOncologist
+Text=CurrentDateShort; $CurrentDateShort
+Text=ApplicationName; $ApplicationName
+Text=TaskName; $TaskName
+Text=TaskVersion; $TaskVersion 
+Text=Hospital; $Hospital
+Text=UserId; $UserId
+Text=IsPlanModified; $IsPlanModified
+Text=IsAllMUperGyValid; $IsAllMUperGyValid
+If=$PlanningApprovalDate
+  Text=PlanningApprovalDate; $PlanningApprovalDate
+  Text=PlanningApprover; $PlanningApprover
+EndIf
+If=$TreatmentApprovalDate
+  Text=TreatmentApprovalDate; $TreatmentApprovalDate
+  Text=TreatmentApprover; $TreatmentApprover
+EndIf
+If=$PlanSumId
+  Text=PlanSumId; $PlanSumId
+EndIf
+If=$PlanSumName
+  Text=PlanSumName; $PlanSumName
+EndIf
+If=$PlanSumCourseId
+  Text=PlanSumCourseId; $PlanSumCourseId
+EndIf
+#Loop=SumPlans
+#  Text=PlanIdOfSum; $PlanIdOfSum
+#  Text=PlanNameOfSum; $PlanNameOfSum
+#  Loop=SumFractions
+#    Text=$FractionationIdOfSum
+#    Text=$TotalDose_ForSum ($DosePerFraction_ForSum  / fraction)
+#    Text=$NbrOfFrac_ForSum
+#    Text=TotalDoseAtPrimary_ForSum; $TotalDoseAtPrimary_ForSum
+#  EndLoop
+#EndLoop
+Text=CourseId; $CourseId
+Text=CourseIntent; $CourseIntent
+If=$CourseComment
+  Text=CourseComment; $CourseComment
+EndIf
+Text=PlanId; $PlanId
+Text=PlanName; $PlanName
+Text=ApprovalStatus; $ApprovalStatus
+If=$PlanComment
+  Text=PlanComment; $PlanComment
+EndIf
+Text=PlanCreationDate; $PlanCreationDate
+Text=PlanCreator; $PlanCreator
+Text=PlanModificationDate; $PlanModificationDate
+Text=PlanModifier; $PlanModifier
+If=$Comment
+  Text=Comment; $Comment
+EndIf
+If=$ProtocolId
+  Text=ProtocolId; $ProtocolId
+  Text=ProtocolStatus; $ProtocolStatus
+  Loop=Phases
+    If=$IsPlanPhase
+      Text=PhaseId; $PhaseId
+      Text=PhaseTotalFractions; $PhaseTotalFractions
+      Text=PhaseFractionsPerWeek; $PhaseFractionsPerWeek
+      Text=PhaseFractionsPerDay; $PhaseFractionsPerDay
+      Loop=PrescriptionItems
+        Text=$PrescriptionType
+        Text=$PrescriptionModifier
+        Text=$PrescriptionText
+        Text=PrescriptionDose; $PrescriptionDose
+      EndLoop
+    EndIf
+  EndLoop
+EndIf
+Text=ImageId; $ImageId
+Text=ImageName; $ImageName
+Text=ImageSeriesId; $ImageSeriesId
+Text=ImageModality; $ImageModality
+If=$ImageComment
+  Text=ImageComment; $ImageComment
+EndIf
+Text=ImagingDeviceId; $ImagingDeviceId
+Text=ImagingDeviceModel; $ImagingDeviceModel
+Text=ImagingDeviceManufacturer; $ImagingDeviceManufacturer
+Text=ImagingDeviceSerialNumber; $ImagingDeviceSerialNumber
+Text=PatientImagingOrientation; $PatientImagingOrientation
+Text=PatientTreatmentOrientation; $PatientTreatmentOrientation
+Text=PlanningCoordinateSystemName; $PlanningCoordinateSystemName
+Text=ImageUserOrigin; $ImageUserOrigin
+If=$ImageUserOriginComment
+  Text=ImageUserOriginComment; $ImageUserOriginComment
+EndIf
+If=$ImageApprovalDate
+  Text=ImageApprovalDate; $ImageApprovalDate
+  Text=ImageApprover; $ImageApprover
+EndIf
+Loop=Structures
+  Text=StructureId; $StructureId
+  If=$IsStructureCTValue
+    Text=$StructureCTValue
+  EndIf
+  Text=StructureName; $StructureName
+EndLoop
+If=$PhotonFields
+  Text=PhotonAlg; $PhotonAlg
+  Loop=PhotonAlgOptions
+    Text=$AlgOptionName ; $AlgOptionValue
+  EndLoop
+EndIf
+If=$ElectronFields
+  Text=ElectronAlg; $ElectronAlg
+  Loop=ElectronAlgOptions
+    Text=$AlgOptionName ; $AlgOptionValue
+  EndLoop
+EndIf
+Text=TargetVolume; $TargetVolume
+Text=PlanNormValue; $PlanNormValue
+If=$PlanNormMethod
+    Text=PlanNormMethod; $PlanNormMethod
+  If=$PlanNormMethodWarning
+    Text=PlanNormMethodWarning; $PlanNormMethodWarning
+  EndIf
+  If=$PlanNormPoint
+    Text=PlanNormPointX; $PlanNormPointX
+    Text=PlanNormPointY; $PlanNormPointY
+    Text=PlanNormPointZ; $PlanNormPointZ
+  EndIf
+  Text=PrescribedDosePercent; $PrescribedDosePercent
+EndIf
+Text=PrimaryRefPointId; $PrimaryRefPointId
+Text=RelativeDoseInPrimaryRefPoint; $RelativeDoseInPrimaryRefPoint
+Text=Fractionations; $Fractionations
+Loop=Fractionations
+  Text=FractionationId; $FractionationId
+  Text=PrescribedDose; $PrescribedDose
+  Text=PrescribedDosePerFraction; $PrescribedDosePerFraction
+  Text=DoseInPrimaryRefPoint; $DoseInPrimaryRefPoint
+  Text=DosePerFractionInPrimaryRefPoint; $DosePerFractionInPrimaryRefPoint
+  Text=Fractions; $Fractions
+  if=$FractionsPerDay
+    Text=FractionsPerDay; $FractionsPerDay
+  EndIf
+  if=$FractionsPerWeek
+    Text=FractionsPerWeek; $FractionsPerWeek
+  EndIf
+  If=$FractionStartDelay
+    Text=FractionStartDelay; $FractionStartDelay
+  EndIf
+Loop=Fields
+  Text=FieldId; $FieldId
+  Text=FieldName; $FieldName 
+  Text=FieldMachineId; $FieldMachineId
+  Text=FieldMachineModel; $FieldMachineModel
+  Text=FieldMachineScale; $FieldMachineScale
+  Text=FieldEnergyMode; $FieldEnergyMode
+  Text=FieldDoseRate; $FieldDoseRate
+  Text=FieldTechnique; $FieldTechnique
+  Text=FieldMonitorUnits; $FieldMonitorUnits
+  Text=FieldMonitorUnitsPerGy; $FieldMonitorUnitsPerGy
+  Text=FieldRefDose; $FieldRefDose
+  If=$IsFieldFixedSSD
+    Text=IsFieldFixedSSD; $IsFieldFixedSSD
+    Text=FieldIMRT; $FieldIMRT
+  Else
+    Text=FieldIMRT; $FieldIMRT
+  EndIf
+  Text=FieldSAD; $FieldSAD
+  If=$FieldGantryRotationDir
+    Text=FieldSSD; $FieldSSD
+    Text=FieldSSDAtStopAngle; $FieldSSDAtStopAngle
+    Text=FieldSSDAverage; $FieldSSDAverage
+    Text=FieldGantryRotationDir; $FieldGantryRotationDir
+  Else
+      Text=FieldSSD; $FieldSSD
+  EndIf
+  Text=FieldActualSSD; $FieldActualSSD
+  If=$FieldSFED
+    Text=FieldSFED; $FieldSFED
+  EndIf
+  If=$IsFieldSymmetric
+    Text=FieldSizeX; $FieldSizeX
+    Text=FieldSizeY; $FieldSizeY
+  Else
+    Text=$FieldX1
+    Text=$FieldX2
+    Text=$FieldY1
+    Text=$FieldY2
+    Text=FieldSymmetry; $FieldSymmetry
+  EndIf
+  If=$IsFieldIMRT
+    Loop=CarriageGroups
+      Text=FieldCarriageGroup; $FieldCarriageGroup
+      Text=FieldCPX2; $FieldCPX2
+      Text=FieldCPY1; $FieldCPY1
+      Text=FieldCPY2; $FieldCPY2
+    EndLoop
+  EndIf
+  If=$FieldGantryRotationDir
+    Text=FieldGantryAngle; $FieldGantryAngle
+    Text=FieldGantryStopAngle; $FieldGantryStopAngle
+    Text=FieldGantryRotationDir; $FieldGantryRotationDir
+  Else
+    Text=FieldGantryAngle; $FieldGantryAngle
+  EndIf
+  Text=FieldCollimatorAngle; $FieldCollimatorAngle
+  Text=FieldTableAngle; $FieldTableAngle
+  Text=FieldIsocentreX; $FieldIsocentreX
+  Text=FieldIsocentreY; $FieldIsocentreY
+  Text=FieldIsocentreZ; $FieldIsocentreZ
+  If=$FieldImageId
+    Text=FieldImageId; $FieldImageId
+    Text=FieldImageName; $FieldImageName
+  EndIf
+  If=$FieldNormMethod
+    Text=FieldNormMethod; $FieldNormMethod
+  EndIf
+  If=$FieldNormFactor
+    Text=FieldNormFactor; $FieldNormFactor
+  EndIf
+  Text=FieldWeightFactor; $FieldWeightFactor
+  If=$NominalSOBPWidth
+    Text=NominalSOBPWidth; $NominalSOBPWidth
+  EndIf
+  If=$PlannedDistalTargetDistance
+    Text=PlannedDistalTargetDistance; $PlannedDistalTargetDistance
+  EndIf
+  If=$FieldApplicators
+    Text=ApplicatorId; $ApplicatorId
+  EndIf
+  If=$FieldWedges
+    Text=FieldWedges; $FieldWedges
+    Loop=Wedges
+      Text=WedgeId; $WedgeId
+      Text=WedgeType; $WedgeType
+      Text=WedgeAngle; $WedgeAngle
+      Text=WedgeDirection; $WedgeDirection
+      Text=WedgeFactor; $WedgeFactor
+      Text=WedgeMaterialName; $WedgeMaterialName
+      Text=WedgeMaterialId; $WedgeMaterialId
+    EndLoop
+  EndIf
+  If=$FieldMLCs
+    Text=MLCId; $MLCId
+    Text=MLCManufacturer; $MLCManufacturer
+    Text=MLCModel; $MLCModel
+    Text=MLCRotation; $MLCRotation
+    Text=MLCMaterialName; $MLCMaterialName
+    Text=MLCMaterialId; $MLCMaterialId 
+    Text=MLCTransmissionFactor; $MLCTransmissionFactor
+    Text=MLCPlanType; $MLCPlanType
+    If=$MLCPlanSegments
+      Text=MLCPlanSegments; $MLCPlanSegments
+    EndIf
+    If=$IsFieldIMRT
+      Text=MinDoseLeafDynamicLeafGap; $MinDoseLeafDynamicLeafGap
+    EndIf
+    If=$IsFieldIMRT
+      Text=DosimetricLeafGap; $DosimetricLeafGap
+    EndIf
+  EndIf
+  If=$FieldCompensators
+    Text=CompensatorId; $CompensatorId
+    Text=CompensatorType; $CompensatorType
+    Text=CompensatorCentralAxisThickness; $CompensatorCentralAxisThickness
+    Text=CompensatorMaterialName; $CompensatorMaterialName
+    Text=CompensatorMaterialId; $CompensatorMaterialId
+    Text=CompensatorTray; $CompensatorTray
+    Text=CompensatorTrayTransmissionFactor; $CompensatorTrayTransmissionFactor
+    Text=CompensatorSlot; $CompensatorSlot
+  EndIf
+  If=$FieldBlocks
+    Text=FieldBlocks; $FieldBlocks
+    Loop=Blocks
+      Text=BlockId; $BlockId
+      Text=BlockType; $BlockType
+      Text=BlockDivergence; $BlockDivergence
+      Text=BlockMaterialName; $BlockMaterialName
+      Text=BlockMaterialId; $BlockMaterialId
+      Text=BlockTransmissionFactor; $BlockTransmissionFactor
+      If=$BlockTray
+        Text=BlockTray; $BlockTray
+        Text=BlockTrayTransmissionFactor; $BlockTrayTransmissionFactor
+      EndIf
+      If=$BlockSlot
+        Text=BlockSlot; $BlockSlot
+      EndIf
+    EndLoop
+  EndIf
+  If=$FieldBoluses
+    Text=FieldBoluses; $FieldBoluses
+    Loop=Boluses
+      Text=BolusId; $BolusId
+      Text=BolusName; $BolusName
+      Text=BolusMaterialCTValue; $BolusMaterialCTValue
+      Text=FieldSBD; $FieldSBD
+      Text=FieldCAXPLB; $FieldCAXPLB
+    EndLoop
+  EndIf
+  If=$IsSetupField
+  Else
+    Loop=Fractionations
+        Text=FractionationId $FractionationId
+        Text=FieldMonitorUnits; $FieldMonitorUnits
+        Text=FieldMonitorUnitsPerGy; $FieldMonitorUnitsPerGy
+        Text=FieldRefDose; $FieldRefDose
+        If=$RefPoints
+          Text=RefPoints; $RefPoints
+          Loop=RefPoints
+            Text=RefPointId; $RefPointId
+            Text=FieldDose; $FieldDose
+            Text=RefPointType; $RefPointType
+            Text=FieldRefPointSSD; $FieldRefPointSSD
+            Text=FieldRefPointPointDepth; $FieldRefPointPointDepth
+            Text=FieldRefPointEffectiveDepth; $FieldRefPointEffectiveDepth
+          EndLoop
+        EndIf
+        If=$IsFieldIMRT
+            Loop=CarriageGroups
+            Text=$FieldCarriageGroup
+            Text= $MU_CarriageGroup
+            EndLoop
+        EndIf
+    EndLoop
+    If=$IsFieldIMRT
+        If=$LmcCalculationTimestamp
+            Text=LmcCalculationTimestamp; $LmcCalculationTimestamp
+        EndIf
+        Loop=LmcCalculationErrors
+            If=$LmcCalculationError
+                Text=LmcCalculationError; $LmcCalculationError
+            EndIf
+        EndLoop
+        Loop=LmcCalculationWarnings
+            If=$LmcCalculationWarning
+                Text=LmcCalculationWarning; $LmcCalculationWarning
+            EndIf
+        EndLoop
+        Loop=LmcCalculationInfos
+            If=$LmcCalculationInfo
+                Text=LmcCalculationInfo; $LmcCalculationInfo
+            EndIf
+        EndLoop
+        Loop=LmcCalculationNotes
+            If=$LmcCalculationNote
+                Text=LmcCalculationNote; $LmcCalculationNote
+            EndIf
+        EndLoop
+    EndIf
+    If=$FieldCompensators
+        If=$CompCalculationTimestamp
+            Text=Compensator $CompCalculationTimestamp
+        EndIf
+        Loop=CompCalculationErrors
+            If=$CompCalculationError
+                Text=CompCalculationError; $CompCalculationError
+            EndIf
+        EndLoop
+        Loop=CompCalculationWarnings
+            If=$CompCalculationWarning
+                Text=CompCalculationWarning; $CompCalculationWarning
+            EndIf
+        EndLoop
+        Loop=CompCalculationInfos
+            If=$CompCalculationInfo
+                Text=CompCalculationInfo; $CompCalculationInfo
+            EndIf
+        EndLoop
+        Loop=CompCalculationNotes
+            If=$CompCalculationNote
+                Text=CompCalculationNote; $CompCalculationNote
+            EndIf
+        EndLoop
+    EndIf
+    If=$FieldCalculationTimestamp
+        Text=FieldCalculationTimestamp; $FieldCalculationTimestamp
+    EndIf
+    Loop=CalculationErrors
+        If=$FieldCalculationError
+            Text=FieldCalculationError; $FieldCalculationError
+        EndIf
+    EndLoop
+    Loop=CalculationWarnings
+        If=$FieldCalculationWarning
+            Text=FieldCalculationWarning; $FieldCalculationWarning
+        EndIf
+    EndLoop
+    Loop=CalculationInfos
+      If=$FieldCalculationInfo
+        Text=FieldCalculationInfo; $FieldCalculationInfo
+      EndIf
+    EndLoop
+    Loop=CalculationNotes
+        If=$FieldCalculationNote
+            Text=FieldCalculationNote; $FieldCalculationNote
+        EndIf
+    EndLoop
+  EndIf
+EndLoop
+If=$RefPoints
+  Loop=Fractionations
+    Text=FractionationId; $FractionationId
+    Loop=RefPoints
+      Text=RefPointId; $RefPointId
+      Text=RefPointX; $RefPointX
+      Text=RefPointY; $RefPointY
+      Text=RefPointZ; $RefPointZ
+      Text=RefPointTotalDosePerFraction; $RefPointTotalDosePerFraction
+      Text=RefPointTotalDose; $RefPointTotalDose
+      Text=IsPrimaryRefPoint; $IsPrimaryRefPoint
+      Text=RefPointPatientVolumeId; $RefPointPatientVolumeId
+    EndLoop
+  EndLoop
+EndIf
+EndLoop
