@@ -4,10 +4,14 @@
 
 
 from pathlib import Path
+from typing import Optional, Union, Any, Dict, Tuple, List, Set, NamedTuple
 import xml.etree.ElementTree as ET
 import PySimpleGUI as sg
-from build_plan_report import load_config, save_config, update_reports
+from build_plan_report import load_config, save_config, update_reports, load_reports
+from build_plan_report import set_report_parameters, update_report_definitions
 from plan_data import NotDVH
+from plan_report import load_report_definitions
+from UpdateReports import update_report_definitions
 
 
 #%% GUI Formatting
@@ -127,15 +131,18 @@ def file_selection_window(header='Select a File:',
                           style=None) -> Path:
     '''Generate the window used to select directories.
     Keyword Arguments:
-        header {str} -- Test at the top of the window. (default: {'Select a File:'})
+        header {str} -- Test at the top of the window. 
+            default: {'Select a File:'}
         title {str} -- Window title (default: {'Select a File'})
         current_path {Path} -- Starting path and file (default: {Path.cwd()})
-        file_options {tuple} -- File types available for selection (default: {(('All Files', '*.*'),)})
+        file_options {tuple} -- File types available for selection 
+            default: {(('All Files', '*.*'),)}
     Returns:
         Path -- The selected file, or None if a file is not selected.
     '''
     form_rows = [[sg.Text(header, **ELEMENT_STYLES['title'])],
-                 [sg.InputText(key='SelectedFile', **ELEMENT_STYLES['input_text']),
+                 [sg.InputText(key='SelectedFile',
+                               **ELEMENT_STYLES['input_text']),
                   sg.Button(
                       target='SelectedFile',
                       initial_folder=str(current_path),
@@ -144,7 +151,8 @@ def file_selection_window(header='Select a File:',
                  )],
                  [sg.Column([], pad=(50,0), key='space'), sg.Ok(), sg.Cancel()]
                  ]
-    window = sg.Window(title, form_rows, element_justification='center', finalize=True)
+    window = sg.Window(title, form_rows, element_justification='center',
+                       finalize=True)
     window['space'].expand(expand_x=True, expand_y=False)
     event, values = window.read()
     window.close()
@@ -154,7 +162,7 @@ def file_selection_window(header='Select a File:',
     return None
 
 
-def select_plan_file(config: ET.Element) -> Path:
+def select_plan_file(default_directories: ET.Element)->Path:
     '''
     Select a Plan DVH file to open.
     Arguments:
@@ -163,7 +171,6 @@ def select_plan_file(config: ET.Element) -> Path:
         Path -- The path to the selected file, or None if a file is not
         selected.
     '''
-    default_directories = config.find(r'./DefaultDirectories')
     plan_name = default_directories.findtext('DVH_File')
     plan_dir = default_directories.findtext('DVH')
     # Set the initial directory and file
@@ -186,38 +193,127 @@ def select_plan_file(config: ET.Element) -> Path:
     return dvh_plan
 
 
-def select_report_file(config: ET.Element) -> Path:
+def select_report_file(default_directories: ET.Element)->Path:
     '''
-    Select a Plan DVH file to open.
+    Select a Report definition file to open.
     Arguments:
         config {ET.Element} -- COnfiguration data.
     Returns:
         Path -- The path to the selected file, or None if a file is not
         selected.
     '''
-    # FIXME select_report_file Not yet implemented
-    default_directories = config.find(r'./DefaultDirectories')
-    plan_name = default_directories.findtext('DVH_File')
-    plan_dir = default_directories.findtext('DVH')
+    report_dir = default_directories.findtext('ReportDefinitions')
     # Set the initial directory and file
-    if plan_dir is None:
+    if report_dir is None:
         starting_dir = Path.cwd()
-    elif plan_name is None:
-        starting_dir = Path(plan_dir)
     else:
-        starting_dir = Path(plan_dir) / plan_name
-    dvh_plan = file_selection_window(
-        header='Select a DVH Plan file to load',
-        title='Select DVH Plan File',
+        starting_dir = Path(report_dir)
+    report_file = file_selection_window(
+        header='Select a Report Definition file to load',
+        title='Select Report Definition File',
         current_path=starting_dir,
-        file_options=(
-            ('DVH Files', '*.dvh'),
-            ('All Files', '*.*'),
-            ("Text Files", "*.txt")
-            )
+        file_options=(('XML Files', '*.xml'))
         )
-    return dvh_plan
+    return report_file
 
+
+def select_save_file(default_directories: ET.Element)->Path:
+    '''
+    Select the name of the file to save the completed report in.
+    Arguments:
+        default_directories {ET.Element} -- Configuration data.
+    Returns:
+        Path -- The path to the selected file, or None if a file is not
+        selected.
+    '''
+    save_file = default_directories.findtext('Save')
+    # Set the initial directory and file
+    if save_file is None:
+        starting_dir = Path.cwd()
+    else:
+        starting_dir = Path(save_file)
+    new_save_file = file_selection_window(
+        header='Save the Completed Report',
+        title='Save Report As',
+        current_path=starting_dir,
+        file_options=(('Excel Files', '*.xlsx'))
+        )
+    return new_save_file
+
+
+class DfltPath(NamedTuple):
+    '''Individual File/Directory selection Frame parameters.
+    Arguments:
+        NamedTuple {[type]} -- [description]
+    '''
+    xml_element: str # reference to <config><DefaultDirectories> sub-element
+    path_type: str # One of 'Directory', 'Read File' or 'Save File'
+    widget_name: str # Reference for the Window
+    frame_title: str # Text for labeled frame
+    file_types: List[Tuple[str, str]] = None
+
+
+def path_selection_frame(default_directories: ET.Element,
+                         path_param: DfltPath)->sg.Frame:
+    button_style = ELEMENT_STYLES['FileBrowse']
+    button_style['target'] = path_param.widget_name
+    # Set the starting path
+    default_path = default_directories.findtext(path_param.xml_element)
+    if default_path is None:
+        button_style['initial_folder'] = Path.cwd()
+    else:
+        button_style['initial_folder'] = Path(default_path)
+    # Set the path type
+    if path_param.path_type in 'Directory':
+        button_style['button_type'] = sg.BUTTON_TYPE_BROWSE_FOLDER
+    elif path_param.path_type in 'Save File':
+        button_style['button_type'] = sg.BUTTON_TYPE_SAVEAS_FILE
+        button_style['file_types'] = path_param.file_types
+    else:
+        button_style['button_type'] = sg.BUTTON_TYPE_BROWSE_FILE
+        button_style['file_types'] = path_param.file_types
+    button = sg.Button(**button_style)
+    input = sg.InputText(key=path_param.widget_name,
+                         **ELEMENT_STYLES['input_text'])
+    selection_frame = sg.frame(title=path_param.frame_title,
+                               layout=[input, button],
+                               **ELEMENT_STYLES['frame'])
+    return selection_frame
+
+
+def path_selection_window(default_directories: ET.Element,
+                          locations: List[DfltPath])->sg.Window:
+    layout = {}
+    for path_param in locations:
+        selection_frame = path_selection_frame(config, path_param)
+        layout.append([selection_frame])
+    layout.append([sg.Column([], pad=(50,3), key='space'),
+                   sg.Ok(pad=(3,3)), sg.Cancel(pad=(3,3))])
+    window = sg.Window('Set Default Files and Directories', layout,
+                       element_justification='center', finalize=True)
+    window['space'].expand(expand_x=True, expand_y=False)
+    return window
+
+
+def change_default_locations(default_directories: ET.Element,
+                             locations: List[DfltPath])->ET.Element:
+    window = path_selection_window(default_directories, locations)
+    done=False
+    while not done:
+        event, values = window.read(timeout=200)
+        if event == sg.TIMEOUT_KEY:
+            window.refresh()
+        elif event in 'Cancel':
+            done = True
+            default_directories = None
+        elif event in 'Ok':
+            done = True
+            for path_param in locations:
+                path_element = default_directories.find(path_param.xml_element)
+                new_default = values[path_param.widget_name]
+                path_element.text = new_default
+    window.close()
+    return default_directories
 
 
 #%% Main Menu
@@ -239,18 +335,67 @@ def main():
     # %% Load Config file
     config_file = 'PlanEvaluationConfig.xml'
     config = load_config(base_path, config_file)
+    test_config_file = 'TestConfig.xml'
+    default_directories = config.find(r'./DefaultDirectories')
+
+
+    # %% Load Report Definitions
+    report_definitions = load_reports(config)
+    report_parameters = set_report_parameters(config)
+    report_name = 'SABR 54 in 3'
+    report = deepcopy(report_definitions[report_name])
+
+    # %% Default Path Info
+
+    # DefaultDirectories Element in Config
+    #  <DefaultDirectories>
+    #    <DVH>.\DVH Files</DVH>
+    #    <DVH_File>plan.dvh</DVH_File>
+    #    <ReportDefinitions>
+    #      <Directory>.\Data</Directory>
+    #    </ReportDefinitions>
+    #    <ReportTemplates>.\Data</ReportTemplates>
+    #    <ReportPickleFile>.\Data\Reports.pkl</ReportPickleFile>
+    #    <Save>.\Output</Save>
+    #  </DefaultDirectories>
+
+    locations = [
+        DfltPath('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
+        DfltPath('DVH_File', 'File', 'dvh_file', 'Default Plan DVH file.', (
+            ('All Files', '*.*'),
+            ('DVH Files', '*.dvh'),
+            ("Text Files", "*.txt")
+            )),
+        DfltPath('ReportPickleFile', 'File', 'report_file',
+                                'Report Definition file.', (
+                                    ('All Files', '*.*'),
+                                    ('Pickle Files', '*.pkl')
+                                    )),
+        DfltPath('Save', 'Directory', 'save_dir',
+                                'Location to save Completed Reports', (
+                                    ('Excel Files', '*.xlsx'),
+                                    ('All Files', '*.*')
+                                    ))
+        ]
+    #header='Select a Folder Containing Plan DVH files'
+    #header='Select the directory to save the Plan Evaluation Report'
+    #header='Select the directory containing the Report definitions'
+
 
     # %% Create Test Window
     # These imports are here to avoid circular imports and are only used for
     # testing.
     from PlanEvaluation import create_plan_header, update_plan_header
+    from PlanEvaluation import make_report_selection_list, create_report_header
+    from PlanEvaluation import make_actions_column, update_report_header
     from plan_data import dvh_info
     test_layout = [
         [main_menu()],
-        [create_plan_header()],
+        [create_plan_header(),
+        create_report_header(),
+        make_actions_column(report_definitions)],
         [sg.Exit()]
-    ]
-
+        ]
     window = sg.Window('Plan Evaluation',
                        layout=test_layout,
                        resizable=True,
@@ -270,11 +415,14 @@ def main():
             break
         elif event in 'Set Default Locations':
             print('change_default_locations(config)')
-            # updated_config = change_default_locations(config) # FIXME change_default_locations not yet implemented
-            # save_config(updated_config, base_path, 'TestConfig.xml')
+            new_defaults = change_default_locations(default_directories,
+                                                    locations)
+            if new_defaults is not None:
+                default_directories = new_defaults
+                save_config(updated_config, base_path, test_config_file)
         elif event in 'Select Plan DVH File':
             print('select_plan_file(config)')
-            plan_file = select_plan_file(config)
+            plan_file = select_plan_file(default_directories)
             try:
                 plan_info = dvh_info(plan_file)
             except NotDVH:
@@ -282,178 +430,25 @@ def main():
             else:
                 update_plan_header(window, plan_info)
         elif event in 'Load Report Definition File':
-            # Done To Here
             print('select_report_file(config)')
-            # report_file = select_report_file(config)
-
-#%% Scrap code
-#locations = [
-#    ('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
-#    ('DVH_File', 'File', 'dvh_file', 'Default Plan DVH file.', (
-#        ('All Files', '*.*'),
-#        ('DVH Files', '*.dvh'),
-#        ("Text Files", "*.txt")
-#    )),
-#    ('ReportPickleFile', 'File', 'report_file', 'Report Definition file.',
-#     (('All Files', '*.*'), ('Pickle Files', '*.pkl'))),
-#    ('Save', 'Directory', 'save_dir', 'Location to save Completed Reports')
-#]
-#locations = {
-#    'DVH File Location': dict(
-#        header='Select a Folder Containing Plan DVH files',
-#        title='Plan DVH Directory'),
-#    'Save Location': dict(
-#        header='Select the directory to save the Plan Evaluation Report',
-#        title='Save Location'),
-#    'Report Location': dict(
-#        header='Select the directory containing the Report definitions',
-#        title='Report Location')
-#}
-
-##%% Defaults
-#locations = [
-#    ('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
-#    ('DVH_File', 'File', 'dvh_file', 'Default Plan DVH file.', (
-#        ('All Files', '*.*'),
-#        ('DVH Files', '*.dvh'),
-#        ("Text Files", "*.txt")
-#    )),
-#    ('ReportPickleFile', 'File', 'report_file', 'Report Definition file.',
-#     (('All Files', '*.*'), ('Pickle Files', '*.pkl'))),
-#    ('Save', 'Directory', 'save_dir', 'Location to save Completed Reports')
-#]
-
-
-#def file_selection(key_name: str, title='Select a File',
-#                   current_path: Path = Path.cwd(), style=None,
-#                   file_options=(('All Files', '*.*'),)) -> sg.Frame:
-#    '''
-#    '''
-#    selection_row = [
-#        sg.InputText(key=key_name),
-#        sg.FileBrowse(target=key_name, initial_folder=str(current_dir),
-#                      file_types=file_options)
-#    ]
-#    selection_group = sg.frame(title=title, layout=selection_row)
-#    return selection_group
-
-
-#def dir_selection_window(key_name: str, title: str,
-#                         current_dir: Path = Path.cwd()) -> Path:
-#    '''
-#    '''
-#    selection_row = [
-#        sg.InputText(key=key_name),
-#        sg.FolderBrowse(target=key_name, initial_folder=str(current_dir))
-#    ]
-#    return selection_row
-
-
-# def dir_selection_window(key_name: str, title: str,
-#                          current_dir: Path = Path.cwd()) -> Path:
-#     '''
-#     '''
-#     selection_row = [
-#         sg.InputText(key=key_name),
-#         sg.FolderBrowse(target=key_name, initial_folder=str(current_dir))
-#     ]
-#     return selection_row
-
-#     elif event in 'update_report_definitions':
-#             report_definitions = update_report_definitions(config, base_path)
-#             report_list = make_report_selection_list(report_definitions)
-#             window['report_selector'].update(values=report_list)
-#             window.refresh()
-
-# %% Defaults
-    # report = None
-    # active_plan = None
-    # selected_plan_desc = None
-
-    # default_directories = config.find(r'./DefaultDirectories')
-    # pickle_file = Path(default_directories.findtext('ReportPickleFile'))
-    # plan_dvh_location = Path(default_directories.findtext('ReportPickleFile'))
-    # save_location = Path(default_directories.findtext('Save'))
-    # report_locations = get_report_dir_list(base_str, default_directories)
-    # report_definitions = load_reports(config)
-    # plan_dict = find_plan_files(config)
-    # locations = [
-    #     ('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
-    #     ('DVH_File', 'File', 'dvh_file', 'Default Plan DVH file.', (
-    #         ('All Files', '*.*'),
-    #         ('DVH Files', '*.dvh'),
-    #         ("Text Files", "*.txt")
-    #     )),
-    #     ('ReportPickleFile', 'File', 'report_file', 'Report Definition file.',
-    #      (('All Files', '*.*'), ('Pickle Files', '*.pkl'))),
-    #     ('Save', 'Directory', 'save_dir', 'Location to save Completed Reports')
-    # ]
-
-    # code_exceptions_def = config.find('LateralityCodeExceptions')
-    # plan_parameters = dict(
-    #     default_units=get_default_units(config),
-    #     laterality_exceptions=get_laterality_exceptions(code_exceptions_def),
-    #     name='Plan'
-    # )
-
-    #('ReportDefinitions', 'Directory', 'Report_dir', 'Report XML Locations')
-    # header = 'Select the directory containing the Report definitions',
-    # header = 'Select a Folder Containing Plan DVH files'
-
-
-#def get_report_dir_list(default_directories: ET.Element,
-#                        base_str: str = '') -> List[str]:
-#    '''Generate a string list of directories containing report definitions.
-#    The list is obtained from the Config .xml file.
-#    The directories in the string list replace the top directory path,
-#    given by base_str, with: ".\".
-#    Arguments:
-#        default_directories {ET.Element} -- Sub-Element of the Config .xml file
-#            containing the default directory paths.
-#        base_str {str} -- A string path to the top directory referenced.
-#    '''
-#    report_locations = list()
-#    report_path_element = default_directories.find('ReportDefinitions')
-#    for location in report_path_element.findall('Directory'):
-#        report_dir = Path(location.text).resolve()
-#        report_dir_str = str(report_dir).replace(base_str, '.')
-#        report_locations.append(report_dir_str)
-#    return report_locations
-
-
-#def select_locations(report_locations, base_str):
-#    window = selection_window(report_locations, base_str)
-#    done = False
-#    dir_list = window['ReportDirs']
-#    while not done:
-#        event, values = window.read(timeout=200)
-#        if event == sg.TIMEOUT_KEY:
-#            continue
-#        elif event in 'Cancel':
-#            done = True
-#            report_locations = None
-#        elif event in 'Submit':
-#            done = True
-#            report_locations = [Path(dir) for dir in dir_list.GetListValues()]
-#        elif event in 'Delete':
-#            remove_items = values['ReportDirs']
-#            updated_list = [dir for dir in dir_list.GetListValues()
-#                            if dir not in remove_items]
-#            dir_list.Update(values=updated_list)
-#            window.refresh()
-#        elif event in 'Add':
-#            add_item = values['NewReportDir']
-#            report_dir = Path(add_item).resolve()
-#            report_dir_str = str(report_dir).replace(base_str, '.\\')
-#            updated_list = set(dir_list.GetListValues())
-#            updated_list.add(report_dir_str)
-#            dir_list.Update(values=list(updated_list))
-#            window.refresh()
-#    window.close()
-#    return report_locations
+            report_file = select_report_file(default_directories)
+            report_dict = load_report_definitions(report_file,
+                                                  report_parameters)
+            report_definitions.update(report_dict)
+        elif event in 'Update all Report Definitions':
+            report_definitions = update_report_definitions(config, base_path)
+            report_list = make_report_selection_list(report_definitions)
+            window['report_selector'].update(values=report_list)
+            window.refresh()
+        elif event in 'Set Save File Name':
+            print('Set Save File Name')
+            # Done To Here
+            save_file = select_save_file(default_directories)
+            if report:
+                report.save_file = Path(save_file)    
+                update_report_header(window, report)
 
 
 # %% Run Tests
-
 if __name__ == '__main__':
     main()

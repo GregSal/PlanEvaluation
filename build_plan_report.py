@@ -80,11 +80,24 @@ def save_config(updated_config: ET.Element,
         ET.Element -- The root element of the XML config data
     '''
     config_path = base_path / config_file_name
-    config_tree = ET.ElementTree(element=updated_config) 
-    config_tree.write(config_path) 
+    config_tree = ET.ElementTree(element=updated_config)
+    config_tree.write(config_path)
 
 
 #%% Report loading Methods
+def set_report_parameters(config: ET.Element)->Dict[Any]:
+    default_directories = config.find(r'./DefaultDirectories')
+    template_path = Path(default_directories.findtext('ReportTemplates'))
+    alias_def = config.find('AliasList')
+    laterality_lookup_def = config.find('LateralityTable')
+    default_patterns_def = config.find('DefaultLateralityPatterns')
+    report_parameters = dict(
+        template_path=template_path,
+        alias_reference=load_aliases(alias_def),
+        laterality_lookup=load_laterality_table(laterality_lookup_def),
+        lat_patterns=load_default_laterality(default_patterns_def))
+    return report_parameters
+
 def update_reports(config: ET.Element,
                    report_locations: List[Path] = None,
                    pickle_file: Path = None)->Dict[str, Report]:
@@ -107,18 +120,10 @@ def update_reports(config: ET.Element,
         report_path_element = default_directories.find('ReportDefinitions')
         for location in report_path_element.findall('Directory'):
             report_locations.append(Path(location.text).resolve())
-    template_path = Path(default_directories.findtext('ReportTemplates'))
     if not pickle_file:
         pickle_file = Path(default_directories.findtext('ReportPickleFile'))
-    alias_def = config.find('AliasList')
-    laterality_lookup_def = config.find('LateralityTable')
-    default_patterns_def = config.find('DefaultLateralityPatterns')
-    report_parameters = dict(
-        report_locations=report_locations,
-        template_path=template_path,
-        alias_reference=load_aliases(alias_def),
-        laterality_lookup=load_laterality_table(laterality_lookup_def),
-        lat_patterns=load_default_laterality(default_patterns_def))
+    report_parameters = set_report_parameters(config)
+    report_parameters.update({'report_locations': report_locations})
     report_definitions = read_report_files(**report_parameters)
     file = open(str(pickle_file), 'wb')
     dump(report_definitions, file)

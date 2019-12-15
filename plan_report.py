@@ -983,6 +983,26 @@ class Report():
         return repr_str
 
 
+def load_report_definitions(report_file: Path,
+                            report_parameters: dict)->Dict[str, Report]:
+    '''Read in all report definitions contained in a given XML report file
+    Arguments:
+        report_file {Path} -- The full path to the Report .xml file.
+        report_parameters {dict} -- parameters used to define reports.
+            See the Report class definition for details.
+    Returns:
+        Dict[str, Report] -- A dictionary of report definitions, the key is
+            the name of the report.
+    '''
+    report_tree = ET.parse(report_file)
+    report_root = report_tree.getroot()
+    report_dict = dict()
+    for report_def in report_root.findall('Report'):
+        report = Report(report_def, **report_parameters)
+        report_dict[report.name] = report
+    return report_dict
+
+
 def read_report_files(report_locations: List[Path],
                       **parameters)->Dict[str, Report]:
     '''Read in all report definitions contained in the XML report files
@@ -996,24 +1016,7 @@ def read_report_files(report_locations: List[Path],
         Dict[str, Report] -- A dictionary of report definitions, the key is
             the name of the report.
     '''
-    def load_report_definitions(report_file: Path,
-                                report_parameters: dict)->Dict[str, Report]:
-        '''Read in all report definitions contained in a given XML report file
-        Arguments:
-            report_file {Path} -- The full path to the Report .xml file.
-            report_parameters {dict} -- parameters used to define reports.
-                See the Report class definition for details.
-        Returns:
-            Dict[str, Report] -- A dictionary of report definitions, the key is
-                the name of the report.
-        '''
-        report_tree = ET.parse(report_file)
-        report_root = report_tree.getroot()
-        report_dict = dict()
-        for report_def in report_root.findall('Report'):
-            report = Report(report_def, **report_parameters)
-            report_dict[report.name] = report
-        return report_dict
+
 
     report_definitions = dict()
     for report_path in report_locations:

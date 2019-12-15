@@ -383,8 +383,6 @@ def main():
 
 
 
-#%% Run Tests
-
 if __name__ == '__main__':
     main()
 
