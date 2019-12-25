@@ -656,14 +656,12 @@ class ReportElement():
             item_dict.update(self.target)
         return item_dict
 
-    def __repr__(self, references: Dict[str, PlanReference],
+    def _to_str(self, references: Dict[str, PlanReference],
                  add_references: bool, add_target: bool)->str:
         '''Provide a formatted string describing this ReportElement.
         Returns:
             str -- A formatted string describing this ReportElement.
-        '''
-        # FIXME The special method '__repr__' expects 0 param(s), 3 were given
-        
+        '''        
         item_dict = self.table_output(references, add_target)
         repr_str = '\nReportElement(\n'
         repr_str = '\tName={ItemName}\n'
@@ -979,7 +977,7 @@ class Report():
         # Add strings for each report item
         repr_str += '\n'
         for element in self.report_elements.values():
-            e_str = element.__repr__(self.references, add_references, add_target)
+            e_str = element._to_str(self.references, add_references, add_target)
             repr_str += '\n'.join('\t' + line for line in e_str.splitlines())
         repr_str += '\n'
         return repr_str

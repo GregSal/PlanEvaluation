@@ -22,13 +22,13 @@ from scipy.interpolate import interp1d
 Value = Union[int, float, str]
 ConversionParameters = Dict[str, Union[str, float, None]]
 ColumnDef = Dict[str, str] # 2 items: 'Data Type','Unit'
-# TODO Make ColumnDef a named tuple
+# Question Make ColumnDef a named tuple?
 Header = List[ColumnDef]
 DvhData = List[List[float]]
 # number of items in List[float] = number of items in List[ColumnDef]
-# TODO Make DvhConstructor a named tuple
+# Question Make DvhConstructor a named tuple?
 DvhConstructor = Tuple[str, float, str] # (y_type, x_value, x_unit)
-# TODO Make DvhIndex a named tuple
+# Question Make DvhIndex a named tuple?
 DvhIndex = Tuple[int, int, str]
 #x_column, y_column, desired_x_unit
 
@@ -96,9 +96,9 @@ def convert_units(starting_value: Value, starting_units: str, target_units: str,
     Returns:
         float -- The initial value converted to the new units.
     '''
-    # TODO Move the conversion_table to the config XML file.
+    # Question Move the conversion_table to the config XML file?
     # Make it easier to add new unit types.
-    # TODO re-consider "Value" class that contains number and unit.
+    # Question re-consider "Value" class that contains number and unit.
     # convert_units would become a method of the Value" class.
     # find_unit and get_default_units could also become part of Value
     # constructors.  Config could contain different text parsing definitions
@@ -361,10 +361,10 @@ class DVH():
         Returns:
             float -- The y value interpolated to the x point.
         '''
-        data = self.dvh_curve
+        dvh_data = self.dvh_curve
         # x_value must be within the range of the x data.
-        if min(data[x_column]) < float(x_value) < max(data[x_column]):
-            linear_interp = interp1d(data[x_column], data[y_column])
+        if min(dvh_data[x_column]) < float(x_value) < max(dvh_data[x_column]):
+            linear_interp = interp1d(dvh_data[x_column], dvh_data[y_column])
             target_value = float(linear_interp(x_value))
         else:
             # Question should I raise an error if the dvh interpolation fails?
@@ -556,7 +556,7 @@ class DvhFile():
             Load data from the .dvh file.
     '''
     special_charaters = {'cm³': 'cc'}
-    # TODO Move special_charaters to the config file
+    # Question Move special_charaters to the config file?
 
     def __init__(self, file_name: Path, **kwds):
         '''Open the file_name file to begin reading.
@@ -1169,3 +1169,4 @@ def find_plan_files(config: ET.Element,
     else:
         plan_dict = None
     return plan_dict
+

@@ -13,7 +13,7 @@ from build_plan_report import load_config, load_reports, IconPaths, load_dvh
 from plan_report import Report, ReferenceGroup, MatchHistory
 from plan_data import get_laterality_exceptions, find_plan_files
 from plan_data import Plan, PlanItemLookup, PlanElements, get_default_units
-from GuiHelper import ColumnSettings, ColumConfig, MenuDict, TreeRtClick
+from gui_helper import ColumnSettings, ColumConfig, MenuDict, TreeRtClick
 
 
 Values = Dict[str, List[str]]
@@ -189,7 +189,7 @@ def manual_match(report: Report, plan: Plan, icons: IconPaths)->Report:
     tree = window['Match_tree']
     tkmenu = tree.TKRightClickMenu # The top-level right-click menu
     menu_id = tkmenu.entrycget('Match','menu').split('.')[-1] # The sub-menu name
-    item_menu = tkmenu.children[menu_id] # The sub-menu
+    #item_menu = tkmenu.children[menu_id] # The sub-menu
 
     menu_def_list = tree.RightClickMenu
     item_list = menu_def_list[1][tkmenu.index('Match')+1][0] # List of sub-menu items

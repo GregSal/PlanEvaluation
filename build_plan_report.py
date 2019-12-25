@@ -3,9 +3,8 @@
 
 
 #%% imports etc.
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List
 from copy import deepcopy
-from operator import attrgetter
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from pickle import dump, load
@@ -55,7 +54,7 @@ class IconPaths(dict):
 
 
 #%% Initialization Methods
-# TODO use file utilities functions for path and file name checking/completion
+# Question use file utilities functions for path and file name checking/completion?
 def load_config(base_path: Path, config_file_name: str)->ET.Element:
     '''Load the XML configuration file
     Arguments:
@@ -177,7 +176,7 @@ def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhFile:
     return dvh_data_source
 
 
-def load_plan(config, plan_path: DvhSource, name='Plan', type='DVH')->Plan:
+def load_plan(config, plan_path: DvhSource, name='Plan', plan_type='DVH')->Plan:
     '''Load plan data from the specified file or folder.
     Arguments:
         config {ET.Element} -- An XML element containing default paths.
@@ -191,7 +190,7 @@ def load_plan(config, plan_path: DvhSource, name='Plan', type='DVH')->Plan:
     default_units = get_default_units(config)
     code_exceptions_def = config.find('LateralityCodeExceptions')
     laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
-    if type in 'DVH':
+    if plan_type in 'DVH':
         dvh_file = get_dvh(config, plan_path)
         plan = Plan(default_units, laterality_exceptions, dvh_file, name)
     else:

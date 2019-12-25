@@ -21,8 +21,9 @@ from build_plan_report import IconPaths
 from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
 from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions, find_plan_files
 from match_window import manual_match
-from UpdateReports import update_report_definitions
-from GuiHelper import SettingsHelper, ButtonSettings, ElementConfig, WindowConfig
+from update_reports import update_report_definitions
+from update_directories import main_menu
+from gui_helper import ButtonSettings, ElementConfig, WindowConfig
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
@@ -247,108 +248,120 @@ def make_actions_column(report_definitions: Dict[str, Report]):
     return actions
 
 
-#%% Initial Action Settings
-action_config = WindowConfig([
-    ElementConfig(name='load_plan',
-                    setting_type=ButtonSettings, settings = [
-                        ('No Plan', ButtonSettings(
-                            text='Select Plan',
-                            button_color=('red', 'white'),
-                            disabled=True)),
-                        ('Selected', ButtonSettings(
-                            text='Load Plan',
-                            button_color=('black', 'blue'),
-                            disabled=False)),
-                        ('Loading', ButtonSettings(
-                            text='Loading ...',
-                            button_color=('red', 'yellow'),
-                            disabled=True)),
-                        ('Loaded', ButtonSettings(
-                            text='Plan Loaded',
-                            button_color=('black', 'green'),
-                            disabled=False))]),
-    ElementConfig(name='match',
-                    setting_type=ButtonSettings,
-                    settings = [
-                        ('Not Selected', ButtonSettings(
-                            text='Select Report',
-                            button_color=('red', 'white'),
-                            disabled=True)),
-                        ('Selected', ButtonSettings(
-                            text='Match Structures',
-                            button_color=('black', 'blue'),
-                            disabled=False)),
-                        ('Matching', ButtonSettings(
-                            text='Matching ...',
-                            button_color=('red', 'yellow'),
-                            disabled=True)),
-                        ('Matched', ButtonSettings(
-                            text='Structured Matched',
-                            button_color=('black', 'green'),
-                            disabled=False))]),
-    ElementConfig(name='generate',
-                    setting_type=ButtonSettings,
-                    settings = [
-                        ('Not Matched', ButtonSettings(
-                            text='',
-                            button_color=('red', 'white'),
-                            disabled=True)),
-                        ('Matched', ButtonSettings(
-                            text='Generate Report',
-                            button_color=('black', 'blue'),
-                            disabled=False)),
-                        ('Generating', ButtonSettings(
-                            text='Generating Report ...',
-                            button_color=('red', 'yellow'),
-                            disabled=True)),
-                        ('Generated', ButtonSettings(
-                            text='Report Generated',
-                            button_color=('black', 'green'),
-                            disabled=False))
-                            ])
-    ])
-status = {'Nothing Selected': [
-                ('load_plan', 'No Plan'),
-                ('match', 'Not Selected'),
-                ('generate', 'Not Matched')],
-          'Plan Selected': [
-                ('load_plan', 'Selected'),
-                ('match', 'Not Selected'),
-                ('generate', 'Not Matched')],
-          'Plan Loading': [
-                ('load_plan', 'Loading')
-                ('match', 'Not Selected'),
-                ('generate', 'Not Matched')],
-          'Plan Loaded': [
-                ('load_plan', 'Loaded'),
-                ('generate', 'Not Matched')],
-          'Plan and Report Ready': [
-                ('match', 'Selected'),
-                ('generate', 'Not Matched')],
-          'Matching': [
-                ('match', 'Matching'),
-                ('generate', 'Not Matched')],
-          'Matched': [
-                ('match', 'Matched'),
-                ('generate', 'Matched')],
-          'Generating': [
-                ('generate', 'Generating')],
-          'Generated': [
-                ('generate', 'Generated')]
-              }
+#%% Action Status Based Settings
+def action_settings_config():
+    element_settings =[
+        ElementConfig(name='load_plan',
+                        setting_type=ButtonSettings, settings = [
+                            ('No Plan', ButtonSettings(
+                                text='Select Plan',
+                                button_color=('red', 'white'),
+                                disabled=True)),
+                            ('Selected', ButtonSettings(
+                                text='Load Plan',
+                                button_color=('black', 'blue'),
+                                disabled=False)),
+                            ('Loading', ButtonSettings(
+                                text='Loading ...',
+                                button_color=('red', 'yellow'),
+                                disabled=True)),
+                            ('Loaded', ButtonSettings(
+                                text='Plan Loaded',
+                                button_color=('black', 'green'),
+                                disabled=False))]),
+        ElementConfig(name='match_structures',
+                        setting_type=ButtonSettings,
+                        settings = [
+                            ('Not Selected', ButtonSettings(
+                                text='Select Report',
+                                button_color=('red', 'white'),
+                                disabled=True)),
+                            ('Report Selected', ButtonSettings(
+                                text='Report Selected',
+                                button_color=('black', 'blue'),
+                                disabled=True)),
+                            ('Both Selected', ButtonSettings(
+                                text='Match Structures',
+                                button_color=('black', 'blue'),
+                                disabled=False)),
+                            ('Matching', ButtonSettings(
+                                text='Matching ...',
+                                button_color=('red', 'yellow'),
+                                disabled=True)),
+                            ('Matched', ButtonSettings(
+                                text='Structured Matched',
+                                button_color=('black', 'green'),
+                                disabled=False))]),
+        ElementConfig(name='generate_report',
+                        setting_type=ButtonSettings,
+                        settings = [
+                            ('Not Matched', ButtonSettings(
+                                text='',
+                                button_color=('red', 'white'),
+                                disabled=True)),
+                            ('Matched', ButtonSettings(
+                                text='Generate Report',
+                                button_color=('black', 'blue'),
+                                disabled=False)),
+                            ('Generating', ButtonSettings(
+                                text='Generating Report ...',
+                                button_color=('red', 'yellow'),
+                                disabled=True)),
+                            ('Generated', ButtonSettings(
+                                text='Report Generated',
+                                button_color=('black', 'green'),
+                                disabled=False))
+                                ])
+        ]
+    status_groups = {'Nothing Selected': [
+                        ('load_plan', 'No Plan'),
+                        ('match_structures', 'Not Selected'),
+                        ('generate_report', 'Not Matched')],
+                    'Plan Selected': [
+                        ('load_plan', 'Selected'),
+                        ('match_structures', 'Not Selected'),
+                        ('generate_report', 'Not Matched')],
+                    'Report Selected': [
+                        ('match_structures', 'Report Selected'),
+                        ('generate_report', 'Not Matched')],
+                    'Plan Loading': [
+                        ('load_plan', 'Loading'),
+                        ('match_structures', 'Not Selected'),
+                        ('generate_report', 'Not Matched')],
+                    'Plan Loaded': [
+                        ('load_plan', 'Loaded'),
+                        ('generate_report', 'Not Matched')],
+                    'Invalid Plan': [
+                        ('load_plan', 'No Plan')],
+                    'Plan and Report Ready': [
+                        ('match_structures', 'Selected'),
+                        ('generate_report', 'Not Matched')],
+                    'Matching': [
+                        ('match_structures', 'Matching'),
+                        ('generate_report', 'Not Matched')],
+                    'Matched': [
+                        ('match_structures', 'Matched'),
+                        ('generate_report', 'Matched')],
+                    'Generating': [
+                        ('generate_report', 'Generating')],
+                    'Generated': [
+                        ('generate_report', 'Generated')]
+                    }
+
+    config_settings = WindowConfig(element_settings, status_groups)
+    return config_settings
 
 
-# Done To Here
 #%% Main Window
 def create_main_window(plan_dict, report_definitions):
-    sg.change_look_and_feel('LightGreen')
-    sg.SetOptions(element_padding=(0,0), margins=(0,0))
     plan_header = create_plan_header()
     report_header = create_report_header()
     plan_selection = plan_selector(plan_dict)
     report_actions = make_actions_column(report_definitions)
-    layout = [[plan_header, report_header, report_actions],
-              [plan_selection]]
+    layout = [[main_menu()],
+              [plan_header, report_header, report_actions],
+              [plan_selection]
+              ]
 
     window = sg.Window('Plan Evaluation',
                        layout=layout,
@@ -357,8 +370,6 @@ def create_main_window(plan_dict, report_definitions):
                        finalize=True,
                        element_justification="left")
     return window
-
-
 
 
 #%% Testing
@@ -390,6 +401,8 @@ def main():
     history = MatchHistory()
 
     window = create_main_window(plan_dict, report_definitions)
+    action_settings = action_settings_config()
+    action_settings.set_status(window, 'Nothing Selected')
 
     while True:
         event, values = window.Read(timeout=2000)
@@ -405,42 +418,37 @@ def main():
             selected_plan_desc = plan_dict.get(plan_desc)
             if selected_plan_desc:
                 update_plan_header(window, selected_plan_desc)
-                window['load_plan'].update(**load_plan_config['Selected'])
+                action_settings.set_status(window, 'Plan Selected')
         elif event in 'report_selector':
             selected_report = values['report_selector']
             report = deepcopy(report_definitions.get(selected_report))
             if report:
                 update_report_header(window, report)
                 if active_plan:
-                    window['match_structures'].update(**match_config['Selected'])
+                    action_settings.set_status(window, 'Plan and Report Ready')
+                else:
+                    action_settings.set_status(window, 'Report Selected')
         elif event in 'load_plan':
-            window['load_plan'].update(**load_plan_config['Loading'])
-            window.refresh()
+            action_settings.set_status(window, 'Plan Loading')
             active_plan = load_dvh(selected_plan_desc, **plan_parameters)
             if active_plan:
-                window['load_plan'].update(**load_plan_config['Loaded'])
-                window.refresh()
                 if report:
-                    window['match_structures'].update(**match_config['Selected'])
+                    action_settings.set_status(window, 'Plan and Report Ready')
+                else:
+                    action_settings.set_status(window, 'Plan Loaded')
             else:
-                window['load_plan'].update(**load_plan_config[None])
+                action_settings.set_status(window, 'Invalid Plan')
         elif event in 'match_structures':
-            window['match_structures'].update(**match_config['Matching'])
-            window.refresh()
+            action_settings.set_status(window, 'Matching')
             rerun_matching(report, active_plan, history)
             report = manual_match(report, active_plan, icons)
-            window['match_structures'].update(**match_config['Matched'])
-            window['generate_report'].update(**generate_config['Matched'])
+            action_settings.set_status(window, 'Matched')
         elif event in 'generate_report':
-            window['generate_report'].update(**generate_config['Generating'])
-            window.refresh()
+            action_settings.set_status(window, 'Generating')
             run_report(active_plan, report)
-            window['generate_report'].update(**generate_config['Generated'])
-        elif event in 'update_report_definitions':
-            report_definitions = update_report_definitions(config, base_path)
-            report_list = make_report_selection_list(report_definitions)
-            window['report_selector'].update(values=report_list)
-            window.refresh()
+            action_settings.set_status(window, 'Generated')
+
+
 
 
 

@@ -1,33 +1,23 @@
 '''A collection of GUI Helper classes
 '''
 #%% imports etc.
-import os
-import sys
-import textwrap as tw
-from pathlib import Path
-from copy import deepcopy
-from functools import partial
-from operator import attrgetter
-import xml.etree.ElementTree as ET
-from collections import OrderedDict
-from typing import Optional, Union, Any, Dict, Tuple, List, Set, NamedTuple, TypeVar, Generic
+from abc import abstractproperty
 
-import xlwings as xw
+from typing import Union, Dict, Tuple, List, NamedTuple, TypeVar, Generic
+
 import PySimpleGUI as sg
 
-from build_plan_report import load_config, update_reports, load_reports, run_report, load_dvh
-from build_plan_report import IconPaths
-from plan_report import Report, ReferenceGroup, MatchList, MatchHistory, rerun_matching
-from plan_data import DvhFile, Plan, PlanItemLookup, PlanElements, scan_for_dvh, PlanDescription, get_default_units, get_laterality_exceptions, find_plan_files
-from match_window import manual_match
-from UpdateReports import update_report_definitions
+
+from plan_report import ReferenceGroup
 
 
 Values = Dict[str, List[str]]
 ConversionParameters = Dict[str, Union[str, float, None]]
-Settings = TypeVar('Settings')
-SettingsGroup = Tuple[str, Settings]
-SettingsList = List[SettingsGroup]
+
+
+#%% GUI Appearance
+sg.change_look_and_feel('LightGreen')
+sg.SetOptions(element_padding=(0,0), margins=(0,0))
 
 
 #%% Some helper classes because I am lazy
@@ -115,8 +105,7 @@ class ColumConfig(list):
         return kwarg_dict
 
 
-
-#%% Match GUI functions
+#%% Match  functions
 class MenuDict(dict):
     '''Modifies a basic dictionary to defines a Default Menu if no matching
     selection is found.  Otherwise, just an ordinary dictionary.
@@ -141,6 +130,14 @@ class MenuDict(dict):
 class MenuChoices():
     '''Add options to modify the right-click menu.
     '''
+    @abstractproperty
+    def TKRightClickMenu(self):
+        return None
+
+    @abstractproperty
+    def RightClickMenu(self):
+        return None
+
     def __init__(self, *args, menu_dict: MenuDict = None, **kwargs):
         '''Add a menu selection dictionary to the element.
         Arguments:
@@ -163,7 +160,7 @@ class MenuChoices():
     def clear_menu(self):
         '''Remove all menu items from a right-click menu.
         '''
-        rt_menu = self.RightClickMenu
+        rt_menu = self.TKRightClickMenu
         # This call is directly to the Tkinter menu widget.
         rt_menu.delete(0,'end')
 
@@ -242,13 +239,16 @@ class TreeRtClick(MenuChoices, sg.Tree):
 
 
 #%% Live settings changer
-class SettingsHelper():
-    def to_dict(self):
-        config_dict = {attr: self.getattr(attr) for attr in self._fields}
-        return config_dict
+class ConfigSetting(NamedTuple):
+    element_name: str
+    setting_name: str
+
+Settings = TypeVar('Settings')
+SettingsList = List[Tuple[str, Settings]]
+StatusGroups = Dict[str, List[ConfigSetting]]
 
 
-class ButtonSettings(NamedTuple, SettingsHelper):
+class ButtonSettings(NamedTuple):
     text: str = 'Select Report'
     button_color: Tuple[str, str] = ('red', 'white')
     disabled: bool = True
@@ -262,34 +262,39 @@ class ElementConfig(dict):
         super().__init__(dict_items)
         self.load_settings(settings)
 
-    def add_setting(self, setting_name, *setting: SettingsGroup):
-        self[setting_name] = self.setting_type(setting)
+    def add_setting(self, setting_name, *setting: Settings):
+        self[setting_name] = self.setting_type(*setting)
 
     def load_settings(self, settings: SettingsList):
         for setting_group in settings:
-            self.add_setting(setting_group)
+            self.add_setting(*setting_group)
 
     def config(self, window: sg.Window, setting_name: str):
-        desired_settings = self[setting_name].to_dict()
+        desired_settings = self[setting_name]._asdict()
         window[self.name].update(**desired_settings)
 
 
-class WindowConfig(dict):
-    def __init__(self, element_settings: List[ElementConfig], **dict_items):
-        super().__init__(dict_items)
-        self.name = name
-        self.setting_type = setting_type
-
+class WindowConfig():
+    def __init__(self, element_settings: List[ElementConfig],
+                 status_groups: StatusGroups):
+        super().__init__()
+        self.element_lookup = dict()
+        self.load_configs(element_settings)
+        self.status_groups = dict(**status_groups)
+        
     def add_config(self, setting: ElementConfig):
-        self[setting.name] = self.setting
+        self.element_lookup[setting.name] = setting
 
     def load_configs(self, element_settings: List[ElementConfig]):
         for setting in element_settings:
             self.add_config(setting)
 
-    def config(self, window: sg.Window, element_name: str, setting_name: str):
-        element_config = self[element_name]
-        element_config.config(window, setting_name)
+    def config(self, window: sg.Window, setting: ConfigSetting):
+        setting = ConfigSetting(*setting)
+        element_config = self.element_lookup[setting.element_name]
+        element_config.config(window, setting.setting_name)
         window.refresh()
 
-
+    def set_status(self, window: sg.Window, status):
+        for setting in self.status_groups.get(status, []):
+            self.config(window, setting)

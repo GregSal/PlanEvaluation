@@ -2,7 +2,7 @@
 ''' Change the directories for DVH files, Report files , Save location
 '''
 
-
+#%% imports etc.
 from pathlib import Path
 from copy import deepcopy
 from typing import Tuple, List, NamedTuple
@@ -12,7 +12,7 @@ from build_plan_report import load_config, save_config, load_reports
 from build_plan_report import set_report_parameters
 from plan_data import NotDVH
 from plan_report import load_report_definitions
-from UpdateReports import update_report_definitions
+from update_reports import update_report_definitions
 
 
 #%% GUI Formatting
@@ -169,7 +169,7 @@ def file_selection_window(header='Select a File:',
     return None
 
 
-def select_plan_file(default_directories: ET.Element)->Path:
+def select_plan_file(config: ET.Element)->Path:
     '''
     Select a Plan DVH file to open.
     Arguments:
@@ -178,8 +178,8 @@ def select_plan_file(default_directories: ET.Element)->Path:
         Path -- The path to the selected file, or None if a file is not
         selected.
     '''
-    plan_name = default_directories.findtext('DVH_File')
-    plan_dir = default_directories.findtext('DVH')
+    plan_name = config.findtext(r'.//DVH_File')
+    plan_dir = config.findtext(r'.//DVH')
     # Set the initial directory and file
     if plan_dir is None:
         starting_dir = Path.cwd()
@@ -304,8 +304,26 @@ def path_selection_window(default_directories: ET.Element,
     return window
 
 
-def change_default_locations(default_directories: ET.Element,
-                             locations: List[DfltPath])->ET.Element:
+def change_default_locations(default_directories: ET.Element)->ET.Element:
+    locations = [
+        DfltPath('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
+        DfltPath('DVH_File', 'Load File', 'dvh_file',
+                 'Default Plan DVH file.', (
+                     ('DVH Files', '*.dvh'),
+                     ('All Files', '*.*'),
+                     ("Text Files", "*.txt")
+                     )),
+        DfltPath('ReportPickleFile', 'Load File', 'report_file',
+                 'Report Definition file.', (
+                     ('Pickle Files', '*.pkl'),
+                     ('All Files', '*.*')
+                     )),
+        DfltPath('Save', 'Directory', 'Save File',
+                 'Location to save Completed Reports', (
+                     ('Excel Files', '*.xlsx'),
+                     ('All Files', '*.*')
+                     ))
+        ]
     window = path_selection_window(default_directories, locations)
     done=False
     while not done:
@@ -318,7 +336,10 @@ def change_default_locations(default_directories: ET.Element,
         elif event in 'Ok':
             done = True
             for path_param in locations:
-                path_element = default_directories.find(path_param.xml_element)
+                #FIXME change "path_param.xml_element" to an XPath search from the top:
+                # // Selects all subelements, on all levels beneath the current element. 
+                # For example, .//egg selects all egg elements in the entire tree.
+                path_element = default_directories.find(path_param.xml_element) 
                 new_default = values[path_param.widget_name]
                 path_element.text = new_default
     window.close()
@@ -368,24 +389,7 @@ def main():
     #    <Save>.\Output</Save>
     #  </DefaultDirectories>
 
-    locations = [
-        DfltPath('DVH', 'Directory', 'dvh_dir', 'DVH File Location'),
-        DfltPath('DVH_File', 'Load File', 'dvh_file', 'Default Plan DVH file.', (
-            ('DVH Files', '*.dvh'),
-            ('All Files', '*.*'),
-            ("Text Files", "*.txt")
-            )),
-        DfltPath('ReportPickleFile', 'Load File', 'report_file',
-                                'Report Definition file.', (
-                                    ('Pickle Files', '*.pkl'),
-                                    ('All Files', '*.*')
-                                    )),
-        DfltPath('Save', 'Directory', 'Save File',
-                                'Location to save Completed Reports', (
-                                    ('Excel Files', '*.xlsx'),
-                                    ('All Files', '*.*')
-                                    ))
-        ]
+
     #header='Select a Folder Containing Plan DVH files'
     #header='Select the directory to save the Plan Evaluation Report'
     #header='Select the directory containing the Report definitions'
@@ -394,9 +398,9 @@ def main():
     # %% Create Test Window
     # These imports are here to avoid circular imports and are only used for
     # testing.
-    from PlanEvaluation import create_plan_header, update_plan_header
-    from PlanEvaluation import make_report_selection_list, create_report_header
-    from PlanEvaluation import make_actions_column, update_report_header
+    from main_window import create_plan_header, update_plan_header
+    from main_window import make_report_selection_list, create_report_header
+    from main_window import make_actions_column, update_report_header
     from plan_data import dvh_info
     test_layout = [
         [main_menu()],
@@ -424,14 +428,13 @@ def main():
             break
         elif event in 'Set Default Locations':
             print('change_default_locations(config)')
-            new_defaults = change_default_locations(default_directories,
-                                                    locations)
+            new_defaults = change_default_locations(default_directories)
             if new_defaults is not None:
                 default_directories = new_defaults
                 save_config(config, base_path, test_config_file)
         elif event in 'Select Plan DVH File':
             print('select_plan_file(config)')
-            plan_file = select_plan_file(default_directories)
+            plan_file = select_plan_file(config)
             try:
                 plan_info = dvh_info(plan_file)
             except NotDVH:
