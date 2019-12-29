@@ -130,24 +130,20 @@ class MenuDict(dict):
 class MenuChoices():
     '''Add options to modify the right-click menu.
     '''
-    @abstractproperty
-    def TKRightClickMenu(self):
-        return None
+    #@abstractproperty
+    #def TKRightClickMenu(self):
+    #    return None
 
-    @abstractproperty
-    def RightClickMenu(self):
-        return None
+    #@abstractproperty
+    #def RightClickMenu(self):
+    #    return None
 
-    def __init__(self, *args, menu_dict: MenuDict = None, **kwargs):
+    def set_menu(self, menu_dict: MenuDict = None):
         '''Add a menu selection dictionary to the element.
         Arguments:
             menu_choices {MenuDict, None} -- A dictionary with the values as
                 Menu definition lists and the key, the reference to the menu.
         '''
-        # super().__init__(*args, **kwargs) allows this class to be embedded
-        #    in an inheritance chain. In the current situation it serves no
-        #    function.
-        super().__init__(*args, **kwargs)
         if menu_dict is None:
             self.menu_choices = MenuDict(default=self.RightClickMenu)
         else:
@@ -155,7 +151,7 @@ class MenuChoices():
         # Currently forces the default to be the menu definition passed to
         #     self.RightClickMenu.  Comment it out to allow a default defined
         #     in menu_dict
-        self.menu_choices.default_menu = self.RightClickMenu
+        #self.menu_choices.default_menu = self.RightClickMenu
 
     def clear_menu(self):
         '''Remove all menu items from a right-click menu.
@@ -263,7 +259,7 @@ class ElementConfig(dict):
         self.load_settings(settings)
 
     def add_setting(self, setting_name, *setting: Settings):
-        self[setting_name] = self.setting_type(*setting)
+        self[setting_name] = self.setting_type(*tuple(*setting))
 
     def load_settings(self, settings: SettingsList):
         for setting_group in settings:

@@ -159,7 +159,7 @@ def create_report_header()->sg.Frame:
     report_title = sg.Text(text='',
                            key='report_title',
                            font=('Calibri', 14, 'bold'),
-                           size=(12,1),
+                           size=(30,1),
                            pad=((0, 0), (4, 5)),
                            justification='center',
                            visible=True)
@@ -201,6 +201,7 @@ def update_report_header(window: sg.Window, report: Report):
     window['report_desc'].update(value=wrapped_desc)
     window['template_file'].update(value=wrapped_file)
     window['template_sheet'].update(value=wrapped_sheet)
+    window.refresh()
 
 
 #%% Actions
@@ -226,6 +227,7 @@ def make_actions_column(report_definitions: Dict[str, Report]):
     report_list = make_report_selection_list(report_definitions)
     report_selector_box = sg.Combo(report_list,
                                     key='report_selector',
+                                    default_value = 'Select a Report',
                                     pad=((10,10), (20,10)), size=(15, 3),
                                     enable_events=True,
                                     readonly=True)
@@ -296,7 +298,7 @@ def action_settings_config():
                         setting_type=ButtonSettings,
                         settings = [
                             ('Not Matched', ButtonSettings(
-                                text='',
+                                text='Select Plan and Report',
                                 button_color=('red', 'white'),
                                 disabled=True)),
                             ('Matched', ButtonSettings(
@@ -334,7 +336,8 @@ def action_settings_config():
                     'Invalid Plan': [
                         ('load_plan', 'No Plan')],
                     'Plan and Report Ready': [
-                        ('match_structures', 'Selected'),
+                        ('load_plan', 'Loaded'),
+                        ('match_structures', 'Both Selected'),
                         ('generate_report', 'Not Matched')],
                     'Matching': [
                         ('match_structures', 'Matching'),
@@ -432,7 +435,7 @@ def main():
             action_settings.set_status(window, 'Plan Loading')
             active_plan = load_dvh(selected_plan_desc, **plan_parameters)
             if active_plan:
-                if report:
+                if report is not None:
                     action_settings.set_status(window, 'Plan and Report Ready')
                 else:
                     action_settings.set_status(window, 'Plan Loaded')

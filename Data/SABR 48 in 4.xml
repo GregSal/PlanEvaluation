@@ -680,6 +680,10 @@ Last modified Sept 12 2019-->
           <Type>Plan Property</Type>
           <Name>Dosimetrist:</Name>
         </PlanReference>
+        <Target>
+          <CellAddress>C59</CellAddress>
+          <CellFormat>General</CellFormat>
+        </Target>
       </ReportItem>
       <ReportItem name="Physicist">
         <Label>Physicist:</Label>
@@ -687,6 +691,10 @@ Last modified Sept 12 2019-->
           <Type>Plan Property</Type>
           <Name>Physicist:</Name>
         </PlanReference>
+        <Target>
+          <CellAddress>G59</CellAddress>
+          <CellFormat>General</CellFormat>
+        </Target>
       </ReportItem>
       <ReportItem name="RO">
         <Label>Radiation Oncologist:</Label>
@@ -694,6 +702,10 @@ Last modified Sept 12 2019-->
           <Type>Plan Property</Type>
           <Name>Radiation Oncologist:</Name>
         </PlanReference>
+        <Target>
+          <CellAddress>K59</CellAddress>
+          <CellFormat>General</CellFormat>
+        </Target>
       </ReportItem>
     </ReportItemList>
   </Report>

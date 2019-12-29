@@ -567,18 +567,30 @@ Last modified Sept 12 2019-->
         <PlanReference>
           <Type>Plan Property</Type>
         </PlanReference>
+        <Target>
+          <CellAddress>C50</CellAddress>
+          <CellFormat>General</CellFormat>
+        </Target>
       </ReportItem>
       <ReportItem name="Physicist">
         <Label>Physicist:</Label>
         <PlanReference>
           <Type>Plan Property</Type>
         </PlanReference>
+.        <Target>
+          <CellAddress>G50</CellAddress>
+          <CellFormat>General</CellFormat>
+        </Target>
       </ReportItem>
       <ReportItem name="RO">
         <Label>Radiation Oncologist:</Label>
         <PlanReference>
           <Type>Plan Property</Type>
         </PlanReference>
+        <Target>
+          <CellAddress>K50</CellAddress>
+          <CellFormat>General</CellFormat>
+        </Target>
       </ReportItem>
     </ReportItemList>
   </Report>

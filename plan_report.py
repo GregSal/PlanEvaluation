@@ -839,10 +839,10 @@ class Report():
         if not new_ref.match_status:
             reference['plan_element'] = None
             updated = True
-        elif new_ref.match_status is 'Direct Entry':
+        elif new_ref.match_status in 'Direct Entry':
             reference['plan_element'] = new_ref.plan_Item
             updated = True
-        elif new_ref.match_status is 'Manual':
+        elif new_ref.match_status in 'Manual':
             matched_element = plan.get_data_element(new_ref.reference_type,
                                                     new_ref.plan_Item)
             reference['plan_element'] = matched_element
@@ -860,8 +860,11 @@ class Report():
         for element in self.report_elements.values():
             reference_name = element.reference
             reference = self.references.get(reference_name)
-            if reference:
-                element.get_value(reference, conversion_parameters)
+            if reference and reference['match_method']:
+                if 'Direct Entry' in reference['match_method']:
+                    element.value = reference['plan_element']
+                else:
+                    element.get_value(reference, conversion_parameters)
         return None
 
     def build(self)->xw.Sheet:
@@ -894,15 +897,20 @@ class Report():
 
         # Add elements to the worksheet
         for element in self.report_elements.values():
-            element.add_to_report(spreadsheet)
-        #workbook.save(str(self.save_file))
-        return workbook
+            if element.target is not None:
+                element.add_to_report(spreadsheet)
+        return spreadsheet
 
-    def save(self, file_name, sheet_name):
+    @staticmethod
+    def save(spreadsheet: xw.Sheet, file_name: Path = None, close=True):
         '''Save the report.
         '''
-        # TODO Add save method
-        pass
+        exel_app = spreadsheet.api
+        workbook = spreadsheet.book
+        workbook.save(str(file_name))
+        if close:
+            workbook.close()
+            exel_app.quit()
 
     def table_output(self, add_items=True, flat_table=False,
                      add_reference=True, add_target=True)->Dict[str, Any]:

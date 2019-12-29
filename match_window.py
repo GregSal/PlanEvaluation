@@ -163,14 +163,13 @@ def match_window(icons: IconPaths, plan_elements: PlanItemLookup,
     treedata = build_tree_data(reference_data, icons)
     # Plan Items for selecting as right-click menus
     plan_menu_dict = menu_options(plan_elements)
+    match_tree = TreeRtClick(key='Match_tree',
+                             right_click_menu=plan_menu_dict.default_menu,
+                             data=treedata, **tree_config)
+    match_tree.set_menu(plan_menu_dict)
     # Build window
     layout = [[sg.Text('Report Item Matching')],
-              [TreeRtClick(
-                  key='Match_tree',
-                  right_click_menu=plan_menu_dict.default_menu,
-                  menu_dict=plan_menu_dict,
-                  data=treedata,
-                  **tree_config)],
+              [match_tree],
               [sg.Button('Approve'), sg.Button('Cancel')]
              ]
     window = sg.Window('Match Items', layout=layout,

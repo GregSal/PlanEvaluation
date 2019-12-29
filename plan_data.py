@@ -248,6 +248,7 @@ class PlanDataItem():
             pass # not yet implemented
         initial_value = self.element_value
         initial_unit = self.unit
+        # FIXME if initial_unit and  conversion['target_units'] don't convert units
         if initial_value and initial_unit:
             final_value = convert_units(initial_value, initial_unit,
                                         **conversion)

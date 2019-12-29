@@ -112,7 +112,9 @@ def run_main_window(base_path, icons, config, config_file,
                     sg.PopupError(f'{plan_file.name} is not a valid DVH file')
                 else:
                     update_plan_header(window, plan_info)
+            # FIXME Account for cancel button
             elif event in 'Load Report Definition File':
+                default_directories = config.find(r'./DefaultDirectories')
                 report_file = select_report_file(default_directories)
                 report_dict = load_report_definitions(report_file,
                                                       report_parameters)
@@ -126,6 +128,7 @@ def run_main_window(base_path, icons, config, config_file,
                 window['report_selector'].update(values=report_list)
                 window.refresh()
             elif event in 'Set Save File Name':
+                default_directories = config.find(r'./DefaultDirectories')
                 save_file = select_save_file(default_directories)
                 if save_file is not None:
                     if report:
