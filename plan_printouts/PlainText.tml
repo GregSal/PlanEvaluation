@@ -13,6 +13,7 @@ If=$PatientComment
   Text=PatientComment; $PatientComment
 EndIf
 Text=PatientSex; $PatientSex
+
 Text=PrimaryOncologist; $PrimaryOncologist
 Text=CurrentDateShort; $CurrentDateShort
 Text=ApplicationName; $ApplicationName
@@ -32,23 +33,19 @@ If=$TreatmentApprovalDate
 EndIf
 If=$PlanSumId
   Text=PlanSumId; $PlanSumId
-EndIf
-If=$PlanSumName
   Text=PlanSumName; $PlanSumName
-EndIf
-If=$PlanSumCourseId
   Text=PlanSumCourseId; $PlanSumCourseId
 EndIf
-#Loop=SumPlans
-#  Text=PlanIdOfSum; $PlanIdOfSum
-#  Text=PlanNameOfSum; $PlanNameOfSum
-#  Loop=SumFractions
-#    Text=$FractionationIdOfSum
-#    Text=$TotalDose_ForSum ($DosePerFraction_ForSum  / fraction)
-#    Text=$NbrOfFrac_ForSum
-#    Text=TotalDoseAtPrimary_ForSum; $TotalDoseAtPrimary_ForSum
-#  EndLoop
-#EndLoop
+Loop=SumPlans
+  Text=PlanIdOfSum; $PlanIdOfSum
+  Text=PlanNameOfSum; $PlanNameOfSum
+  Loop=SumFractions
+    Text=$FractionationIdOfSum
+    Text=$TotalDose_ForSum ($DosePerFraction_ForSum  / fraction)
+    Text=$NbrOfFrac_ForSum
+    Text=TotalDoseAtPrimary_ForSum; $TotalDoseAtPrimary_ForSum
+  EndLoop
+EndLoop
 Text=CourseId; $CourseId
 Text=CourseIntent; $CourseIntent
 If=$CourseComment

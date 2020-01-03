@@ -12,6 +12,7 @@ from typing import TypeVar, Dict, List, Tuple, TextIO, Any
 import pandas as pd
 import numpy as np
 import utilities_path
+import PySimpleGUI as sg
 
 from spreadsheet_tools import create_output_file, save_data_to_sheet, get_data_sheet
 from text_utilities import read_file_header, next_line, EOF
@@ -153,7 +154,9 @@ def process_field_data(field_data: pd.DataFrame)->pd.DataFrame:
             'FieldCalculationWarning': 'Warning'
             }
     field_data = field_data.rename(columns=field_data_columns)
-    field_data = field_data[(field_data_columns.values())]
+    column_select = tuple(name for name in field_data_columns.values() 
+                          if name in field_data.columns)
+    field_data = field_data.loc[:, column_select]
     field_data['Field Side'] = field_data.loc[:,'Field Name'].str.split(expand=True)[0]
     return field_data
 
@@ -173,13 +176,16 @@ def process_point_data(point_data: pd.DataFrame,
             'RefPointTotalDose': 'Total Dose'
             }
     point_data = point_data.rename(columns=point_data_columns)
-    point_data = point_data[(point_data_columns.values())]
+    column_select = tuple(name for name in point_data_columns.values() 
+                          if name in point_data.columns)
+    point_data = point_data.loc[:, column_select]
     point_total = point_data.Field.isin(['Total'])
-    point_data.loc[point_total,'Dose'] = point_data.loc[point_total,'Total Dose']
-    point_location = point_data.loc[:, ('Point', 'X', 'Y', 'Z')].dropna()
-    point_data.drop(['Total Dose', 'X', 'Y', 'Z'], axis=1, inplace=True)
-    point_data['Side'] = point_data.loc[:,'Point'].str.split(expand=True)[0]
-    point_data.loc[point_data.Side.str.contains('d='),'Side'] = 'Center'
+    if any(point_total):
+        point_data.loc[point_total,'Dose'] = point_data.loc[point_total,'Total Dose']
+        point_location = point_data.loc[:, ('Point', 'X', 'Y', 'Z')].dropna()
+        point_data.drop(['Total Dose', 'X', 'Y', 'Z'], axis=1, inplace=True)
+    else:
+        point_location = pd.DataFrame()
     point_data.loc[point_data['Efective Depth'].isin(['-']),'Efective Depth'] = 0
     point_data.loc[point_data.Depth.isin(['-']),'Depth'] = 0
     point_data.loc[point_data.SSD.isin(['-']),'SSD'] = 100
@@ -245,7 +251,7 @@ def add_plan_variables(plan_dict, data):
     return data
 
 def save_printout_file(plan_dict: Dict[str, Any],
-                       field_data, point_data, point_location, dose_difference,
+                       field_data, point_data, point_location,
                        save_file_path: Path):
     '''Save the resulting data to a spreadsheet.
     '''
@@ -256,22 +262,58 @@ def save_printout_file(plan_dict: Dict[str, Any],
     save_data_to_sheet(point_location, workbook, 'Point Location')
     save_data_to_sheet(dose_difference, workbook, 'Dose Difference')
 
-# %%
+# %%  Select File
+def get_printout_file(starting_path):
+    form_rows = [[sg.Text('Select Printout File to Load')],
+                 [sg.InputText(key='printout_file'),
+                  sg.FileBrowse(initial_folder=str(starting_path))],
+                 [sg.Submit(), sg.Cancel()]]
+
+    window = sg.Window('File Selection', form_rows)
+    button, values = window.read()
+    window.close()        
+    printout_file_name = values['printout_file']
+    if any((button != 'Submit', printout_file_name == '')):
+        sg.popup_error('Operation cancelled')
+        printout_file_path = None
+    else:
+        printout_file_path = Path(printout_file_name)
+    return printout_file_path
+
+def get_save_file(starting_path):
+    form_rows = [[sg.Text('Save Printout File As:')],
+                 [sg.InputText(key='printout_file'),
+                  sg.FileSaveAs(initial_folder=str(starting_path))],
+                 [sg.Submit(), sg.Cancel()]]
+
+    window = sg.Window('File Save', form_rows)
+    button, values = window.read()
+    window.close()
+    printout_file_name = values['printout_file']
+    if any((button != 'Submit', printout_file_name == '')):
+        sg.popup_error('Operation cancelled')
+        save_file_path = None
+    else:
+        save_file_path = Path(printout_file_name)
+    return save_file_path
+
 def main():
     '''Basic test code
     '''
     base_path = Path.cwd()
     data_path = base_path / r'..\PlanEvaluation\Test Data\Printout Data'
-    printout_file_path = data_path / 'AG30N6XF20.txt'
+    #printout_file_path = data_path / 'AG30N6XF20.txt'
     save_file_path = data_path / 'Printout_data_tables.xlsx'
-
+    
+    printout_file_path = get_printout_file(data_path)
     plan_dict, field_data, point_data = read_printout_file(printout_file_path)
     field_data = process_field_data(field_data)
     (point_data, point_location) = process_point_data(point_data, field_data)
-    dose_difference = point_dose_difference(point_data)
-    dose_difference = add_plan_variables(plan_dict, dose_difference)
+    #dose_difference = point_dose_difference(point_data)
+    #dose_difference = add_plan_variables(plan_dict, dose_difference)
 
-    save_printout_file(plan_dict, field_data, point_data, point_location, dose_difference, save_file_path)
+    save_file_path = get_save_file(data_path)
+    save_printout_file(plan_dict, field_data, point_data, point_location, save_file_path)
 
 
 if __name__ == '__main__':
