@@ -18,6 +18,9 @@ import logging
 import numpy as np
 from scipy.interpolate import interp1d
 
+from dvh_config import load_default_laterality, load_laterality_table
+from dvh_config import load_aliases, get_laterality_exceptions
+
 
 Value = Union[int, float, str]
 ConversionParameters = Dict[str, Union[str, float, None]]
@@ -33,26 +36,8 @@ DvhIndex = Tuple[int, int, str]
 #x_column, y_column, desired_x_unit
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 class NotDVH(Exception): pass
-
-#%% Laterality Methods
-def get_laterality_exceptions(region_code_root: ET.Element)->List[str]:
-    '''Load list of body region codes that appear to have a laterality,
-        but do not.
-    Arguments:
-        region_code_root {ET.Element} -- An XML element containing a series of
-            body region codes that end in "L", "R" or "B", where the letter
-            does not indicate laterality. e.e "ORAL".
-    Returns:
-        List[str] -- a list of 4-letter body region codes which should not be
-            treated as indicating laterality in the plan.
-    '''
-    region_code_list = list()
-    for element in region_code_root.findall('BodyRegion'):
-        region_code = element.attrib.get('Name')
-        region_code_list.append(region_code)
-    return region_code_list
-
 
 #%% Units Methods
 def get_default_units(config: ET.Element)->Dict[str, str]:
@@ -702,6 +687,7 @@ class DvhFile():
             if ':' in text_line:
                 element = parse_element(text_line)
                 element_set[element.name] = element
+                LOGGER.debug(f'Found Element:\t {element.name}')
         return element_set
 
     def load_dvh(self)->DVH:
@@ -766,6 +752,7 @@ class DvhFile():
         '''
         structure_data = self.read_elements()
         self.readline()  # Skip blank line
+        LOGGER.info(f'Loading DVH for:\t {name}')
         dvh_data = self.load_dvh()
         return Structure(name, structure_data, dvh=dvh_data)
 
@@ -792,6 +779,7 @@ class DvhFile():
                 elements and structures read in from the .dvh file.
         '''
         # Plan Parameters occur before structure data
+        LOGGER.debug(f'Reading Plan Parameters')
         plan_parameters = self.read_elements(break_cond='Structure')
         plan_structures = self.load_structures()
         return (plan_parameters, plan_structures)
@@ -983,11 +971,12 @@ class Plan():
         self.name = str(name)  # Question Change to Name obtained from file?
         # initialize class structure
         self.default_units = default_units
+        LOGGER.debug('Initializing plan')
         self.data_elements = {'Plan Property': dict(),
                                 'Structure': dict(),
                                 'Reference Point': dict()}
         self.dvh_data_file = Path(dvh_data.file_name)
-
+        LOGGER.debug(f'Reading file {dvh_data.file_name.name}')
         # Load the dvh data
         (plan_parameters, plan_structures) = dvh_data.load_data()
         self.data_elements['Plan Property'].update(plan_parameters)
@@ -1045,6 +1034,8 @@ class Plan():
         plan_name = self.get_data_element(
             data_type='Plan Property',
             element_name='Plan')
+        if not plan_name:
+            return None
         body_region = plan_name.element_value[0:3]
         if body_region in lat_exceptions:
             return None
@@ -1062,7 +1053,7 @@ class Plan():
                                         element_name='Prescribed dose')
         dose_value = dose.element_value
         desired_units = self.default_units['DoseUnit']
-        if dose.unit != desired_units:
+        if (dose.unit is not None) & (dose.unit != desired_units):
             dose_value = convert_units(dose_value, dose.unit,
                                         desired_units)
         return PlanDataItem(name='prescription_dose',
@@ -1169,3 +1160,97 @@ def find_plan_files(config: ET.Element,
     else:
         plan_dict = None
     return plan_dict
+
+
+#%% Plan loading Methods
+def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhFile:
+    '''Identify a dvh plan file.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        dvh_loc {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+            the name of a .dvh file in the default DVH directory, or a
+            directory containing .dvh files. If not given,
+            the default DVH directory in config will be used.
+    Returns:
+        DvhFile -- The requested or the default .dvh file.
+    '''
+    default_directories = config.find(r'./DefaultDirectories')
+    if isinstance(dvh_loc, DvhFile):
+        dvh_data_source = dvh_loc
+    elif isinstance(dvh_loc, Path):
+        if dvh_loc.is_file():
+            dvh_data_source = DvhFile(dvh_loc)
+        elif dvh_loc.is_dir():
+            dvh_file_name = Path(default_directories.findtext('DVH_File'))
+            dvh_file = dvh_loc / dvh_file_name
+            dvh_data_source = DvhFile(dvh_file)
+        else:
+            return None
+    elif isinstance(dvh_loc, str):
+        dvh_dir = Path(default_directories.findtext('DVH'))
+        dvh_file = dvh_path / dvh_loc
+        dvh_data_source = DvhFile(dvh_file)
+    else:
+        dvh_dir = Path(default_directories.findtext('DVH'))
+        dvh_file_name = Path(default_directories.findtext('DVH_File'))
+        dvh_file = dvh_dir / dvh_file_name
+        dvh_data_source = DvhFile(dvh_file)
+    return dvh_data_source
+
+
+def load_plan(config, plan_path: DvhSource, name='Plan', type='DVH')->Plan:
+    '''Load plan data from the specified file or folder.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        dvh_loc {DvhSource} -- A DvhFile object, the path, to a .dvh file,
+            the name of a .dvh file in the default DVH directory, or a
+            directory containing .dvh files. If not given,
+            the default DVH directory in config will be used.
+    Returns:
+        Plan -- The requested or the default plan.
+    '''
+    default_units = get_default_units(config)
+    code_exceptions_def = config.find('LateralityCodeExceptions')
+    laterality_exceptions = get_laterality_exceptions(code_exceptions_def)
+    if type in 'DVH':
+        dvh_file = get_dvh(config, plan_path)
+        plan = Plan(default_units, laterality_exceptions, dvh_file, name)
+    else:
+        plan = None
+    return plan
+
+
+def load_dvh(plan_desc: PlanDescription, **plan_parameters)->Plan:
+    '''Load plan data from the specified file or folder.
+    Arguments:
+        config {ET.Element} -- An XML element containing default paths.
+        plan_desc {PlanDescription} --Summary info for a Plan file.
+            plan_file {Path} -- The full path to the plan file.
+            file_type {str} -- The type of plan file. Currently only "DVH".
+            patient_name {str} -- The full name of the patient.
+            patient_id {str} -- The ID assigned to the patient (CR#).
+            plan_name {str} -- The plan ID, or name.
+            course {optional, str} -- The course ID.
+            dose {optional, float} -- The prescribed dose in cGy.
+            fractions {optional, int} -- The number of fractions.
+            export_date {optional, str} -- The date, as a string, when the plan
+                file was exported.
+        default_units {Dict[str, str]} -- A dictionary listing unit types
+            and the corresponding default unit. Contains one or more of
+            the following:
+                DoseUnit: One of ('Gy', 'cGy', '%')
+                VolumeUnit: One of ('cc', '%')
+                DistanceUnit: ('mm', 'cm')
+        laterality_exceptions {List[str]} -- A list of 4-letter body region
+            codes which should not be treated as indicating laterality in
+            the plan.
+        dvh_data {DvhFile} -- A DvhFile object containing dvh plan data.
+            (default: {None})
+        name {str} -- The name of the plan. Default is 'Plan'
+    Returns:
+        Plan -- The requested or the default plan.
+    '''
+    plan_file = plan_desc.plan_file
+    dvh_file = DvhFile(plan_file)
+    plan = Plan(dvh_data=dvh_file, **plan_parameters)
+    return plan
