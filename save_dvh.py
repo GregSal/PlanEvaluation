@@ -4,16 +4,16 @@
 
 #%% imports etc.
 from typing import Any, Dict, Tuple, List
-from copy import deepcopy
-from operator import attrgetter
 from pathlib import Path
-import xml.etree.ElementTree as ET
-from pickle import dump, load
 import pandas as pd
 from dvh_config import load_config
-from plan_data import load_plan
+from plan_data import load_plan, convert_units
 import PySimpleGUI as sg
+import xlwings as xw
 
+import logging
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 # %%  Select File
 def get_dvh_file(starting_path):
@@ -76,33 +76,38 @@ def save_data(save_file_path, sheet_name, dataset):
 
 #%% Make Tables
 def get_dvh(plan, prescribed_dose=1.0):
-    for struc in plan.data_elements['Structure']:
+    for struc in plan.data_elements['Structure'].values():
+        name = struc.name
+        LOGGER.debug(f'Formatting DVH for structure:\t{struc.name}')
         data = struc.dose_data
         x_idx, y_idx, x_cnv = data.select_columns('cGy','Volume', 'cc')
         x_ini = data.dvh_curve[x_idx]
         x_unit = data.dvh_columns[x_idx]['Unit']
         if x_unit != 'cGy':
-            dose = prescribed_dose
             x_cgy = [convert_units(ds, 'x_unit', 'cGy', dose=prescribed_dose)
                      for ds in x_ini]
+        else:
+            x_cgy = list(x_ini)
         y_ini = data.dvh_curve[y_idx]
         y_unit = data.dvh_columns[y_idx]['Unit']
         if y_unit != 'cc':
             str_vol = struc.structure_properties['Volume'].element_value
-            y_cc = [convert_units(vl, 'y_unit', 'cc', volume=str_vol)
+            if not str_vol:
+                continue
+            y_cc = [convert_units(vl, y_unit, 'cc', volume=str_vol)
                     for vl in y_ini]
-        x_col = '_'.join(data.dvh_columns[x_idx].values())
-        y_col = '_'.join(data.dvh_columns[y_idx].values())
-        structure = pd.DataFrame({x_col: x_cgy, y_col: y_cc})
-        structure.set_index(x_col)
+        structure = pd.DataFrame({'Dose_cGy': x_cgy, name: y_cc})
+        structure.set_index('Dose_cGy', inplace=True)
         yield structure
 
 
 def get_structures(plan):
     structure_dict = dict()
-    for struc in plan.data_elements['Structure']:
-        name = struc.structure_properties['name']
-        structure_dict[name] = struc.structure_properties
+    for struc in plan.data_elements['Structure'].values():
+        name = struc.name
+        struc_prop = {ky: vl.element_value
+                      for ky,vl in struc.structure_properties.items()}
+        structure_dict[name] = struc_prop
     structure_params = pd.DataFrame(structure_dict)
     return structure_params
 
@@ -119,7 +124,7 @@ def main():
     '''
     # Load Config File Data
     base_path = Path.cwd()
-    dvh_path = base_path / r'Test Data\Other Sites\Head and Neck DVH\HN QA1.dvh'
+    dvh_path = base_path / r'Test Data\SABR_Plan_Report_Testing\DVH Data Feb 14 2018.dvh'
     config_file = 'SaveDVHConfig.xml'
     config = load_config(base_path, config_file)
 
@@ -127,7 +132,7 @@ def main():
     structure_table, dvh_table = make_tables(plan)
 
     save_file_name='structure_data.xlsx'
-    save_file = dvh_path / file_name
+    save_file = dvh_path / save_file_name
     save_file_path = get_save_file(save_file)
     save_data(save_file_path, 'Structures', structure_table)
     save_data(save_file_path, 'DVH', dvh_table)

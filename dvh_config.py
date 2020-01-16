@@ -1,12 +1,10 @@
 '''Report on Plan parameters based on defined Criteria'''
 
 #%% imports etc.
-from typing import Optional, Union, Any, Dict, Tuple, List, Set
-from typing import NamedTuple
+from typing import Optional, Union, Dict, Tuple, List, Set
 from pathlib import Path
 import logging
 import xml.etree.ElementTree as ET
-import xlwings as xw
 
 
 Alias = Union[List[Tuple[str, Optional[int]]],

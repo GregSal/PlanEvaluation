@@ -1155,7 +1155,7 @@ def find_plan_files(config: ET.Element,
     if plan_list:
         plan_dict = OrderedDict()
         plan_set = sorted(plan_list, key=attrgetter(*sort_list))
-        for plan in plan_list:
+        for plan in plan_set:
             plan_dict[plan.plan_str()] = plan
     else:
         plan_dict = None
@@ -1188,7 +1188,7 @@ def get_dvh(config: ET.Element, dvh_loc: DvhSource = None)->DvhFile:
             return None
     elif isinstance(dvh_loc, str):
         dvh_dir = Path(default_directories.findtext('DVH'))
-        dvh_file = dvh_path / dvh_loc
+        dvh_file = dvh_dir / dvh_loc
         dvh_data_source = DvhFile(dvh_file)
     else:
         dvh_dir = Path(default_directories.findtext('DVH'))
