@@ -1,10 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Created with Liquid Studio 2019 (https://www.liquid-technologies.com) -->
-<!--Last Modified Sept 12 2019-->
 <PlanEvaluationConfig>
   <DefaultDirectories>
     <DVH>.\DVH Files</DVH>
-    <DVH_File>plan.dvh</DVH_File>
+    <DVH_File />
     <ReportDefinitions>
       <Directory>.\Data</Directory>
     </ReportDefinitions>
