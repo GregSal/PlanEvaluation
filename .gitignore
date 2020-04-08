@@ -7,6 +7,8 @@ tmp
 /misc
 /sabr_plan_report/compile.bat
 /sabr_plan_report/compile.ps1
+dist/
+build/
 ## Personal Ignores
 CodeGraphData
 .mypy*

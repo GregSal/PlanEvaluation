@@ -872,19 +872,15 @@ class Report():
         Returns:
             xw.Sheet -- The excel worksheet containing the completed report.
         '''
-        try:
-            open_worksheets = [bk.fullname for bk in xw.books]
-        except AttributeError:
-            open_worksheets = None
         # Use save_file workbook if open
-        if open_worksheets and (str(self.save_file) in open_worksheets):
-            workbook = xw.Book(str(self.save_file))
-        # else use template file if defined
-        elif self.template_file:
-            workbook = xw.Book(str(self.template_file))
-        # else use new blank workbook
-        else:
-            workbook = xw.Book('Plan Report')
+        try:
+            workbook = xw.Book(self.save_file)
+        except FileNotFoundError:
+            if self.template_file:
+                workbook = xw.Book(str(self.template_file))
+            # else use new blank workbook
+            else:
+                workbook = xw.Book('Plan Report')
         workbook.activate(steal_focus=True)
         # Ensure that not overwriting template file
         workbook.save(str(self.save_file))
