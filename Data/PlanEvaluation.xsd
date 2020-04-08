@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema attributeFormDefault="unqualified"
+           elementFormDefault="qualified"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="ReportDefinitions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Report"
+                    maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Name"
+                          type="xs:string" />
+              <xs:element name="Description"
+                          type="xs:string"
+                          minOccurs="0" />
+              <xs:element ref="FilePaths" />
+              <xs:element name="ReportItemList">
+                <xs:complexType>
+                  <xs:choice>
+                    <xs:element name="ReportItem"
+                                maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="Label"
+                                      type="xs:string"
+                                      minOccurs="0" />
+                          <xs:element name="Constructor"
+                                      type="xs:string"
+                                      minOccurs="0" />
+                          <xs:element ref="PlanReference" />
+                          <xs:element ref="Target"
+                                      minOccurs="0" />
+                        </xs:sequence>
+                        <xs:attribute name="name"
+                                      type="xs:string"
+                                      use="required" />
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element ref="PlanReference"
+                                minOccurs="0"
+                                maxOccurs="unbounded" />
+                  </xs:choice>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="FilePaths">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Template">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="File"
+                          type="xs:string" />
+              <xs:element name="WorkSheet"
+                          type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Save"
+                    minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Path"
+                          type="xs:string"
+                          minOccurs="0" />
+              <xs:element name="File"
+                          type="xs:string"
+                          minOccurs="0" />
+              <xs:element name="WorkSheet"
+                          type="xs:string"
+                          minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Target">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Unit"
+                    type="xs:string"
+                    minOccurs="0" />
+        <xs:element name="CellAddress"
+                    type="xs:string" />
+        <xs:element name="CellFormat"
+                    type="xs:string"
+                    minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="PlanReference">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="Type"
+                      type="xs:string" />
+          <xs:element name="Name"
+                      type="xs:string" />
+          <xs:element name="Laterality"
+                      type="xs:string"
+                      minOccurs="0" />
+          <xs:element name="Aliases"
+                      minOccurs="0">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Alias"
+                            maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:simpleContent>
+                      <xs:extension base="xs:string">
+                        <xs:attribute name="Size"
+                                      type="xs:unsignedByte"
+                                      use="optional" />
+                      </xs:extension>
+                    </xs:simpleContent>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+              <xs:attribute name="Join"
+                            type="xs:string"
+                            use="optional" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

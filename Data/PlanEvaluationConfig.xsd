@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid Studio 2019 (https://www.liquid-technologies.com) -->
+<xs:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="PlanEvaluationConfig">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" name="DefaultDirectories">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="DVH" type="xs:string" />
+              <xs:element minOccurs="0" name="DVH_File" />
+              <xs:element minOccurs="0" name="ReportDefinitions">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="Directory" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" name="ReportTemplates" type="xs:string" />
+              <xs:element minOccurs="0" name="ReportPickleFile" type="xs:string" />
+              <xs:element minOccurs="0" name="Save" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="LateralityCodeExceptions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="BodyRegion">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="Name" type="xs:string" use="optional" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="PlanDefaults">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="DoseUnit" type="xs:string" />
+              <xs:element minOccurs="0" name="VolumeUnit" type="xs:string" />
+              <xs:element minOccurs="0" name="DistanceUnit" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="LateralityTable">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="LateralityIndicator">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="PlanLaterality" type="xs:string" use="optional" />
+                      <xs:attribute name="ReportItemLaterality" type="xs:string" use="optional" />
+                      <xs:attribute name="Size" type="xs:unsignedByte" use="optional" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="DefaultLateralityPatterns">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" name="Pattern">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:string">
+                      <xs:attribute name="Size" type="xs:unsignedByte" use="optional" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="AliasList">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="PlanElement">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="0" name="Type" type="xs:string" />
+                    <xs:element minOccurs="0" name="ReferenceName" type="xs:string" />
+                    <xs:element minOccurs="0" name="Laterality" type="xs:string" />
+                    <xs:element minOccurs="0" name="Aliases">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element minOccurs="0" maxOccurs="unbounded" name="Alias">
+                            <xs:complexType>
+                              <xs:simpleContent>
+                                <xs:extension base="xs:string">
+                                  <xs:attribute name="Size" type="xs:unsignedByte" use="optional" />
+                                </xs:extension>
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="name" type="xs:string" use="optional" />
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
