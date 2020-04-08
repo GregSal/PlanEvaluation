@@ -661,7 +661,7 @@ class ReportElement():
         '''Provide a formatted string describing this ReportElement.
         Returns:
             str -- A formatted string describing this ReportElement.
-        '''        
+        '''
         item_dict = self.table_output(references, add_target)
         repr_str = '\nReportElement(\n'
         repr_str = '\tName={ItemName}\n'
@@ -886,7 +886,8 @@ class Report():
         else:
             workbook = xw.Book('Plan Report')
         workbook.activate(steal_focus=True)
-
+        # Ensure that not overwriting template file
+        workbook.save(str(self.save_file))
         # Find the appropriate worksheet or create a new one
         sheetnames = [sheet.name for sheet in workbook.sheets]
         if self.worksheet in sheetnames:
@@ -899,6 +900,7 @@ class Report():
         for element in self.report_elements.values():
             if element.target is not None:
                 element.add_to_report(spreadsheet)
+
         return spreadsheet
 
     @staticmethod

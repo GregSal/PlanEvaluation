@@ -249,6 +249,30 @@ def select_save_file(default_directories: ET.Element)->Path:
     return new_save_file
 
 
+def get_save_file(default_directories: ET.Element)->Path:
+    '''
+    Get the default name of the file to save the completed report in.
+    Arguments:
+        default_directories {ET.Element} -- Configuration data.
+    Returns:
+        Path -- The path to the selected file, or None if a file is not
+        selected.
+    '''
+    save_file = default_directories.findtext('Save')
+    # Set the initial directory and file
+    if save_file is None:
+        starting_dir = Path.cwd()
+    else:
+        starting_dir = Path(save_file)
+    new_save_file = file_selection_window(
+        header='Save the Completed Report',
+        title='Save Report As',
+        current_path=starting_dir,
+        file_options=(('Excel Files', '*.xlsx'),),
+        path_type='Save File'
+        )
+    return new_save_file
+
 class DfltPath(NamedTuple):
     '''Individual File/Directory selection Frame parameters.
     Arguments:

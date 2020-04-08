@@ -1,4 +1,4 @@
-<PlanEvaluationConfig>
+﻿<PlanEvaluationConfig>
   <DefaultDirectories>
     <DVH>.\DVH Files</DVH>
     <DVH_File />
@@ -7,7 +7,7 @@
     </ReportDefinitions>
     <ReportTemplates>.\Data</ReportTemplates>
     <ReportPickleFile>.\Data\Reports.pkl</ReportPickleFile>
-    <Save>.\Output</Save>
+    <Save>.\Output\SABR Report.xlsx</Save>
   </DefaultDirectories>
   <LateralityCodeExceptions>
     <BodyRegion Name="ABLB">lower abdomen</BodyRegion>

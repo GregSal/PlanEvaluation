@@ -49,7 +49,7 @@ def run_main_window(base_path, icons, config, config_file,
         window = create_main_window(plan_dict, report_definitions)
         action_settings = action_settings_config()
         action_settings.set_status(window, 'Nothing Selected')
-    
+
         while True:
             event, values = window.Read(timeout=2000)
             if event is None:
@@ -91,7 +91,10 @@ def run_main_window(base_path, icons, config, config_file,
                 action_settings.set_status(window, 'Matched')
             elif event in 'generate_report':
                 action_settings.set_status(window, 'Generating')
-                run_report(active_plan, report)
+                default_directories = config.find(r'./DefaultDirectories')
+                save_file = Path(default_directories.findtext('Save'))
+                #save_file = select_save_file(default_directories)
+                run_report(active_plan, report, save_file)
                 action_settings.set_status(window, 'Generated')
             elif event in 'update_report_definitions':
                 report_definitions = update_report_definitions(config, base_path)
@@ -132,7 +135,7 @@ def run_main_window(base_path, icons, config, config_file,
                 save_file = select_save_file(default_directories)
                 if save_file is not None:
                     if report:
-                        report.save_file = Path(save_file)    
+                        report.save_file = Path(save_file)
                         update_report_header(window, report)
 
 def main():

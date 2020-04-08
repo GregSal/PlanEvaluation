@@ -216,8 +216,10 @@ def load_dvh(plan_desc: PlanDescription, **plan_parameters)->Plan:
 
 
 #%% Generate report
-def run_report(plan: Plan, report: Report):
+def run_report(plan: Plan, report: Report, save_file: Path = None, ):
     report.get_values(plan)
+    if save_file:
+        report.save_file = save_file
     report.build()
 
 
