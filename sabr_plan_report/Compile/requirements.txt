@@ -10,7 +10,7 @@ mkl_random==1.0.1
 mkl==2018.0.2
 numpy==1.14.2
 pefile==2017.11.5
-pip==9.0.3
+pip==19.2
 pycrypto==2.6.1
 pyinstaller==3.3.1
 python==3.5.3
