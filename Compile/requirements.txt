@@ -8,7 +8,7 @@ macholib==1.8
 mkl_fft==1.0.1
 mkl_random==1.0.1
 mkl==2018.0.2
-numpy==1.14.2
+numpy==1.22.0
 pefile==2017.11.5
 pip==9.0.3
 pycrypto==2.6.1
