@@ -1,5 +1,5 @@
 altgraph==0.15
-certifi==2018.1.18
+certifi==2022.12.7
 comtypes==1.1.4
 future==0.16.0
 icc_rt==2017.0.4
