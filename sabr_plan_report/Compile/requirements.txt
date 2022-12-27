@@ -16,7 +16,7 @@ pyinstaller==3.3.1
 python==3.5.3
 pywin32==223
 scipy==1.0.1
-setuptools==39.0.1
+setuptools==65.5.1
 tk==8.6.7
 vc==14
 vs2015_runtime==14.0.25123
